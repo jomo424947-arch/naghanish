@@ -1,0 +1,53 @@
+import React from 'react'
+import { motion } from 'framer-motion'
+import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { Button } from './Button'
+import { cn } from '@lib/utils'
+
+export interface ErrorStateProps {
+  title?: string
+  message?: string
+  onRetry?: () => void
+  retryLabel?: string
+  className?: string
+}
+
+export const ErrorState: React.FC<ErrorStateProps> = ({
+  title = 'حدث خطأ غير متوقع',
+  message = 'تعذر تحميل البيانات المطلوب عرضها. يرجى التحقق من اتصالك بالإنترنت والمحاولة مجدداً.',
+  onRetry,
+  retryLabel = 'إعادة المحاولة',
+  className,
+}) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn(
+        'w-full p-8 sm:p-10 rounded-3xl bg-red-950/20 border border-red-500/40 flex flex-col items-center justify-center text-center gap-4 shadow-xl',
+        className
+      )}
+    >
+      <div className="w-16 h-16 rounded-2xl bg-red-500/20 text-red-400 border border-red-500/30 flex items-center justify-center shadow-lg">
+        <AlertTriangle className="w-8 h-8" />
+      </div>
+
+      <div className="max-w-md">
+        <h3 className="text-lg font-extrabold text-white">{title}</h3>
+        <p className="text-xs sm:text-sm text-red-200/80 font-medium mt-1">{message}</p>
+      </div>
+
+      {onRetry && (
+        <Button
+          variant="outline"
+          size="md"
+          onClick={onRetry}
+          leftIcon={<RefreshCw className="w-4 h-4" />}
+          className="border-red-500/40 text-red-300 hover:bg-red-500/20 hover:text-white"
+        >
+          {retryLabel}
+        </Button>
+      )}
+    </motion.div>
+  )
+}

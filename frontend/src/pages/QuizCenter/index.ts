@@ -1,0 +1,1 @@
+﻿export { QuizCenterPage } from './QuizCenterPage'
