@@ -15,7 +15,7 @@ export const WelcomePage: React.FC = () => {
 
   return (
     <AuthLayout>
-      <div className="p-8 rounded-3xl bg-brand-card/90 border border-brand-cardBorder shadow-2xl backdrop-blur-xl text-center flex flex-col items-center gap-6">
+      <div className="p-8 rounded-3xl bg-brand-card border border-brand-cardBorder shadow-2xl backdrop-blur-xl text-center flex flex-col items-center gap-6">
         {/* Animated Greeting Mascot Frame */}
         <motion.div
           initial={{ scale: 0.8, rotate: -10 }}
@@ -32,10 +32,10 @@ export const WelcomePage: React.FC = () => {
         </motion.div>
 
         <div>
-          <h2 className="text-2xl sm:text-3xl font-black text-white">
+          <h2 className="text-2xl sm:text-3xl font-black text-foreground">
             {dir === 'rtl' ? `أهلاً بك، ${user?.name || 'البطل'}! 👋` : `Welcome, ${user?.name || 'Player'}! 👋`}
           </h2>
-          <p className="text-sm text-slate-300 font-medium mt-2 max-w-sm">
+          <p className="text-sm text-muted-foreground font-medium mt-2 max-w-sm">
             {dir === 'rtl'
               ? 'مرحباً بك في عالم نغانيش! دعنا نخصص تجربتك لنقدم لك أفضل الألعاب والاختبارات الممتعة.'
               : 'Welcome to Naghanish! Let’s customize your experience to serve you the best games & quizzes.'}
@@ -44,23 +44,23 @@ export const WelcomePage: React.FC = () => {
 
         {/* Feature Cards Grid */}
         <div className="w-full grid grid-cols-2 gap-3 text-right rtl:text-right text-left">
-          <div className="p-4 rounded-2xl bg-brand-darkBg/60 border border-brand-cardBorder flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-300 shrink-0">
+          <div className="p-4 rounded-2xl bg-brand-surface/70 border border-brand-cardBorder flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-brand-purple/20 text-brand-purple shrink-0">
               <Gamepad2 className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-white">{dir === 'rtl' ? 'ألعاب ذكية' : 'Smart Games'}</h4>
-              <p className="text-[10px] text-slate-400 font-medium">{dir === 'rtl' ? 'توصيات AI' : 'AI Powered'}</p>
+              <h4 className="text-xs font-bold text-foreground">{dir === 'rtl' ? 'ألعاب ذكية' : 'Smart Games'}</h4>
+              <p className="text-[10px] text-muted-foreground font-medium">{dir === 'rtl' ? 'توصيات AI' : 'AI Powered'}</p>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-brand-darkBg/60 border border-brand-cardBorder flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-cyan-500/20 text-cyan-300 shrink-0">
+          <div className="p-4 rounded-2xl bg-brand-surface/70 border border-brand-cardBorder flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-brand-blue/20 text-brand-blue shrink-0">
               <Compass className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-white">{dir === 'rtl' ? 'غرف بارتي' : 'Party Rooms'}</h4>
-              <p className="text-[10px] text-slate-400 font-medium">{dir === 'rtl' ? 'لعب جماعي' : 'Multiplayer'}</p>
+              <h4 className="text-xs font-bold text-foreground">{dir === 'rtl' ? 'غرف بارتي' : 'Party Rooms'}</h4>
+              <p className="text-[10px] text-muted-foreground font-medium">{dir === 'rtl' ? 'لعب جماعي' : 'Multiplayer'}</p>
             </div>
           </div>
         </div>

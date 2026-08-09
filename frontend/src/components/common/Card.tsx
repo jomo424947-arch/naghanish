@@ -31,17 +31,17 @@ export const Card: React.FC<CardProps> = ({
   }
 
   const variantStyles: Record<CardVariant, string> = {
-    default: 'bg-brand-card/95 border border-brand-cardBorder text-slate-100 shadow-xl',
-    glowing: `bg-brand-card border border-slate-700/60 shadow-lg ${
+    default: 'bg-brand-card border border-brand-cardBorder text-foreground shadow-xl',
+    glowing: `bg-brand-card border border-brand-cardBorder text-foreground shadow-lg ${
       glowColor === 'purple'
         ? 'hover:border-brand-purple/60 hover:shadow-glow'
         : glowColor === 'blue' || glowColor === 'cyan'
         ? 'hover:border-brand-blue/70 hover:shadow-glow-blue'
         : 'hover:border-brand-orange/70 hover:shadow-glow-orange'
     }`,
-    glass: 'glass-panel text-slate-100 shadow-2xl backdrop-blur-xl border border-white/10',
-    gradient: 'bg-gradient-to-br from-brand-card via-[#1E1E3D] to-[#14142B] border border-purple-500/20 text-slate-100',
-    bordered: 'bg-brand-surface border-2 border-brand-cardBorder hover:border-slate-500 text-slate-100',
+    glass: 'glass-panel text-foreground shadow-2xl backdrop-blur-xl border border-brand-cardBorder',
+    gradient: 'bg-brand-card border border-brand-cardBorder text-foreground shadow-xl',
+    bordered: 'bg-brand-surface border-2 border-brand-cardBorder hover:border-brand-purple text-foreground',
   }
 
   return (

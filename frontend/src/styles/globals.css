@@ -38,21 +38,27 @@
     --input: 240 24% 20%;
     --ring: 263 85% 58%;
 
+    --brand-dark-bg: 240 37% 7%;
+    --brand-surface: 240 31% 12%;
+    --brand-card: 240 30% 16%;
+    --brand-card-border: 240 29% 25%;
+
     --radius: 1rem;
   }
 
-  .light {
+  :root.light,
+  html.light {
     --background: 220 33% 98%;
-    --foreground: 240 38% 10%;
+    --foreground: 220 38% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 38% 10%;
-    --card-hover: 220 20% 94%;
+    --card-foreground: 220 38% 10%;
+    --card-hover: 220 20% 96%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 38% 10%;
+    --popover-foreground: 220 38% 10%;
 
-    --primary: 263 85% 54%;
+    --primary: 263 85% 58%;
     --primary-foreground: 0 0% 100%;
     --primary-hover: 263 85% 48%;
 
@@ -62,15 +68,20 @@
     --accent: 24 95% 53%;
     --accent-foreground: 0 0% 100%;
 
-    --muted: 220 14% 90%;
-    --muted-foreground: 240 10% 42%;
+    --muted: 220 14% 94%;
+    --muted-foreground: 215 16% 40%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 88%;
-    --input: 220 13% 90%;
+    --border: 220 13% 85%;
+    --input: 220 13% 88%;
     --ring: 263 85% 54%;
+
+    --brand-dark-bg: 220 33% 98%;
+    --brand-surface: 0 0% 100%;
+    --brand-card: 0 0% 100%;
+    --brand-card-border: 220 13% 85%;
   }
 
   * {
@@ -89,6 +100,64 @@
   [dir="rtl"] body {
     font-family: 'IBM Plex Sans Arabic', 'Plus Jakarta Sans', sans-serif;
   }
+
+  .light {
+    color-scheme: light;
+  }
+
+  .light body {
+    background-color: #F8FAFC !important;
+    color: #0F172A !important;
+  }
+
+  /* High-contrast text overrides for Light Mode */
+  .light h1, .light h2, .light h3, .light h4, .light h5, .light h6 {
+    color: #0F172A;
+  }
+
+  .light .text-slate-100,
+  .light .text-slate-200,
+  .light .text-slate-300 {
+    color: #0F172A;
+  }
+
+  .light .text-slate-400,
+  .light .text-slate-500,
+  .light .text-muted-foreground {
+    color: #334155;
+  }
+
+  .light .text-slate-600 {
+    color: #1E293B;
+  }
+
+  /* Light mode container and card polish matching all opacity variants */
+  .light [class*="bg-brand-card"],
+  .light .bg-brand-card {
+    background-color: #FFFFFF !important;
+    border-color: #E2E8F0 !important;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  .light [class*="bg-brand-surface"],
+  .light .bg-brand-surface {
+    background-color: #FFFFFF !important;
+    border-color: #E2E8F0 !important;
+  }
+
+  .light [class*="bg-brand-darkBg"],
+  .light .bg-brand-darkBg {
+    background-color: #F1F5F9 !important;
+    border-color: #E2E8F0 !important;
+  }
+
+  .light .glass-panel {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+  }
+
+
 }
 
 /* Custom Scrollbar */
@@ -142,3 +211,4 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+

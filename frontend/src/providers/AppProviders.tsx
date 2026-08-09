@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useLayoutEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MotionConfig } from 'framer-motion'
 import { useThemeStore } from '@store/themeStore'
@@ -20,7 +20,7 @@ interface AppProvidersProps {
 export function AppProviders({ children }: AppProvidersProps) {
   const { theme, language } = useThemeStore()
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     // Initialize Theme class on document root
     const root = document.documentElement
     root.classList.remove('light', 'dark')

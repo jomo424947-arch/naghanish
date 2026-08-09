@@ -6,6 +6,9 @@ import { SectionTitle } from '@components/common/SectionTitle'
 import { Card } from '@components/common/Card'
 import { Input } from '@components/common/Input'
 import { Button } from '@components/common/Button'
+import { SEO } from '@components/common/SEO'
+import { AdSlot } from '@components/common/AdSlot'
+import { ROUTES } from '@constants/routes'
 import { useThemeStore } from '@store/themeStore'
 
 const GAMES = [
@@ -20,6 +23,7 @@ const GAMES = [
 const CATEGORIES = ['All', 'Brain', 'Memory', 'Speed', 'Logic']
 
 export const GamesPage: React.FC = () => {
+  const navigate = useNavigate()
   const { dir } = useThemeStore()
   const [selected, setSelected] = React.useState('All')
   const [search, setSearch] = React.useState('')
@@ -31,6 +35,12 @@ export const GamesPage: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-8 py-4">
+      <SEO
+        title="الألعاب الذهنية | نغنِش"
+        description="تحدَ أصدقاءك وقوِّ قدراتك الذهنية وسرعة بديهتك مع ألعاب نغنِش التفاعلية."
+        keywords={['ألعاب ذهنية', 'العاب ذاكرة', 'اختبار سرعة', 'العاب نغنش']}
+      />
+
       <SectionTitle
         title={dir === 'rtl' ? 'الألعاب الذهنية 🎮' : 'Brain Games 🎮'}
         subtitle={dir === 'rtl' ? 'اختر لعبتك المفضلة وابدأ التحدي' : 'Choose your game and start the challenge'}
@@ -66,6 +76,9 @@ export const GamesPage: React.FC = () => {
         ))}
       </div>
 
+      {/* Native Ad Slot */}
+      <AdSlot variant="in-feed" slotId="ad-games-page" />
+
       {/* Games Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((game, i) => (
@@ -94,7 +107,13 @@ export const GamesPage: React.FC = () => {
                     <span className="text-[11px] font-bold text-amber-300">{game.stars}</span>
                   </div>
                 </div>
-                <Button variant="primary" size="sm" fullWidth leftIcon={<Play className="w-3.5 h-3.5 fill-current" />}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  fullWidth
+                  leftIcon={<Play className="w-3.5 h-3.5 fill-current" />}
+                  onClick={() => navigate(`${ROUTES.GAMES}/${game.id}`)}
+                >
                   {dir === 'rtl' ? 'العب الآن' : 'Play Now'}
                 </Button>
               </div>

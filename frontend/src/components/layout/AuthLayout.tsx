@@ -27,7 +27,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   }
 
   return (
-    <div className="relative min-h-screen w-full bg-brand-darkBg text-slate-100 flex flex-col justify-between overflow-x-hidden selection:bg-brand-purple/40">
+    <div className="relative min-h-screen w-full bg-brand-darkBg text-foreground flex flex-col justify-between overflow-x-hidden selection:bg-brand-purple/40">
       {/* Background Animated Blobs & Mesh Grid */}
       <AnimatedBackground variant="auth" />
 

@@ -34,13 +34,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           disabled={disabled}
           className={cn(
-            'w-full bg-brand-card/90 border rounded-2xl text-slate-100 placeholder-slate-500 text-sm font-medium transition-all duration-200 outline-none',
+            'w-full bg-brand-card border rounded-2xl text-foreground placeholder-muted-foreground text-sm font-medium transition-all duration-200 outline-none',
             'py-3.5 px-4',
             leftIcon && 'pl-11 rtl:pl-4 rtl:pr-11',
             rightIcon && 'pr-11 rtl:pr-4 rtl:pl-11',
             error
               ? 'border-red-500 focus:border-red-400 focus:ring-2 focus:ring-red-500/20'
-              : 'border-brand-cardBorder focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/30 hover:border-slate-600',
+              : 'border-brand-cardBorder focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/30 hover:border-brand-purple/60',
             disabled && 'opacity-50 cursor-not-allowed bg-brand-surface',
             className
           )}

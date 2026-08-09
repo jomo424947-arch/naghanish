@@ -2,44 +2,43 @@
 main.py
 
 FastAPI application factory.
-Creates and configures the FastAPI app instance.
+Creates and configures the FastAPI app instance for Naghanish.
 
 To run:
     uvicorn app.main:app --reload
 """
 
 from fastapi import FastAPI
-
-# TODO: Import and register components as they are implemented:
-# from app.api.router import api_router
-# from app.core.config import settings
-# from app.middleware.cors import setup_cors
-# from app.middleware.logging import setup_logging
+from app.api.router import api_router
+from app.middleware.cors import setup_cors
 
 
 def create_application() -> FastAPI:
     """Create and configure the FastAPI application."""
 
     application = FastAPI(
-        title="Naghanish API",
-        description="AI-powered entertainment platform API",
+        title="Naghanish API 🧠",
+        description="AI-powered entertainment platform API for Naghanish",
         version="0.1.0",
-        # TODO: Set docs_url=None and redoc_url=None in production
         docs_url="/api/docs",
         redoc_url="/api/redoc",
         openapi_url="/api/openapi.json",
     )
 
-    # TODO: Register middleware (order matters — outermost first)
-    # setup_cors(application)
-    # setup_logging(application)
+    # Enable CORS
+    setup_cors(application)
 
-    # TODO: Register event handlers
-    # @application.on_event("startup")
-    # async def startup(): ...
+    # Include API Routers under /api/v1
+    application.include_router(api_router, prefix="/api/v1")
 
-    # TODO: Register routers
-    # application.include_router(api_router, prefix="/api/v1")
+    @application.get("/", tags=["Health"])
+    def root():
+        return {
+            "status": "online",
+            "app": "Naghanish API 🧠",
+            "docs": "/api/docs",
+            "version": "0.1.0"
+        }
 
     return application
 

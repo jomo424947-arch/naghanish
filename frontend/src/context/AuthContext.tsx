@@ -6,7 +6,7 @@
  */
 
 import { createContext } from 'react'
-import type { User } from '@types/user.types'
+import type { User } from '../types/user.types'
 
 export interface AuthContextValue {
   user: User | null

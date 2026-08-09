@@ -135,8 +135,8 @@ export const ChooseInterestsPage: React.FC = () => {
     >
       <div className="flex flex-col gap-6">
         {/* Selection Counter Bar */}
-        <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-brand-card/90 border border-brand-cardBorder text-xs font-bold">
-          <span className="text-slate-300">
+        <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-brand-card border border-brand-cardBorder text-xs font-bold shadow-sm">
+          <span className="text-foreground">
             {dir === 'rtl' ? 'الاهتمامات المختارة:' : 'Selected Topics:'}
           </span>
           <span className="px-3 py-1 rounded-full bg-brand-purple/20 text-brand-blue border border-cyan-400/30">

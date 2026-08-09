@@ -16,7 +16,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
     return (
       <div className={cn('flex flex-col gap-1.5 w-full', wrapperClassName)}>
         {label && (
-          <label htmlFor={inputId} className="text-xs sm:text-sm font-semibold text-slate-200 flex items-center gap-1">
+          <label htmlFor={inputId} className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1">
             {label}
             {required && <span className="text-brand-orange font-bold">*</span>}
           </label>
@@ -35,7 +35,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
             {errorMessage}
           </p>
         ) : helperText ? (
-          <p className="text-xs text-slate-400 mt-0.5">{helperText}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{helperText}</p>
         ) : null}
       </div>
     )

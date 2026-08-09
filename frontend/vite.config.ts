@@ -27,6 +27,8 @@ export default defineConfig({
       '@lib': path.resolve(__dirname, './src/lib'),
       '@api': path.resolve(__dirname, './src/api'),
       '@guards': path.resolve(__dirname, './src/guards'),
+      '@routes': path.resolve(__dirname, './src/routes'),
+      '@layouts': path.resolve(__dirname, './src/layouts'),
     },
   },
   server: {

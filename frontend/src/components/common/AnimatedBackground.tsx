@@ -12,11 +12,11 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   className,
 }) => {
   return (
-    <div className={cn('fixed inset-0 pointer-events-none overflow-hidden z-0 select-none', className)}>
+    <div className={cn('fixed inset-0 pointer-events-none overflow-hidden z-0 select-none transition-all duration-300', className)}>
       {/* Radial Gradient Glow Center */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-brand-purple/15 rounded-full blur-[140px]" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-brand-purple/15 light:bg-purple-200/40 rounded-full blur-[140px]" />
 
-      {/* Floating Brighter Blue Ambient Blob (Top-Right / Left) */}
+      {/* Floating Ambient Blob (Top-Right / Left) */}
       <motion.div
         animate={{
           x: [0, 40, -40, 0],
@@ -24,10 +24,10 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
           scale: [1, 1.1, 0.9, 1],
         }}
         transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute -top-20 -right-20 w-[450px] h-[450px] bg-brand-blue/20 rounded-full blur-[130px]"
+        className="absolute -top-20 -right-20 w-[450px] h-[450px] bg-brand-blue/20 light:bg-sky-200/50 rounded-full blur-[130px]"
       />
 
-      {/* Floating Orange Accent Blob (Bottom-Left) */}
+      {/* Floating Accent Blob (Bottom-Left) */}
       <motion.div
         animate={{
           x: [0, -30, 30, 0],
@@ -35,15 +35,15 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
           scale: [1, 0.95, 1.05, 1],
         }}
         transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute -bottom-20 -left-20 w-[400px] h-[400px] bg-brand-orange/15 rounded-full blur-[120px]"
+        className="absolute -bottom-20 -left-20 w-[400px] h-[400px] bg-brand-orange/15 light:bg-amber-200/40 rounded-full blur-[120px]"
       />
 
       {/* Grid Pattern Overlay */}
       {variant !== 'minimal' && (
         <div
-          className="absolute inset-0 opacity-[0.03]"
+          className="absolute inset-0 opacity-[0.03] light:opacity-[0.05]"
           style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.8) 1px, transparent 0)`,
+            backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
             backgroundSize: '36px 36px',
           }}
         />
@@ -67,3 +67,4 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
     </div>
   )
 }
+

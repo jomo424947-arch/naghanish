@@ -25,46 +25,46 @@ export const InterestCard: React.FC<InterestCardProps> = ({
 }) => {
   const colorVariants: Record<CategoryColor, { card: string; border: string; glow: string; iconBg: string }> = {
     purple: {
-      card: 'from-purple-900/30 to-brand-card',
+      card: 'from-purple-500/20 via-purple-500/10 to-brand-card',
       border: 'border-purple-500',
-      glow: 'shadow-[0_0_20px_rgba(147,51,234,0.4)]',
-      iconBg: 'bg-purple-500/20 text-purple-300',
+      glow: 'shadow-[0_0_20px_rgba(147,51,234,0.3)]',
+      iconBg: 'bg-brand-purple/20 text-brand-purple',
     },
     cyan: {
-      card: 'from-cyan-900/30 to-brand-card',
-      border: 'border-cyan-400',
-      glow: 'shadow-[0_0_20px_rgba(0,210,255,0.4)]',
-      iconBg: 'bg-cyan-500/20 text-cyan-300',
+      card: 'from-cyan-500/20 via-cyan-500/10 to-brand-card',
+      border: 'border-cyan-500',
+      glow: 'shadow-[0_0_20px_rgba(0,210,255,0.3)]',
+      iconBg: 'bg-brand-blue/20 text-brand-blue',
     },
     blue: {
-      card: 'from-blue-900/30 to-brand-card',
-      border: 'border-sky-400',
-      glow: 'shadow-[0_0_20px_rgba(56,189,248,0.4)]',
-      iconBg: 'bg-sky-500/20 text-sky-300',
+      card: 'from-blue-500/20 via-blue-500/10 to-brand-card',
+      border: 'border-sky-500',
+      glow: 'shadow-[0_0_20px_rgba(56,189,248,0.3)]',
+      iconBg: 'bg-brand-blue/20 text-brand-blue',
     },
     orange: {
-      card: 'from-orange-900/30 to-brand-card',
+      card: 'from-orange-500/20 via-orange-500/10 to-brand-card',
       border: 'border-orange-500',
-      glow: 'shadow-[0_0_20px_rgba(249,115,22,0.4)]',
-      iconBg: 'bg-orange-500/20 text-orange-300',
+      glow: 'shadow-[0_0_20px_rgba(249,115,22,0.3)]',
+      iconBg: 'bg-brand-orange/20 text-brand-orange',
     },
     yellow: {
-      card: 'from-amber-900/30 to-brand-card',
-      border: 'border-amber-400',
-      glow: 'shadow-[0_0_20px_rgba(245,158,11,0.4)]',
-      iconBg: 'bg-amber-500/20 text-amber-300',
+      card: 'from-amber-500/20 via-amber-500/10 to-brand-card',
+      border: 'border-amber-500',
+      glow: 'shadow-[0_0_20px_rgba(245,158,11,0.3)]',
+      iconBg: 'bg-brand-gold/20 text-brand-gold',
     },
     green: {
-      card: 'from-emerald-900/30 to-brand-card',
-      border: 'border-emerald-400',
-      glow: 'shadow-[0_0_20px_rgba(16,185,129,0.4)]',
-      iconBg: 'bg-emerald-500/20 text-emerald-300',
+      card: 'from-emerald-500/20 via-emerald-500/10 to-brand-card',
+      border: 'border-emerald-500',
+      glow: 'shadow-[0_0_20px_rgba(16,185,129,0.3)]',
+      iconBg: 'bg-brand-green/20 text-brand-green',
     },
     pink: {
-      card: 'from-pink-900/30 to-brand-card',
+      card: 'from-pink-500/20 via-pink-500/10 to-brand-card',
       border: 'border-pink-500',
-      glow: 'shadow-[0_0_20px_rgba(236,72,153,0.4)]',
-      iconBg: 'bg-pink-500/20 text-pink-300',
+      glow: 'shadow-[0_0_20px_rgba(236,72,153,0.3)]',
+      iconBg: 'bg-brand-pink/20 text-brand-pink',
     },
   }
 
@@ -80,7 +80,7 @@ export const InterestCard: React.FC<InterestCardProps> = ({
         'relative p-5 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center justify-center text-center gap-3 cursor-pointer overflow-hidden group select-none',
         selected
           ? `bg-gradient-to-b ${themeStyle.card} ${themeStyle.border} ${themeStyle.glow}`
-          : 'bg-brand-card/90 border-brand-cardBorder hover:border-slate-500 hover:bg-brand-card'
+          : 'bg-brand-card border-brand-cardBorder hover:border-brand-purple/60 shadow-sm'
       )}
     >
       {/* Selected check badge */}
@@ -105,8 +105,8 @@ export const InterestCard: React.FC<InterestCardProps> = ({
       </div>
 
       <div>
-        <h3 className="text-base font-bold text-white tracking-wide">{title}</h3>
-        {subtitle && <p className="text-xs text-slate-400 font-medium mt-0.5">{subtitle}</p>}
+        <h3 className="text-base font-bold text-foreground tracking-wide">{title}</h3>
+        {subtitle && <p className="text-xs text-muted-foreground font-medium mt-0.5">{subtitle}</p>}
       </div>
     </motion.button>
   )

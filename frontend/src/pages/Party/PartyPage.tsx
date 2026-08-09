@@ -6,6 +6,8 @@ import { SectionTitle } from '@components/common/SectionTitle'
 import { Card } from '@components/common/Card'
 import { Button } from '@components/common/Button'
 import { Input } from '@components/common/Input'
+import { SEO } from '@components/common/SEO'
+import { AdSlot } from '@components/common/AdSlot'
 import { ROUTES } from '@constants/routes'
 import { useThemeStore } from '@store/themeStore'
 
@@ -21,8 +23,18 @@ export const PartyPage: React.FC = () => {
   const [joinCode, setJoinCode] = useState('')
   const [activeTab, setActiveTab] = useState<'browse' | 'join'>('browse')
 
+  const handleJoin = (codeToJoin: string) => {
+    navigate(`/party/lobby/${codeToJoin}`)
+  }
+
   return (
     <div className="flex flex-col gap-8 py-4">
+      <SEO
+        title="بارتي نايت | نغنِش"
+        description="أنشئ غرفتك الخاصة أو انضم إلى غرف اللعب الجماعية التفاعلية الحية مع أصدقائك."
+        keywords={['بارتي نايت', 'العاب جماعية', 'غرف لعب', 'نغنش بارتي']}
+      />
+
       <SectionTitle
         title={dir === 'rtl' ? 'بارتي نايت 🎉' : 'Party Night 🎉'}
         subtitle={dir === 'rtl' ? 'العب مع أصدقائك في غرف لعب جماعية حية' : 'Play with friends in live multiplayer rooms'}
@@ -49,8 +61,8 @@ export const PartyPage: React.FC = () => {
             <h3 className="text-2xl font-black text-white tracking-[0.15em]">NGAI23</h3>
           </div>
         </div>
-        <Button variant="secondary" size="md" className="shadow-glow-blue">
-          {dir === 'rtl' ? 'مشاركة الكود' : 'Share Code'}
+        <Button variant="secondary" size="md" className="shadow-glow-blue" onClick={() => handleJoin('NGAI23')}>
+          {dir === 'rtl' ? 'دخول الغرفة' : 'Enter Lobby'}
         </Button>
       </div>
 
@@ -72,6 +84,9 @@ export const PartyPage: React.FC = () => {
           </button>
         ))}
       </div>
+
+      {/* Native Ad Slot */}
+      <AdSlot variant="in-feed" slotId="ad-party-page" />
 
       {/* Browse Rooms List */}
       {activeTab === 'browse' && (
@@ -103,7 +118,7 @@ export const PartyPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <Button variant="secondary" size="sm">
+              <Button variant="secondary" size="sm" onClick={() => handleJoin(room.code)}>
                 {dir === 'rtl' ? 'انضم' : 'Join'}
               </Button>
             </motion.div>
@@ -128,7 +143,8 @@ export const PartyPage: React.FC = () => {
             variant="primary"
             size="lg"
             fullWidth
-            disabled={joinCode.length < 6}
+            disabled={joinCode.length < 4}
+            onClick={() => handleJoin(joinCode)}
             rightIcon={dir === 'rtl' ? <ArrowLeft className="w-5 h-5" /> : <ArrowRight className="w-5 h-5" />}
             className="shadow-glow"
           >
@@ -139,18 +155,18 @@ export const PartyPage: React.FC = () => {
 
       {/* Quick options */}
       <div className="grid grid-cols-2 gap-3">
-        <Card variant="glowing" isInteractive className="flex flex-col items-center gap-3 p-5 text-center">
+        <Card variant="glowing" isInteractive onClick={() => handleJoin('RANDOM')} className="flex flex-col items-center gap-3 p-5 text-center">
           <div className="p-3 rounded-2xl bg-cyan-500/20 text-cyan-300"><Shuffle className="w-6 h-6" /></div>
           <div>
             <h4 className="font-bold text-white text-sm">{dir === 'rtl' ? 'عشوائي' : 'Random Room'}</h4>
             <p className="text-[11px] text-slate-400 mt-0.5">{dir === 'rtl' ? 'انضم لغرفة عشوائية' : 'Join any open room'}</p>
           </div>
         </Card>
-        <Card variant="glowing" isInteractive className="flex flex-col items-center gap-3 p-5 text-center">
+        <Card variant="glowing" isInteractive onClick={() => navigate(ROUTES.CREATE_ROOM)} className="flex flex-col items-center gap-3 p-5 text-center">
           <div className="p-3 rounded-2xl bg-brand-purple/20 text-purple-300"><Play className="w-6 h-6 fill-current" /></div>
           <div>
-            <h4 className="font-bold text-white text-sm">{dir === 'rtl' ? '5 جولات' : '5 Rounds'}</h4>
-            <p className="text-[11px] text-slate-400 mt-0.5">{dir === 'rtl' ? 'الإعداد الافتراضي' : 'Default room setting'}</p>
+            <h4 className="font-bold text-white text-sm">{dir === 'rtl' ? 'غرفة جديدة' : 'New Room'}</h4>
+            <p className="text-[11px] text-slate-400 mt-0.5">{dir === 'rtl' ? 'إنشاء إعدادات مخصصة' : 'Custom room settings'}</p>
           </div>
         </Card>
       </div>
