@@ -45,7 +45,9 @@
       "@api/*": ["src/api/*"],
       "@guards/*": ["src/guards/*"],
       "@routes/*": ["src/routes/*"],
-      "@layouts/*": ["src/layouts/*"]
+      "@layouts/*": ["src/layouts/*"],
+      "@worlds/*": ["src/worlds/*"],
+      "@data/*": ["src/data/*"]
     }
   },
   "include": ["src"]

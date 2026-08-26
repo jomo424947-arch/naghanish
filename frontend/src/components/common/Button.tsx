@@ -3,7 +3,18 @@ import { motion, HTMLMotionProps } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@lib/utils'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'accent' | 'outline' | 'ghost' | 'danger'
+export type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'accent'
+  | 'outline'
+  | 'ghost'
+  | 'danger'
+  | 'shilla'
+  | 'arcade'
+  | 'gold'
+  | 'reflex'
+  | 'chaos'
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl'
 
 export interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
@@ -31,17 +42,27 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const variantStyles: Record<ButtonVariant, string> = {
     primary:
-      'bg-gradient-to-r from-brand-purpleDark via-brand-purple to-purple-600 text-white shadow-glow hover:shadow-purple-500/50 border border-purple-500/30',
+      'bg-gradient-to-r from-brand-purpleDark via-brand-purple to-purple-600 text-white font-extrabold shadow-glow hover:shadow-purple-500/50 border border-purple-400/40 active:translate-y-0.5',
     secondary:
-      'bg-gradient-to-r from-cyan-500 via-brand-blue to-sky-400 text-slate-950 font-bold shadow-glow-blue hover:shadow-cyan-400/50 border border-cyan-300/40', // Brighter electric blue
+      'bg-gradient-to-r from-cyan-400 via-brand-blue to-sky-400 text-slate-950 font-black shadow-glow-blue hover:shadow-cyan-400/60 border border-cyan-200/50 active:translate-y-0.5',
     accent:
-      'bg-gradient-to-r from-brand-orange to-amber-500 text-white shadow-glow-orange hover:shadow-amber-500/50 border border-orange-400/30',
+      'bg-gradient-to-r from-brand-orange via-amber-500 to-yellow-500 text-slate-950 font-black shadow-glow-orange hover:shadow-amber-500/60 border border-orange-300/50 active:translate-y-0.5',
+    shilla:
+      'bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-400 text-slate-950 font-black shadow-glow-orange hover:shadow-orange-500/60 border border-amber-300/60 active:translate-y-0.5',
+    arcade:
+      'bg-gradient-to-r from-purple-600 via-brand-blue to-cyan-400 text-white font-black shadow-glow-blue hover:shadow-cyan-400/60 border border-cyan-300/50 active:translate-y-0.5',
+    gold:
+      'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 font-black shadow-glow-gold hover:shadow-yellow-400/60 border border-amber-200/60 active:translate-y-0.5',
+    reflex:
+      'bg-gradient-to-r from-red-600 via-rose-500 to-orange-500 text-white font-black shadow-glow-red hover:shadow-red-500/60 border border-rose-300/40 active:translate-y-0.5',
+    chaos:
+      'bg-gradient-to-r from-lime-500 via-emerald-400 to-teal-400 text-slate-950 font-black shadow-glow-lime hover:shadow-lime-400/60 border border-lime-200/60 active:translate-y-0.5',
     outline:
-      'border-2 border-brand-cardBorder bg-brand-card/40 text-slate-200 hover:bg-brand-card hover:border-brand-purple/60 hover:text-white',
+      'border-2 border-brand-cardBorder bg-brand-card/70 text-slate-200 font-bold hover:bg-brand-card hover:border-brand-purple/70 hover:text-white',
     ghost:
-      'bg-transparent text-slate-300 hover:bg-white/10 hover:text-white',
+      'bg-transparent text-slate-300 font-bold hover:bg-white/10 hover:text-white',
     danger:
-      'bg-gradient-to-r from-red-600 to-rose-500 text-white shadow-md hover:shadow-red-500/30',
+      'bg-gradient-to-r from-red-600 to-rose-500 text-white font-extrabold shadow-md hover:shadow-red-500/40 border border-red-400/30',
   }
 
   const sizeStyles: Record<ButtonSize, string> = {

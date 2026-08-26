@@ -1,7 +1,7 @@
 import React from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Home, Gamepad2, Sparkles, Users, Trophy, User } from 'lucide-react'
+import { Home, Gamepad2, Sparkles, Users, Trophy, User, Bell, Zap } from 'lucide-react'
 import { AnimatedBackground } from '@components/common/AnimatedBackground'
 import { Logo } from '@components/common/Logo'
 import { ROUTES } from '@constants/routes'
@@ -10,12 +10,13 @@ import { useThemeStore } from '@store/themeStore'
 import { cn } from '@lib/utils'
 
 const NAV_ITEMS = [
-  { to: ROUTES.HOME,        icon: Home,       labelAr: 'الرئيسية',   labelEn: 'Home' },
-  { to: ROUTES.GAMES,       icon: Gamepad2,   labelAr: 'الألعاب',    labelEn: 'Games' },
-  { to: ROUTES.QUIZ_CENTER, icon: Sparkles,   labelAr: 'الإختبارات', labelEn: 'Quizzes' },
-  { to: ROUTES.PARTY,       icon: Users,      labelAr: 'بارتي',      labelEn: 'Party' },
-  { to: ROUTES.LEADERBOARD, icon: Trophy,     labelAr: 'الصدارة',    labelEn: 'Rank' },
-  { to: ROUTES.PROFILE,     icon: User,       labelAr: 'الملف',      labelEn: 'Profile' },
+  { to: ROUTES.HOME, icon: Home, labelAr: 'الرئيسية', labelEn: 'Hub', badgeColor: 'hover:text-cyan-300' },
+  { to: ROUTES.GAMES, icon: Gamepad2, labelAr: 'الألعاب', labelEn: 'Catalog', badgeColor: 'hover:text-cyan-400' },
+  { to: ROUTES.WORLD_SHILLA, icon: Users, labelAr: 'الشِلّة', labelEn: 'Shilla', badgeColor: 'hover:text-orange-400' },
+  { to: ROUTES.WORLD_ARCADE, icon: Gamepad2, labelAr: 'الأركيد', labelEn: 'Arcade', badgeColor: 'hover:text-cyan-400' },
+  { to: ROUTES.WORLD_IQ_LAB, icon: Sparkles, labelAr: 'المختبر', labelEn: 'IQ Lab', badgeColor: 'hover:text-violet-400' },
+  { to: ROUTES.WORLD_CHAMPIONS, icon: Trophy, labelAr: 'الصدارة', labelEn: 'Champions', badgeColor: 'hover:text-amber-400' },
+  { to: ROUTES.PROFILE, icon: User, labelAr: 'الملف', labelEn: 'Profile', badgeColor: 'hover:text-pink-400' },
 ]
 
 export function DashboardLayout() {
@@ -28,23 +29,23 @@ export function DashboardLayout() {
     <div className="relative min-h-screen bg-brand-darkBg text-foreground flex flex-col overflow-x-hidden">
       <AnimatedBackground variant="minimal" />
 
-      {/* ── Desktop Top Header ──────────────────────────────────── */}
-      <header className="hidden md:flex relative z-30 w-full bg-brand-surface border-b border-brand-cardBorder backdrop-blur-xl sticky top-0 shadow-sm">
+      {/* ── Desktop Top Gaming Navigation Bar ─────────────────────────── */}
+      <header className="hidden md:flex relative z-30 w-full bg-brand-surface/90 border-b border-brand-cardBorder backdrop-blur-2xl sticky top-0 shadow-lg">
         <div className="w-full max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-6">
           <Logo size="sm" showTagline={false} />
 
           {/* Desktop Nav Links */}
-          <nav className="flex items-center gap-1">
+          <nav className="flex items-center gap-1.5 p-1 rounded-2xl bg-brand-darkBg/60 border border-brand-cardBorder">
             {NAV_ITEMS.map(({ to, icon: Icon, labelAr, labelEn }) => (
               <NavLink
                 key={to}
                 to={to}
                 className={({ isActive }) =>
                   cn(
-                    'flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-extrabold transition-all duration-200',
+                    'flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition-all duration-200 cursor-pointer',
                     isActive
-                      ? 'bg-brand-purple text-white border border-brand-purple/50 shadow-glow'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-brand-card'
+                      ? 'bg-gradient-to-r from-brand-purple to-brand-blue text-white shadow-glow border border-cyan-400/40'
+                      : 'text-slate-400 hover:text-white hover:bg-brand-card'
                   )
                 }
               >
@@ -54,51 +55,68 @@ export function DashboardLayout() {
             ))}
           </nav>
 
-          {/* Right: Coins + Avatar */}
+          {/* Right: Coins + Level + Avatar */}
           <div className="flex items-center gap-3">
-            <div
+            {/* Coins */}
+            <button
               onClick={() => navigate(ROUTES.STORE)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-brand-card border border-brand-cardBorder text-xs font-extrabold cursor-pointer hover:border-amber-400/50 transition-colors shadow-sm"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl bg-brand-card border border-amber-400/40 text-xs font-black text-amber-300 shadow-glow-gold hover:scale-105 transition-all cursor-pointer"
             >
-              <span className="text-amber-400">⚡</span>
-              <span className="text-foreground">{user?.coins ?? 2350}</span>
-            </div>
+              <Zap className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+              <span>{user?.coins ?? 2450}</span>
+            </button>
+
+            {/* Notification Bell */}
+            <button
+              onClick={() => navigate(ROUTES.NOTIFICATIONS)}
+              className="p-2 rounded-2xl bg-brand-card border border-brand-cardBorder text-slate-300 hover:text-white hover:border-brand-purple transition-colors cursor-pointer"
+              aria-label="Notifications"
+            >
+              <Bell className="w-4 h-4" />
+            </button>
+
+            {/* Avatar Pill */}
             <button
               onClick={() => navigate(ROUTES.PROFILE)}
-              className="w-9 h-9 rounded-2xl bg-gradient-to-br from-brand-purple to-brand-blue flex items-center justify-center text-lg shadow-glow hover:scale-105 transition-transform text-white"
+              className="flex items-center gap-2 p-1 pl-2.5 rtl:pl-1 rtl:pr-2.5 rounded-2xl bg-brand-card border border-brand-cardBorder hover:border-cyan-400 transition-all cursor-pointer"
             >
-              🧠
+              <span className="text-[11px] font-black text-cyan-300 hidden lg:inline">
+                LVL {user?.level ?? 12}
+              </span>
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-purple to-brand-blue flex items-center justify-center text-base shadow-glow text-white">
+                🧠
+              </div>
             </button>
           </div>
         </div>
       </header>
 
       {/* ── Page Content ────────────────────────────────────────── */}
-      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto px-2 sm:px-4 pb-28 md:pb-8 pt-4">
+      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 pb-28 md:pb-10 pt-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
           >
             <Outlet />
           </motion.div>
         </AnimatePresence>
       </main>
 
-      {/* ── Mobile Bottom Navigation Bar ───────────────────────── */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-brand-surface/95 backdrop-blur-xl border-t border-brand-cardBorder safe-area-inset-bottom">
-        <div className="flex items-center justify-around px-2 py-1.5">
+      {/* ── Mobile Bottom Navigation Bar (Tactile Gaming Dock) ──────── */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-brand-surface/95 backdrop-blur-2xl border-t-2 border-brand-cardBorder safe-area-inset-bottom shadow-2xl">
+        <div className="flex items-center justify-around px-2 py-2">
           {NAV_ITEMS.map(({ to, icon: Icon, labelAr, labelEn }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) =>
                 cn(
-                  'flex flex-col items-center gap-0.5 px-2 py-1 rounded-2xl transition-all duration-200 min-w-[48px]',
-                  isActive ? 'text-white' : 'text-slate-500 hover:text-slate-300'
+                  'flex flex-col items-center gap-0.5 px-2 py-1 rounded-2xl transition-all duration-200 min-w-[50px]',
+                  isActive ? 'text-white scale-105' : 'text-slate-500 hover:text-slate-300'
                 )
               }
             >
@@ -106,15 +124,20 @@ export function DashboardLayout() {
                 <>
                   <div
                     className={cn(
-                      'w-9 h-9 rounded-2xl flex items-center justify-center transition-all duration-200',
+                      'w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200',
                       isActive
-                        ? 'bg-gradient-to-br from-brand-purple to-brand-blue shadow-glow'
-                        : 'bg-transparent'
+                        ? 'bg-gradient-to-br from-brand-purple to-brand-blue shadow-glow text-white'
+                        : 'bg-brand-darkBg/60 text-slate-400 border border-brand-cardBorder'
                     )}
                   >
-                    <Icon className={cn('w-4 h-4', isActive ? 'text-white' : 'text-slate-500')} />
+                    <Icon className="w-5 h-5" />
                   </div>
-                  <span className={cn('text-[9px] font-bold', isActive ? 'text-brand-blue' : 'text-slate-500')}>
+                  <span
+                    className={cn(
+                      'text-[9px] font-black',
+                      isActive ? 'text-cyan-300' : 'text-slate-400'
+                    )}
+                  >
                     {dir === 'rtl' ? labelAr : labelEn}
                   </span>
                 </>

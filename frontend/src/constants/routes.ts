@@ -40,6 +40,14 @@ export const ROUTES = {
   PROFILE: '/profile',
   SEARCH: '/search',
 
+  // 6 Gaming Worlds Routes
+  WORLD_SHILLA: '/world/shilla',
+  WORLD_ARCADE: '/world/arcade',
+  WORLD_IQ_LAB: '/world/iq-lab',
+  WORLD_REFLEX: '/world/reflex',
+  WORLD_CHAMPIONS: '/world/champions',
+  WORLD_CHAOS: '/world/chaos',
+
   // 404 & Error
   NOT_FOUND: '/404',
   SERVER_ERROR: '/500',

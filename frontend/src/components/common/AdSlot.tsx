@@ -3,6 +3,9 @@ import { Sparkles, X, ExternalLink } from 'lucide-react'
 import { useThemeStore } from '@store/themeStore'
 import { cn } from '@lib/utils'
 
+import { NaghanishModeId } from '@components/common/ModeVisuals'
+import { WORLD_THEMES } from '@theme/world.theme'
+
 export interface AdSlotProps {
   variant?: 'banner' | 'in-feed' | 'sidebar' | 'interstitial'
   slotId?: string
@@ -12,6 +15,7 @@ export interface AdSlotProps {
   adText?: string
   adTextEn?: string
   targetUrl?: string
+  worldId?: NaghanishModeId
 }
 
 export const AdSlot: React.FC<AdSlotProps> = ({
@@ -22,9 +26,11 @@ export const AdSlot: React.FC<AdSlotProps> = ({
   adText = 'احصل على اشتراك نغنِش الفائق لتلعب بدون إعلانات وتكسب ضعف النقاط!',
   adTextEn = 'Upgrade to Naghanish VIP to play ad-free and earn 2x XP!',
   targetUrl = '#',
+  worldId,
 }) => {
   const { dir } = useThemeStore()
   const [dismissed, setDismissed] = useState(false)
+  const theme = worldId ? WORLD_THEMES[worldId] : null
 
   if (dismissed) return null
 
@@ -33,13 +39,24 @@ export const AdSlot: React.FC<AdSlotProps> = ({
       <div
         id={slotId}
         className={cn(
-          'relative p-5 rounded-3xl bg-gradient-to-r from-purple-950/40 via-brand-card to-indigo-950/40 border border-brand-purple/40 shadow-xl overflow-hidden my-4 group',
+          'relative p-5 rounded-3xl border shadow-xl overflow-hidden my-4 group',
+          theme
+            ? `bg-gradient-to-r ${theme.gradients.card} ${theme.gradients.border}`
+            : 'bg-gradient-to-r from-purple-950/40 via-brand-card to-indigo-950/40 border-brand-purple/40',
           className
         )}
+        style={{ boxShadow: theme ? theme.colors.glow : undefined }}
       >
         <div className="flex items-center justify-between gap-3 mb-2">
-          <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 text-[10px] font-black uppercase tracking-wider border border-amber-500/30 flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-amber-400" />
+          <span
+            className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border flex items-center gap-1"
+            style={{
+              backgroundColor: theme ? `${theme.colors.primary}25` : undefined,
+              borderColor: theme ? `${theme.colors.primary}40` : undefined,
+              color: theme ? theme.colors.primary : '#FCD34D',
+            }}
+          >
+            <Sparkles className="w-3 h-3" />
             {dir === 'rtl' ? 'إعلان مميز' : 'Sponsored'}
           </span>
           <button
@@ -52,7 +69,12 @@ export const AdSlot: React.FC<AdSlotProps> = ({
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-purple to-brand-orange flex items-center justify-center text-xl shrink-0 shadow-glow">
+          <div
+            className={cn(
+              'w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 shadow-glow',
+              theme ? `bg-gradient-to-br ${theme.gradients.button}` : 'bg-gradient-to-br from-brand-purple to-brand-orange'
+            )}
+          >
             🎁
           </div>
           <div className="flex-1 min-w-0">
@@ -74,7 +96,10 @@ export const AdSlot: React.FC<AdSlotProps> = ({
       <div
         id={slotId}
         className={cn(
-          'relative p-6 rounded-3xl bg-gradient-to-b from-brand-card via-brand-surface to-[#12182F] border border-brand-cardBorder text-center flex flex-col items-center gap-4 my-4 shadow-xl',
+          'relative p-6 rounded-3xl border text-center flex flex-col items-center gap-4 my-4 shadow-xl',
+          theme
+            ? `bg-gradient-to-b ${theme.gradients.card} ${theme.gradients.border}`
+            : 'bg-gradient-to-b from-brand-card via-brand-surface to-[#12182F] border-brand-cardBorder',
           className
         )}
       >
@@ -85,7 +110,12 @@ export const AdSlot: React.FC<AdSlotProps> = ({
           </button>
         </div>
 
-        <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-3xl shadow-glow">
+        <div
+          className={cn(
+            'w-16 h-16 rounded-3xl flex items-center justify-center text-3xl shadow-glow',
+            theme ? `bg-gradient-to-br ${theme.gradients.button}` : 'bg-gradient-to-br from-amber-400 to-orange-600'
+          )}
+        >
           ⚡
         </div>
 
@@ -98,7 +128,10 @@ export const AdSlot: React.FC<AdSlotProps> = ({
 
         <a
           href={targetUrl}
-          className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-brand-purple to-brand-blue text-white font-bold text-xs shadow-glow hover:opacity-90 transition-opacity"
+          className={cn(
+            'w-full py-2.5 rounded-2xl text-white font-bold text-xs shadow-glow hover:opacity-90 transition-opacity',
+            theme ? `bg-gradient-to-r ${theme.gradients.button} text-slate-950 font-black` : 'bg-gradient-to-r from-brand-purple to-brand-blue'
+          )}
         >
           {dir === 'rtl' ? 'اكتشف المزيد' : 'Learn More'}
         </a>
@@ -109,7 +142,14 @@ export const AdSlot: React.FC<AdSlotProps> = ({
   if (variant === 'interstitial') {
     return (
       <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-        <div className="relative w-full max-w-md p-6 rounded-3xl bg-gradient-to-b from-[#1A1A36] to-brand-card border-2 border-brand-purple/50 shadow-2xl flex flex-col items-center text-center gap-5">
+        <div
+          className={cn(
+            'relative w-full max-w-md p-6 rounded-3xl border-2 shadow-2xl flex flex-col items-center text-center gap-5',
+            theme
+              ? `bg-gradient-to-b ${theme.gradients.card} ${theme.gradients.border}`
+              : 'bg-gradient-to-b from-[#1A1A36] to-brand-card border-brand-purple/50'
+          )}
+        >
           <button
             onClick={() => setDismissed(true)}
             className="absolute top-4 right-4 rtl:right-auto rtl:left-4 p-2 rounded-xl bg-brand-darkBg text-slate-400 hover:text-white"
@@ -117,11 +157,23 @@ export const AdSlot: React.FC<AdSlotProps> = ({
             <X className="w-5 h-5" />
           </button>
 
-          <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black uppercase tracking-wider border border-amber-500/30">
+          <span
+            className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border"
+            style={{
+              backgroundColor: theme ? `${theme.colors.primary}25` : undefined,
+              borderColor: theme ? `${theme.colors.primary}40` : undefined,
+              color: theme ? theme.colors.primary : '#FCD34D',
+            }}
+          >
             {dir === 'rtl' ? 'إعلان رعاية' : 'Sponsored Content'}
           </span>
 
-          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-brand-purple via-indigo-600 to-brand-blue flex items-center justify-center text-4xl shadow-glow">
+          <div
+            className={cn(
+              'w-20 h-20 rounded-3xl flex items-center justify-center text-4xl shadow-glow',
+              theme ? `bg-gradient-to-br ${theme.gradients.button}` : 'bg-gradient-to-br from-brand-purple via-indigo-600 to-brand-blue'
+            )}
+          >
             🚀
           </div>
 
@@ -134,7 +186,10 @@ export const AdSlot: React.FC<AdSlotProps> = ({
 
           <button
             onClick={() => setDismissed(true)}
-            className="w-full py-3 rounded-2xl bg-gradient-to-r from-brand-purple to-brand-blue text-white font-black text-sm shadow-glow hover:scale-105 transition-transform"
+            className={cn(
+              'w-full py-3 rounded-2xl text-white font-black text-sm shadow-glow hover:scale-105 transition-transform',
+              theme ? `bg-gradient-to-r ${theme.gradients.button} text-slate-950 font-black` : 'bg-gradient-to-r from-brand-purple to-brand-blue'
+            )}
           >
             {dir === 'rtl' ? 'متابعة إلى اللعبة 🎮' : 'Continue to Game 🎮'}
           </button>
@@ -148,12 +203,22 @@ export const AdSlot: React.FC<AdSlotProps> = ({
     <div
       id={slotId}
       className={cn(
-        'relative w-full p-4 rounded-2xl bg-brand-card border border-brand-cardBorder flex items-center justify-between gap-4 shadow-md my-3',
+        'relative w-full p-4 rounded-2xl border flex items-center justify-between gap-4 shadow-md my-3',
+        theme
+          ? `bg-brand-card/90 ${theme.gradients.border}`
+          : 'bg-brand-card border-brand-cardBorder',
         className
       )}
     >
       <div className="flex items-center gap-3">
-        <span className="px-2 py-0.5 rounded-lg bg-brand-purple/15 text-brand-purple text-[10px] font-black uppercase border border-brand-purple/30">
+        <span
+          className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase border"
+          style={{
+            backgroundColor: theme ? `${theme.colors.primary}20` : undefined,
+            borderColor: theme ? `${theme.colors.primary}40` : undefined,
+            color: theme ? theme.colors.primary : undefined,
+          }}
+        >
           {dir === 'rtl' ? 'إعلان' : 'Ad'}
         </span>
         <p className="text-xs font-bold text-foreground">
@@ -164,7 +229,10 @@ export const AdSlot: React.FC<AdSlotProps> = ({
       <div className="flex items-center gap-2">
         <a
           href={targetUrl}
-          className="px-3.5 py-1.5 rounded-xl bg-brand-purple text-white font-bold text-xs hover:bg-brand-purple/90 transition-all shrink-0 shadow-sm"
+          className={cn(
+            'px-3.5 py-1.5 rounded-xl text-white font-bold text-xs transition-all shrink-0 shadow-sm',
+            theme ? `bg-gradient-to-r ${theme.gradients.button} text-slate-950 font-black` : 'bg-brand-purple hover:bg-brand-purple/90'
+          )}
         >
           {dir === 'rtl' ? 'عرض' : 'View'}
         </a>

@@ -1,1 +1,0 @@
-export { QuizCenterPage } from './QuizCenterPage';
