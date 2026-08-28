@@ -32,6 +32,7 @@ import { Card } from '@components/common/Card'
 import { Button } from '@components/common/Button'
 import { SEO } from '@components/common/SEO'
 import { AdSlot } from '@components/common/AdSlot'
+import { GamerMascot } from '@components/common/GamerMascot'
 import { ModeMascot, NaghanishModeId } from '@components/common/ModeVisuals'
 import { WORLD_THEMES } from '@theme/world.theme'
 import { getFeaturedGame, LIVE_ROOMS } from '@data/games.data'
@@ -70,39 +71,39 @@ export const HomePage: React.FC = () => {
       {/* ─────────────────────────────────────────────────────────────
           1. TOP GAMER PROGRESSION BAR
       ───────────────────────────────────────────────────────────── */}
-      <div className="p-4 sm:p-5 rounded-3xl bg-brand-surface/90 border border-brand-cardBorder backdrop-blur-xl shadow-lg flex items-center justify-between gap-4">
+      <div className="p-4 sm:p-5 rounded-3xl bg-[#0E0E12]/90 border border-white/10 backdrop-blur-xl shadow-2xl flex items-center justify-between gap-4">
         {/* Left: Player Avatar, Level & XP */}
         <div className="flex items-center gap-3.5 min-w-0">
           <div className="relative shrink-0">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-brand-purple via-purple-600 to-brand-blue p-0.5 shadow-glow flex items-center justify-center">
-              <div className="w-full h-full rounded-[14px] bg-brand-darkBg flex items-center justify-center text-2xl sm:text-3xl">
-                🧠
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 p-0.5 shadow-glow-orange flex items-center justify-center">
+              <div className="w-full h-full rounded-[14px] bg-brand-darkBg flex items-center justify-center overflow-hidden">
+                <GamerMascot variant="avatar" size="avatar" animated={false} className="scale-60" />
               </div>
             </div>
-            <span className="absolute -bottom-1 -right-1 rtl:-right-auto rtl:-left-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 shadow">
+            <span className="absolute -bottom-1 -right-1 rtl:-right-auto rtl:-left-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 shadow-glow-orange">
               LVL {user?.level || 12}
             </span>
           </div>
 
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-base sm:text-lg font-black text-foreground truncate">
+              <h2 className="text-base sm:text-lg font-display font-black text-foreground truncate">
                 {isRtl ? `أهلاً، ${user?.name || 'يا بطل'}!` : `Welcome, ${user?.name || 'Champion'}!`}
               </h2>
-              <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md text-[10px] font-black bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+              <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md text-[10px] font-black bg-orange-500/20 text-orange-400 border border-orange-500/30">
                 PRO GAMER
               </span>
             </div>
 
-            {/* XP Bar */}
+            {/* XP Bar – Orange brand gradient */}
             <div className="flex items-center gap-2 mt-1">
-              <div className="w-28 sm:w-44 h-2 rounded-full bg-brand-card border border-brand-cardBorder overflow-hidden">
+              <div className="w-28 sm:w-44 h-2 rounded-full bg-brand-card border border-white/10 overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-brand-purple via-brand-blue to-cyan-300 rounded-full shadow-glow-blue"
+                  className="h-full bg-gradient-to-r from-orange-600 via-orange-500 to-amber-400 rounded-full shadow-glow-orange"
                   style={{ width: '72%' }}
                 />
               </div>
-              <span className="text-[10px] font-black text-cyan-400 shrink-0">
+              <span className="text-[10px] font-black text-orange-400 shrink-0">
                 2,450 / 3,500 XP
               </span>
             </div>
@@ -113,7 +114,7 @@ export const HomePage: React.FC = () => {
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             onClick={() => navigate(ROUTES.STORE)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-brand-card border border-amber-400/40 text-xs font-black text-amber-300 shadow-sm hover:scale-105 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-brand-card/90 border border-amber-400/40 text-xs font-black text-amber-300 shadow-sm hover:scale-105 transition-all cursor-pointer"
           >
             <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
             <span>{user?.coins ?? 2450}</span>
@@ -121,7 +122,7 @@ export const HomePage: React.FC = () => {
 
           <button
             onClick={() => navigate(ROUTES.NOTIFICATIONS)}
-            className="p-2.5 sm:p-3 rounded-2xl bg-brand-card border border-brand-cardBorder text-slate-300 hover:text-white hover:border-brand-purple transition-all shadow-sm cursor-pointer"
+            className="p-2.5 sm:p-3 rounded-2xl bg-brand-card/90 border border-white/10 text-slate-300 hover:text-white hover:border-orange-500/60 transition-all shadow-sm cursor-pointer"
             aria-label="Notifications"
           >
             <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -132,27 +133,27 @@ export const HomePage: React.FC = () => {
       {/* ─────────────────────────────────────────────────────────────
           2. GRAND HUB HERO: WELCOME TO NAGHANISH UNIVERSE
       ───────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-brand-card via-[#16162E] to-brand-darkBg border-2 border-cyan-500/40 shadow-2xl p-6 sm:p-10">
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-brand-purple/25 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
+      <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#1A1008] via-[#12100E] to-brand-darkBg border-2 border-orange-500/30 shadow-2xl p-6 sm:p-10">
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-start gap-4">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-black">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/15 border border-orange-500/40 text-orange-300 text-xs font-black">
+              <Sparkles className="w-3.5 h-3.5 text-orange-400" />
               <span>{isRtl ? 'بوابة نغنِش الترفيهية الكبرى' : 'NAGHANISH ENTERTAINMENT HUB'}</span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-black text-white leading-tight tracking-tight">
               {isRtl ? (
                 <>
                   6 عوالم ألعاب فريدة <br />
-                  <span className="text-gradient-primary">في منصة ترفيه واحدة!</span> 🚀
+                  <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500 bg-clip-text text-transparent">في منصة ترفيه واحدة!</span> 🚀
                 </>
               ) : (
                 <>
                   6 Distinct Gaming Worlds <br />
-                  <span className="text-gradient-primary">In One Universe!</span> 🚀
+                  <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500 bg-clip-text text-transparent">In One Universe!</span> 🚀
                 </>
               )}
             </h1>
@@ -166,7 +167,7 @@ export const HomePage: React.FC = () => {
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mt-2">
               <button
                 onClick={() => navigate(ROUTES.GAMES)}
-                className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-brand-purple to-brand-blue text-white font-black text-sm shadow-glow hover:scale-105 transition-all cursor-pointer"
+                className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-slate-950 font-black text-sm shadow-glow-orange hover:scale-105 transition-all cursor-pointer"
               >
                 <Compass className="w-4 h-4" />
                 <span>{isRtl ? 'دليل الألعاب الشامل (Catalog)' : 'Explore All Games'}</span>
@@ -174,16 +175,27 @@ export const HomePage: React.FC = () => {
 
               <button
                 onClick={() => navigate(WORLD_THEMES.shilla.route)}
-                className="flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-orange-300 font-black text-sm transition-all cursor-pointer"
+                className="flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 text-cyan-300 font-black text-sm transition-all cursor-pointer"
               >
-                <Users className="w-4 h-4 text-orange-400" />
+                <Users className="w-4 h-4 text-cyan-400" />
                 <span>{isRtl ? 'ادخل عالم الشلة' : 'Enter Shilla'}</span>
               </button>
             </div>
           </div>
 
-          <div className="lg:col-span-5 flex items-center justify-center">
-            {/* Mascot Grid Mosaic */}
+          <div className="lg:col-span-5 flex flex-col items-center justify-center gap-4">
+            {/* Hero GamerMascot */}
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.2 }}
+              className="relative"
+            >
+              <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/30 via-amber-500/20 to-transparent rounded-full blur-3xl pointer-events-none" />
+              <GamerMascot variant="hero" size="hero" animated={true} />
+            </motion.div>
+
+            {/* World Mascot Grid Mosaic */}
             <div className="grid grid-cols-3 gap-3 p-4 rounded-3xl bg-brand-darkBg/60 border border-white/10 backdrop-blur-md shadow-2xl">
               {worldKeys.map((k) => (
                 <div
@@ -192,7 +204,7 @@ export const HomePage: React.FC = () => {
                   className="p-2 rounded-2xl bg-brand-card/80 hover:bg-brand-card border border-white/10 hover:scale-110 transition-all cursor-pointer flex flex-col items-center gap-1 group"
                 >
                   <ModeMascot mode={k} size="sm" animated={true} />
-                  <span className="text-[9px] font-black text-slate-300 group-hover:text-cyan-300">
+                  <span className="text-[9px] font-black text-slate-300 group-hover:text-orange-400">
                     {isRtl ? WORLD_THEMES[k].titleAr : WORLD_THEMES[k].titleEn}
                   </span>
                 </div>
@@ -208,11 +220,11 @@ export const HomePage: React.FC = () => {
       <section className="flex flex-col gap-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-brand-purple/20 text-cyan-300 flex items-center justify-center text-lg shadow-sm border border-brand-purple/30">
+            <div className="w-9 h-9 rounded-2xl bg-orange-500/15 text-orange-400 flex items-center justify-center text-lg shadow-sm border border-orange-500/30">
               🌌
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-white">
+              <h2 className="text-xl sm:text-2xl font-display font-black text-white">
                 {isRtl ? 'اختر عالمك المفضل وابدأ اللعب' : 'Choose Your Gaming World'}
               </h2>
               <p className="text-xs text-slate-400">
@@ -248,7 +260,7 @@ export const HomePage: React.FC = () => {
                       <span className={cn('text-[10px] font-black uppercase tracking-wider block', world.colors.textAccent)}>
                         {isRtl ? world.badgeTextAr : world.badgeTextEn}
                       </span>
-                      <h3 className="text-xl font-black text-white group-hover:text-cyan-300 transition-colors">
+                      <h3 className="text-xl font-display font-black text-white group-hover:text-orange-300 transition-colors">
                         {isRtl ? world.titleAr : world.titleEn}
                       </h3>
                     </div>
@@ -292,7 +304,7 @@ export const HomePage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* Daily Featured Game */}
         {featuredGame && (
-          <div className="lg:col-span-7 p-6 rounded-3xl bg-brand-surface/90 border border-brand-cardBorder flex flex-col justify-between gap-4">
+          <div className="lg:col-span-7 p-6 rounded-3xl bg-[#0E0E12]/90 border border-white/10 flex flex-col justify-between gap-4">
             <div className="flex items-center justify-between">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-black">
                 <Flame className="w-3.5 h-3.5 text-amber-400" />
@@ -311,7 +323,7 @@ export const HomePage: React.FC = () => {
                 {featuredGame.icon}
               </div>
               <div>
-                <h4 className="text-lg font-black text-white">
+                <h4 className="text-lg font-display font-black text-white">
                   {isRtl ? featuredGame.titleAr : featuredGame.title}
                 </h4>
                 <p className="text-xs text-slate-300 font-medium mt-1 line-clamp-2">
@@ -322,9 +334,9 @@ export const HomePage: React.FC = () => {
 
             <button
               onClick={() => navigate(featuredGame.route)}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-purple to-brand-blue text-white font-black text-xs shadow-glow hover:scale-105 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-slate-950 font-black text-xs shadow-glow-orange hover:scale-105 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Play className="w-4 h-4 fill-white" />
+              <Play className="w-4 h-4 fill-slate-950" />
               <span>{isRtl ? 'العب الآن مجاناً' : 'Play Featured Game'}</span>
             </button>
           </div>
@@ -337,7 +349,7 @@ export const HomePage: React.FC = () => {
               ⚡
             </div>
             <div>
-              <h4 className="text-base font-black text-white">
+              <h4 className="text-base font-display font-black text-white">
                 {isRtl ? 'الانضمام السريع للغرفة' : 'Quick Join Room'}
               </h4>
               <p className="text-[11px] text-slate-300">

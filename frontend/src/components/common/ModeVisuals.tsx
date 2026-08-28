@@ -38,11 +38,11 @@ export const NAGHANISH_MODES: Record<
     taglineEn: 'Play with your crew! 🎉',
     descAr: 'غرف لعب جماعية، تحديات لايف، وضحك للصبح مع أصحابك.',
     descEn: 'Live party multiplayer rooms, real-time challenges & fun.',
-    color: '#FF7315',
-    bgGradient: 'from-orange-500/20 via-amber-500/10 to-cyan-500/15',
+    color: '#06B6D4',
+    bgGradient: 'from-cyan-500/20 via-teal-500/10 to-blue-500/15',
     borderClass: 'mode-border-shilla',
-    accentColor: 'text-orange-400',
-    glowClass: 'shadow-glow-orange',
+    accentColor: 'text-cyan-300',
+    glowClass: 'shadow-glow-teal',
     icon: '🎉',
     route: '/party',
   },
@@ -87,7 +87,7 @@ export const NAGHANISH_MODES: Record<
     descAr: 'اختبارات ردة فعل فائقة بالمللي ثانية لتحدي أقصى سرعاتك.',
     descEn: 'Sub-millisecond reaction test arena with high adrenaline rush.',
     color: '#EF4444',
-    bgGradient: 'from-red-600/25 via-orange-600/15 to-amber-500/20',
+    bgGradient: 'from-red-600/25 via-rose-600/15 to-pink-500/20',
     borderClass: 'mode-border-reflex',
     accentColor: 'text-red-400',
     glowClass: 'shadow-glow-red',
@@ -149,9 +149,9 @@ export const ModeMascot: React.FC<ModeVisualProps> = ({
           <svg viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
             <defs>
               <linearGradient id="shillaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FF7315" />
-                <stop offset="60%" stopColor="#FACC15" />
-                <stop offset="100%" stopColor="#00D2FF" />
+                <stop offset="0%" stopColor="#06B6D4" />
+                <stop offset="60%" stopColor="#0EA5E9" />
+                <stop offset="100%" stopColor="#14B8A6" />
               </linearGradient>
               <filter id="shillaGlow">
                 <feGaussianBlur stdDeviation="4" result="blur" />
@@ -159,16 +159,16 @@ export const ModeMascot: React.FC<ModeVisualProps> = ({
               </filter>
             </defs>
             {/* Background disc */}
-            <circle cx="80" cy="80" r="68" fill="#1C1A2E" stroke="url(#shillaGrad)" strokeWidth="3" />
+            <circle cx="80" cy="80" r="68" fill="#0C1B20" stroke="url(#shillaGrad)" strokeWidth="3" />
             {/* Party confetti sparks */}
             <circle cx="34" cy="38" r="5" fill="#00D2FF" />
-            <polygon points="125,30 132,42 118,42" fill="#FF7315" />
-            <polygon points="135,115 142,125 128,125" fill="#84CC16" />
-            <circle cx="28" cy="115" r="4.5" fill="#FACC15" />
+            <polygon points="125,30 132,42 118,42" fill="#06B6D4" />
+            <polygon points="135,115 142,125 128,125" fill="#14B8A6" />
+            <circle cx="28" cy="115" r="4.5" fill="#38BDF8" />
             {/* Mascot Head (Smiling Party Dude) */}
             <circle cx="80" cy="85" r="44" fill="url(#shillaGrad)" filter="url(#shillaGlow)" />
             {/* Party Cap */}
-            <polygon points="80,18 56,58 104,58" fill="#FF7315" stroke="#FACC15" strokeWidth="3" />
+            <polygon points="80,18 56,58 104,58" fill="#06B6D4" stroke="#38BDF8" strokeWidth="3" />
             <circle cx="80" cy="16" r="6" fill="#00D2FF" />
             {/* Big Expressive Cartoon Eyes */}
             <ellipse cx="64" cy="80" rx="9" ry="12" fill="#FFFFFF" />
@@ -180,8 +180,8 @@ export const ModeMascot: React.FC<ModeVisualProps> = ({
             {/* Big Happy Mouth */}
             <path d="M 58 98 Q 80 120 102 98" stroke="#0F0F1A" strokeWidth="5" strokeLinecap="round" fill="#EF4444" />
             {/* Rosy Cheeks */}
-            <circle cx="50" cy="94" r="6" fill="#FF7315" opacity="0.6" />
-            <circle cx="110" cy="94" r="6" fill="#FF7315" opacity="0.6" />
+            <circle cx="50" cy="94" r="6" fill="#0EA5E9" opacity="0.6" />
+            <circle cx="110" cy="94" r="6" fill="#0EA5E9" opacity="0.6" />
           </svg>
         )
 
@@ -248,14 +248,14 @@ export const ModeMascot: React.FC<ModeVisualProps> = ({
             <defs>
               <linearGradient id="reflexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#EF4444" />
-                <stop offset="60%" stopColor="#FF7315" />
+                <stop offset="60%" stopColor="#F43F5E" />
                 <stop offset="100%" stopColor="#FACC15" />
               </linearGradient>
             </defs>
             <polygon points="80,12 148,80 80,148 12,80" fill="#201015" stroke="url(#reflexGrad)" strokeWidth="3" />
             {/* Speed Lines */}
             <line x1="24" y1="44" x2="48" y2="44" stroke="#EF4444" strokeWidth="2.5" strokeLinecap="round" />
-            <line x1="18" y1="80" x2="44" y2="80" stroke="#FF7315" strokeWidth="3" strokeLinecap="round" />
+            <line x1="18" y1="80" x2="44" y2="80" stroke="#F43F5E" strokeWidth="3" strokeLinecap="round" />
             <line x1="24" y1="116" x2="52" y2="116" stroke="#FACC15" strokeWidth="2.5" strokeLinecap="round" />
             {/* Giant Lightning Bolt */}
             <path

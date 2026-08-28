@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, ArrowLeft, Users, Brain, Trophy, Sparkles } from 'lucide-react'
 import { Button } from '@components/common/Button'
+import { GamerMascot } from '@components/common/GamerMascot'
 import { ProgressIndicator } from '@components/common/ProgressIndicator'
 import { AnimatedBackground } from '@components/common/AnimatedBackground'
 import { ROUTES } from '@constants/routes'
@@ -92,9 +93,9 @@ export const OnboardingPage: React.FC = () => {
           >
             {/* 3D Illustration Frame */}
             <div className="relative mb-10 group">
-              <div className="absolute inset-0 bg-gradient-to-tr from-brand-purple via-brand-blue to-cyan-300 rounded-4xl blur-3xl opacity-50 group-hover:opacity-75 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-orange-500 via-amber-500 to-orange-400 rounded-4xl blur-3xl opacity-40 group-hover:opacity-60 transition-opacity" />
 
-              <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-4xl bg-gradient-to-br from-brand-card via-[#1A1A36] to-[#121226] border-4 border-brand-cardBorder flex items-center justify-center shadow-2xl overflow-hidden">
+              <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-4xl bg-gradient-to-br from-[#1A1008] via-brand-card to-[#0E0E12] border-4 border-orange-500/20 flex items-center justify-center shadow-2xl overflow-hidden">
                 {/* Visual Icon */}
                 <motion.div
                   animate={{ y: [0, -10, 0] }}
@@ -106,13 +107,13 @@ export const OnboardingPage: React.FC = () => {
 
                 {/* Decorative sparkles */}
                 <div className="absolute top-4 right-4 p-2 rounded-xl bg-white/10 backdrop-blur-md">
-                  <Sparkles className="w-4 h-4 text-cyan-300" />
+                  <Sparkles className="w-4 h-4 text-orange-400" />
                 </div>
               </div>
             </div>
 
             {/* Slide Titles */}
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-2">
+            <h2 className="text-2xl sm:text-3xl font-display font-black text-white tracking-tight mb-2">
               {dir === 'rtl' ? currentSlide.titleArabic : currentSlide.title}
             </h2>
 
@@ -144,7 +145,7 @@ export const OnboardingPage: React.FC = () => {
           size="lg"
           fullWidth
           onClick={handleNext}
-          className="shadow-glow"
+          className="shadow-glow-orange"
         >
           {isLast ? (dir === 'rtl' ? 'ابدأ الآن 🎉' : 'Get Started') : (dir === 'rtl' ? 'التالي' : 'Next')}
         </Button>

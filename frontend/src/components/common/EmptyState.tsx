@@ -1,7 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Inbox } from 'lucide-react'
 import { Button } from './Button'
+import { GamerMascot } from './GamerMascot'
 import { cn } from '@lib/utils'
 
 export interface EmptyStateProps {
@@ -23,24 +23,29 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       className={cn(
-        'w-full p-8 sm:p-12 rounded-3xl bg-brand-card/70 border border-brand-cardBorder flex flex-col items-center justify-center text-center gap-4',
+        'w-full p-8 sm:p-12 rounded-[2rem] bg-brand-card/85 backdrop-blur-xl border border-white/10 flex flex-col items-center justify-center text-center gap-5 shadow-2xl',
         className
       )}
     >
-      <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-brand-purple/20 via-brand-card to-brand-blue/20 border border-brand-purple/30 flex items-center justify-center text-brand-blue shadow-glow-blue">
-        {icon || <Inbox className="w-10 h-10 text-brand-blue" />}
-      </div>
+      {/* Gamer Mascot / Icon */}
+      {icon ? (
+        <div className="w-24 h-24 rounded-3xl bg-brand-surface/90 border border-white/10 flex items-center justify-center text-cyan-300 shadow-glow-orange">
+          {icon}
+        </div>
+      ) : (
+        <GamerMascot variant="empty" size="lg" animated={true} />
+      )}
 
       <div className="max-w-md">
-        <h3 className="text-lg sm:text-xl font-extrabold text-white">{title}</h3>
-        <p className="text-xs sm:text-sm text-slate-400 font-medium mt-1">{description}</p>
+        <h3 className="text-xl sm:text-2xl font-black text-white font-display">{title}</h3>
+        <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1.5 leading-relaxed">{description}</p>
       </div>
 
       {actionLabel && onAction && (
-        <Button variant="secondary" size="md" onClick={onAction} className="mt-2">
+        <Button variant="primary" size="md" onClick={onAction} className="mt-2">
           {actionLabel}
         </Button>
       )}

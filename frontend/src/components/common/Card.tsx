@@ -8,6 +8,7 @@ export type CardGlowColor =
   | 'blue'
   | 'orange'
   | 'cyan'
+  | 'teal'
   | 'green'
   | 'gold'
   | 'yellow'
@@ -27,7 +28,7 @@ export interface CardProps extends Omit<HTMLMotionProps<'div'>, 'children'> {
 export const Card: React.FC<CardProps> = ({
   children,
   variant = 'default',
-  glowColor = 'purple',
+  glowColor = 'orange',
   isInteractive = false,
   className,
   padding = 'md',
@@ -41,31 +42,32 @@ export const Card: React.FC<CardProps> = ({
   }
 
   const glowStyles: Record<CardGlowColor, string> = {
-    purple: 'hover:border-purple-500/70 hover:shadow-glow',
-    blue: 'hover:border-sky-400/80 hover:shadow-glow-blue',
-    cyan: 'hover:border-cyan-400/80 hover:shadow-glow-cyan',
     orange: 'hover:border-orange-500/80 hover:shadow-glow-orange',
-    green: 'hover:border-emerald-400/80 hover:shadow-glow-lime',
+    teal: 'hover:border-cyan-400/80 hover:shadow-glow-teal',
+    cyan: 'hover:border-cyan-400/80 hover:shadow-glow-cyan',
+    blue: 'hover:border-sky-400/80 hover:shadow-glow-blue',
+    purple: 'hover:border-purple-500/70 hover:shadow-glow-purple',
     gold: 'hover:border-amber-400/80 hover:shadow-glow-gold',
     yellow: 'hover:border-yellow-400/80 hover:shadow-glow-gold',
+    green: 'hover:border-emerald-400/80 hover:shadow-glow-lime',
     lime: 'hover:border-lime-400/80 hover:shadow-glow-lime',
     red: 'hover:border-red-500/80 hover:shadow-glow-red',
     pink: 'hover:border-pink-500/80 hover:shadow-glow-pink',
   }
 
   const variantStyles: Record<CardVariant, string> = {
-    default: 'bg-brand-card border border-brand-cardBorder text-foreground shadow-xl',
-    glowing: `bg-brand-card border border-brand-cardBorder text-foreground shadow-lg transition-all duration-300 ${glowStyles[glowColor]}`,
-    feature: 'bg-gradient-to-br from-brand-card via-brand-surface to-brand-card border-2 border-brand-purple/40 text-foreground shadow-2xl hover:border-brand-purple/80 hover:shadow-glow',
-    mode: 'bg-brand-card/90 backdrop-blur-md border-2 border-brand-cardBorder text-foreground shadow-xl transition-all duration-300',
-    glass: 'glass-panel text-foreground shadow-2xl backdrop-blur-xl border border-brand-cardBorder',
-    gradient: 'bg-brand-card border border-brand-cardBorder text-foreground shadow-xl',
-    bordered: 'bg-brand-surface border-2 border-brand-cardBorder hover:border-brand-purple text-foreground',
+    default: 'bg-brand-card/90 backdrop-blur-xl border border-white/10 text-foreground shadow-xl',
+    glowing: `bg-brand-card/90 backdrop-blur-xl border border-white/10 text-foreground shadow-lg transition-all duration-300 ${glowStyles[glowColor]}`,
+    feature: 'bg-gradient-to-br from-brand-card via-brand-surface to-brand-darkBg border-2 border-orange-500/30 text-foreground shadow-2xl hover:border-orange-500/70 hover:shadow-glow-orange',
+    mode: 'bg-brand-card/90 backdrop-blur-xl border border-white/10 text-foreground shadow-xl transition-all duration-300',
+    glass: 'glass-panel text-foreground shadow-2xl backdrop-blur-2xl border border-white/10',
+    gradient: 'bg-brand-card/90 backdrop-blur-xl border border-white/10 text-foreground shadow-xl',
+    bordered: 'bg-brand-surface/90 border border-brand-cardBorder hover:border-orange-500/60 text-foreground',
   }
 
   return (
     <motion.div
-      whileHover={isInteractive ? { y: -5, scale: 1.015 } : undefined}
+      whileHover={isInteractive ? { y: -4, scale: 1.012 } : undefined}
       whileTap={isInteractive ? { scale: 0.98 } : undefined}
       transition={{ type: 'spring', stiffness: 350, damping: 25 }}
       className={cn(

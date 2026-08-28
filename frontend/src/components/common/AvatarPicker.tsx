@@ -1,15 +1,17 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Camera, Check } from 'lucide-react'
+import { GamerMascot } from './GamerMascot'
 import { cn } from '@lib/utils'
 
 export const AVATAR_OPTIONS = [
+  { id: 'mascot-gamer', name: 'Naghanish Gamer', isMascot: true, color: 'from-orange-500 to-amber-600' },
   { id: 'mascot-1', name: 'Brainy Mascot', icon: '🧠', color: 'from-purple-500 to-indigo-600' },
   { id: 'mascot-2', name: 'Party Bot', icon: '🤖', color: 'from-cyan-400 to-blue-600' },
-  { id: 'mascot-3', name: 'Sparkle Cat', icon: '🐱', color: 'from-orange-400 to-amber-500' },
+  { id: 'mascot-3', name: 'Speed Champion', icon: '⚡', color: 'from-orange-400 to-amber-500' },
   { id: 'mascot-4', name: 'Star Winner', icon: '🏆', color: 'from-yellow-400 to-amber-600' },
   { id: 'mascot-5', name: 'Magic Quiz', icon: '🪄', color: 'from-pink-500 to-rose-600' },
-  { id: 'mascot-6', name: 'Speed Runner', icon: '⚡', color: 'from-emerald-400 to-teal-600' },
+  { id: 'mascot-6', name: 'Arcade Master', icon: '🕹️', color: 'from-emerald-400 to-teal-600' },
 ]
 
 export interface AvatarPickerProps {
@@ -41,17 +43,21 @@ export const AvatarPicker: React.FC<AvatarPickerProps> = ({
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
           className={cn(
-            'w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-gradient-to-br flex items-center justify-center text-5xl sm:text-6xl shadow-glow-blue border-4 border-brand-card',
+            'w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-gradient-to-br flex items-center justify-center text-5xl sm:text-6xl shadow-glow-orange border-4 border-brand-card overflow-hidden',
             currentAvatarObj.color
           )}
         >
-          {currentAvatarObj.icon}
+          {currentAvatarObj.isMascot ? (
+            <GamerMascot variant="avatar" size="avatar" animated={false} />
+          ) : (
+            currentAvatarObj.icon
+          )}
         </motion.div>
 
         {/* Upload Overlay Button */}
         <label
           htmlFor="avatar-upload-input"
-          className="absolute -bottom-2 -right-2 rtl:-right-auto rtl:-left-2 p-2.5 rounded-2xl bg-brand-purple text-white border-2 border-brand-card shadow-lg hover:bg-purple-600 cursor-pointer transition-transform duration-200 active:scale-95"
+          className="absolute -bottom-2 -right-2 rtl:-right-auto rtl:-left-2 p-2.5 rounded-2xl bg-orange-500 text-slate-950 border-2 border-brand-card shadow-lg hover:bg-orange-400 cursor-pointer transition-transform duration-200 active:scale-95"
           title="Upload custom avatar"
         >
           <Camera className="w-5 h-5" />
@@ -77,16 +83,20 @@ export const AvatarPicker: React.FC<AvatarPickerProps> = ({
               type="button"
               onClick={() => onSelectAvatar(avatar.id)}
               className={cn(
-                'relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br flex items-center justify-center text-2xl border-2 transition-all duration-200 cursor-pointer',
+                'relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br flex items-center justify-center text-2xl border-2 transition-all duration-200 cursor-pointer overflow-hidden',
                 avatar.color,
                 isSelected
-                  ? 'border-white shadow-glow ring-2 ring-brand-purple'
+                  ? 'border-orange-400 shadow-glow-orange ring-2 ring-orange-500'
                   : 'border-transparent opacity-75 hover:opacity-100'
               )}
             >
-              {avatar.icon}
+              {avatar.isMascot ? (
+                <GamerMascot variant="avatar" size="avatar" animated={false} className="scale-75" />
+              ) : (
+                avatar.icon
+              )}
               {isSelected && (
-                <div className="absolute -top-1 -right-1 rtl:-right-auto rtl:-left-1 w-4 h-4 rounded-full bg-brand-blue text-slate-950 flex items-center justify-center text-[10px] font-bold shadow">
+                <div className="absolute -top-1 -right-1 rtl:-right-auto rtl:-left-1 w-4 h-4 rounded-full bg-orange-500 text-slate-950 flex items-center justify-center text-[10px] font-bold shadow">
                   <Check className="w-3 h-3 stroke-[3]" />
                 </div>
               )}

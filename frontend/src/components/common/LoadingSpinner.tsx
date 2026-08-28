@@ -1,11 +1,13 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import { GamerMascot } from './GamerMascot'
 import { cn } from '@lib/utils'
 
 export interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg' | 'xl'
   text?: string
   fullScreen?: boolean
+  withMascot?: boolean
   className?: string
 }
 
@@ -13,6 +15,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = 'md',
   text,
   fullScreen = false,
+  withMascot = false,
   className,
 }) => {
   const sizeStyles = {
@@ -24,33 +27,37 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   const spinnerContent = (
     <div className={cn('flex flex-col items-center justify-center gap-4 select-none', className)}>
-      <div className="relative flex items-center justify-center">
-        {/* Outer glowing pulsing ring */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.7, 0.3] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          className={cn(
-            'absolute rounded-full bg-gradient-to-tr from-brand-purple via-brand-blue to-cyan-300 blur-md',
-            sizeStyles[size]
-          )}
-        />
+      {withMascot ? (
+        <GamerMascot variant="loading" size={size === 'xl' ? 'lg' : size === 'lg' ? 'md' : 'sm'} animated={true} />
+      ) : (
+        <div className="relative flex items-center justify-center">
+          {/* Outer glowing pulsing ring */}
+          <motion.div
+            animate={{ scale: [1, 1.25, 1], opacity: [0.3, 0.75, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            className={cn(
+              'absolute rounded-full bg-gradient-to-tr from-orange-500 via-amber-500 to-cyan-400 blur-md',
+              sizeStyles[size]
+            )}
+          />
 
-        {/* Spinning Gradient Arc */}
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
-          className={cn(
-            'rounded-full border-t-transparent border-r-brand-blue border-b-brand-purple border-l-brand-orange shadow-lg',
-            sizeStyles[size]
-          )}
-        />
-      </div>
+          {/* Spinning Gradient Arc */}
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            className={cn(
+              'rounded-full border-t-transparent border-r-orange-500 border-b-amber-400 border-l-cyan-400 shadow-glow-orange',
+              sizeStyles[size]
+            )}
+          />
+        </div>
+      )}
 
       {text && (
         <motion.p
-          animate={{ opacity: [0.6, 1, 0.6] }}
+          animate={{ opacity: [0.7, 1, 0.7] }}
           transition={{ duration: 1.5, repeat: Infinity }}
-          className="text-sm font-bold text-slate-300 tracking-wide"
+          className="text-sm font-bold text-slate-200 tracking-wide font-display"
         >
           {text}
         </motion.p>
@@ -60,7 +67,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 z-50 bg-brand-darkBg/90 backdrop-blur-md flex items-center justify-center">
+      <div className="fixed inset-0 z-50 bg-[#0A0A0C]/90 backdrop-blur-xl flex items-center justify-center">
         {spinnerContent}
       </div>
     )

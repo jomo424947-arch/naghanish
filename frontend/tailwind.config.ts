@@ -25,13 +25,13 @@ const config: Config = {
           DEFAULT: 'hsl(var(--primary) / <alpha-value>)',
           foreground: 'hsl(var(--primary-foreground) / <alpha-value>)',
           hover: 'hsl(var(--primary-hover) / <alpha-value>)',
-          light: '#A78BFA',
-          dark: '#5B21B6',
+          orange: '#F97316',
+          warm: '#FB7A2B',
+          dark: '#EA580C',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary) / <alpha-value>)',
           foreground: 'hsl(var(--secondary-foreground) / <alpha-value>)',
-          // 2 shades lighter electric blue / cyan
           bright: '#00D2FF',
           sky: '#38BDF8',
           deep: '#0284C7',
@@ -39,7 +39,7 @@ const config: Config = {
         accent: {
           DEFAULT: 'hsl(var(--accent) / <alpha-value>)',
           foreground: 'hsl(var(--accent-foreground) / <alpha-value>)',
-          bright: '#FF7315',
+          orange: '#F97316',
           amber: '#F59E0B',
         },
         destructive: {
@@ -59,15 +59,18 @@ const config: Config = {
           DEFAULT: 'hsl(var(--popover) / <alpha-value>)',
           foreground: 'hsl(var(--popover-foreground) / <alpha-value>)',
         },
-        // Brand palette specific colors matching reference image
+        // Brand palette specific colors matching new visual identity
         brand: {
+          orange: '#F97316',
+          orangeWarm: '#FB7A2B',
+          orangeHover: '#EA580C',
           purple: '#7C3AED',
           purpleDark: '#6D28D9',
           purpleLight: '#9333EA',
-          blue: '#00D2FF',      // Brighter blue
+          blue: '#00D2FF',
           blueLight: '#38BDF8',
           cyan: '#06B6D4',
-          orange: '#FF7315',
+          teal: '#14B8A6',
           gold: '#EAB308',
           green: '#10B981',
           pink: '#EC4899',
@@ -76,13 +79,13 @@ const config: Config = {
           card: 'hsl(var(--brand-card) / <alpha-value>)',
           cardBorder: 'hsl(var(--brand-card-border) / <alpha-value>)',
         },
-        // 6 NAGHANISH Universe Worlds / Modes
+        // 6 NAGHANISH Universe Worlds / Modes (ZERO orange collision)
         mode: {
           shilla: {
-            orange: '#FF7315',
-            yellow: '#FACC15',
-            cyan: '#00D2FF',
-            lime: '#84CC16',
+            teal: '#06B6D4',
+            cyan: '#0EA5E9',
+            aqua: '#14B8A6',
+            indigo: '#6366F1',
           },
           arcade: {
             purple: '#7C3AED',
@@ -98,9 +101,9 @@ const config: Config = {
           },
           reflex: {
             red: '#EF4444',
-            orange: '#FF7315',
-            yellow: '#F59E0B',
-            white: '#FFFFFF',
+            rose: '#F43F5E',
+            crimson: '#DC2626',
+            yellow: '#FACC15',
           },
           champions: {
             gold: '#EAB308',
@@ -112,7 +115,7 @@ const config: Config = {
             lime: '#84CC16',
             green: '#10B981',
             yellow: '#FACC15',
-            orange: '#FF7315',
+            emerald: '#059669',
           },
         },
       },
@@ -126,21 +129,26 @@ const config: Config = {
         sm: 'calc(var(--radius) - 4px)',
       },
       boxShadow: {
-        glow: '0 0 25px -5px rgba(124, 58, 237, 0.4)',
+        glow: '0 0 25px -4px rgba(249, 115, 22, 0.45)',
+        'glow-primary': '0 0 25px -4px rgba(249, 115, 22, 0.55)',
+        'glow-orange': '0 0 25px -4px rgba(249, 115, 22, 0.5)',
+        'glow-purple': '0 0 25px -4px rgba(124, 58, 237, 0.45)',
         'glow-blue': '0 0 25px -5px rgba(0, 210, 255, 0.5)',
-        'glow-orange': '0 0 25px -5px rgba(255, 115, 21, 0.5)',
+        'glow-teal': '0 0 25px -5px rgba(6, 182, 212, 0.5)',
         'glow-cyan': '0 0 25px -5px rgba(6, 182, 212, 0.5)',
         'glow-gold': '0 0 25px -5px rgba(234, 179, 8, 0.5)',
         'glow-lime': '0 0 25px -5px rgba(132, 204, 22, 0.5)',
         'glow-red': '0 0 25px -5px rgba(239, 68, 68, 0.5)',
         'glow-pink': '0 0 25px -5px rgba(236, 72, 153, 0.5)',
-        'soft-lg': '0 10px 30px -5px rgba(0, 0, 0, 0.3)',
-        'game-card': '0 12px 32px -4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08)',
-        'game-card-hover': '0 20px 40px -4px rgba(0, 0, 0, 0.6), 0 0 25px -2px rgba(124, 58, 237, 0.4)',
+        'soft-lg': '0 10px 30px -5px rgba(0, 0, 0, 0.5)',
+        'game-card': '0 12px 32px -4px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08)',
+        'game-card-hover': '0 20px 40px -4px rgba(0, 0, 0, 0.7), 0 0 25px -2px rgba(249, 115, 22, 0.35)',
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'IBM Plex Sans Arabic', 'Inter', 'sans-serif'],
-        arabic: ['IBM Plex Sans Arabic', 'Cairo', 'sans-serif'],
+        sans: ['Readex Pro', 'Alexandria', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        display: ['Alexandria', 'Readex Pro', 'Plus Jakarta Sans', 'sans-serif'],
+        arabic: ['Alexandria', 'Readex Pro', 'sans-serif'],
+        latin: ['Plus Jakarta Sans', 'sans-serif'],
       },
       keyframes: {
         'pulse-subtle': {

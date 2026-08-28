@@ -42,23 +42,23 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const variantStyles: Record<ButtonVariant, string> = {
     primary:
-      'bg-gradient-to-r from-brand-purpleDark via-brand-purple to-purple-600 text-white font-extrabold shadow-glow hover:shadow-purple-500/50 border border-purple-400/40 active:translate-y-0.5',
+      'bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-slate-950 font-black shadow-glow-orange hover:shadow-orange-500/60 hover:brightness-110 border border-amber-300/60 active:translate-y-0.5',
     secondary:
-      'bg-gradient-to-r from-cyan-400 via-brand-blue to-sky-400 text-slate-950 font-black shadow-glow-blue hover:shadow-cyan-400/60 border border-cyan-200/50 active:translate-y-0.5',
+      'border border-white/20 bg-white/5 hover:bg-white/10 hover:border-orange-500/60 text-white font-bold backdrop-blur-md shadow-sm active:translate-y-0.5',
     accent:
-      'bg-gradient-to-r from-brand-orange via-amber-500 to-yellow-500 text-slate-950 font-black shadow-glow-orange hover:shadow-amber-500/60 border border-orange-300/50 active:translate-y-0.5',
+      'bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-slate-950 font-black shadow-glow-orange hover:shadow-amber-500/60 border border-orange-300/50 active:translate-y-0.5',
     shilla:
-      'bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-400 text-slate-950 font-black shadow-glow-orange hover:shadow-orange-500/60 border border-amber-300/60 active:translate-y-0.5',
+      'bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 text-slate-950 font-black shadow-glow-teal hover:shadow-cyan-500/60 border border-cyan-300/50 active:translate-y-0.5',
     arcade:
       'bg-gradient-to-r from-purple-600 via-brand-blue to-cyan-400 text-white font-black shadow-glow-blue hover:shadow-cyan-400/60 border border-cyan-300/50 active:translate-y-0.5',
     gold:
       'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 font-black shadow-glow-gold hover:shadow-yellow-400/60 border border-amber-200/60 active:translate-y-0.5',
     reflex:
-      'bg-gradient-to-r from-red-600 via-rose-500 to-orange-500 text-white font-black shadow-glow-red hover:shadow-red-500/60 border border-rose-300/40 active:translate-y-0.5',
+      'bg-gradient-to-r from-red-600 via-rose-500 to-pink-500 text-white font-black shadow-glow-red hover:shadow-rose-500/60 border border-rose-300/40 active:translate-y-0.5',
     chaos:
       'bg-gradient-to-r from-lime-500 via-emerald-400 to-teal-400 text-slate-950 font-black shadow-glow-lime hover:shadow-lime-400/60 border border-lime-200/60 active:translate-y-0.5',
     outline:
-      'border-2 border-brand-cardBorder bg-brand-card/70 text-slate-200 font-bold hover:bg-brand-card hover:border-brand-purple/70 hover:text-white',
+      'border-2 border-brand-cardBorder bg-brand-card/80 text-slate-200 font-bold hover:bg-brand-card hover:border-orange-500/70 hover:text-white',
     ghost:
       'bg-transparent text-slate-300 font-bold hover:bg-white/10 hover:text-white',
     danger:
@@ -79,7 +79,7 @@ export const Button: React.FC<ButtonProps> = ({
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       disabled={disabled || isLoading}
       className={cn(
-        'inline-flex items-center justify-center transition-all duration-200 select-none outline-none focus:ring-2 focus:ring-brand-purple/50 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer',
+        'inline-flex items-center justify-center transition-all duration-200 select-none outline-none focus:ring-2 focus:ring-orange-500/50 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer',
         variantStyles[variant],
         sizeStyles[size],
         fullWidth ? 'w-full' : '',

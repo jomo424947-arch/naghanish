@@ -4,19 +4,20 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Home, Gamepad2, Sparkles, Users, Trophy, User, Bell, Zap } from 'lucide-react'
 import { AnimatedBackground } from '@components/common/AnimatedBackground'
 import { Logo } from '@components/common/Logo'
+import { GamerMascot } from '@components/common/GamerMascot'
 import { ROUTES } from '@constants/routes'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
 import { cn } from '@lib/utils'
 
 const NAV_ITEMS = [
-  { to: ROUTES.HOME, icon: Home, labelAr: 'الرئيسية', labelEn: 'Hub', badgeColor: 'hover:text-cyan-300' },
+  { to: ROUTES.HOME, icon: Home, labelAr: 'الرئيسية', labelEn: 'Hub', badgeColor: 'hover:text-orange-400' },
   { to: ROUTES.GAMES, icon: Gamepad2, labelAr: 'الألعاب', labelEn: 'Catalog', badgeColor: 'hover:text-cyan-400' },
-  { to: ROUTES.WORLD_SHILLA, icon: Users, labelAr: 'الشِلّة', labelEn: 'Shilla', badgeColor: 'hover:text-orange-400' },
-  { to: ROUTES.WORLD_ARCADE, icon: Gamepad2, labelAr: 'الأركيد', labelEn: 'Arcade', badgeColor: 'hover:text-cyan-400' },
+  { to: ROUTES.WORLD_SHILLA, icon: Users, labelAr: 'الشِلّة', labelEn: 'Shilla', badgeColor: 'hover:text-cyan-400' },
+  { to: ROUTES.WORLD_ARCADE, icon: Gamepad2, labelAr: 'الأركيد', labelEn: 'Arcade', badgeColor: 'hover:text-blue-400' },
   { to: ROUTES.WORLD_IQ_LAB, icon: Sparkles, labelAr: 'المختبر', labelEn: 'IQ Lab', badgeColor: 'hover:text-violet-400' },
   { to: ROUTES.WORLD_CHAMPIONS, icon: Trophy, labelAr: 'الصدارة', labelEn: 'Champions', badgeColor: 'hover:text-amber-400' },
-  { to: ROUTES.PROFILE, icon: User, labelAr: 'الملف', labelEn: 'Profile', badgeColor: 'hover:text-pink-400' },
+  { to: ROUTES.PROFILE, icon: User, labelAr: 'الملف', labelEn: 'Profile', badgeColor: 'hover:text-orange-400' },
 ]
 
 export function DashboardLayout() {
@@ -30,12 +31,12 @@ export function DashboardLayout() {
       <AnimatedBackground variant="minimal" />
 
       {/* ── Desktop Top Gaming Navigation Bar ─────────────────────────── */}
-      <header className="hidden md:flex relative z-30 w-full bg-brand-surface/90 border-b border-brand-cardBorder backdrop-blur-2xl sticky top-0 shadow-lg">
+      <header className="hidden md:flex relative z-30 w-full bg-[#0E0E12]/90 border-b border-white/10 backdrop-blur-2xl sticky top-0 shadow-2xl">
         <div className="w-full max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-6">
           <Logo size="sm" showTagline={false} />
 
           {/* Desktop Nav Links */}
-          <nav className="flex items-center gap-1.5 p-1 rounded-2xl bg-brand-darkBg/60 border border-brand-cardBorder">
+          <nav className="flex items-center gap-1.5 p-1 rounded-2xl bg-brand-darkBg/80 border border-white/10">
             {NAV_ITEMS.map(({ to, icon: Icon, labelAr, labelEn }) => (
               <NavLink
                 key={to}
@@ -44,7 +45,7 @@ export function DashboardLayout() {
                   cn(
                     'flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition-all duration-200 cursor-pointer',
                     isActive
-                      ? 'bg-gradient-to-r from-brand-purple to-brand-blue text-white shadow-glow border border-cyan-400/40'
+                      ? 'bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-slate-950 shadow-glow-orange border border-amber-300/60'
                       : 'text-slate-400 hover:text-white hover:bg-brand-card'
                   )
                 }
@@ -60,7 +61,7 @@ export function DashboardLayout() {
             {/* Coins */}
             <button
               onClick={() => navigate(ROUTES.STORE)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl bg-brand-card border border-amber-400/40 text-xs font-black text-amber-300 shadow-glow-gold hover:scale-105 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl bg-brand-card/90 border border-amber-400/40 text-xs font-black text-amber-300 shadow-glow-gold hover:scale-105 transition-all cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
               <span>{user?.coins ?? 2450}</span>
@@ -69,7 +70,7 @@ export function DashboardLayout() {
             {/* Notification Bell */}
             <button
               onClick={() => navigate(ROUTES.NOTIFICATIONS)}
-              className="p-2 rounded-2xl bg-brand-card border border-brand-cardBorder text-slate-300 hover:text-white hover:border-brand-purple transition-colors cursor-pointer"
+              className="p-2 rounded-2xl bg-brand-card/90 border border-white/10 text-slate-300 hover:text-white hover:border-orange-500/60 transition-colors cursor-pointer"
               aria-label="Notifications"
             >
               <Bell className="w-4 h-4" />
@@ -78,13 +79,13 @@ export function DashboardLayout() {
             {/* Avatar Pill */}
             <button
               onClick={() => navigate(ROUTES.PROFILE)}
-              className="flex items-center gap-2 p-1 pl-2.5 rtl:pl-1 rtl:pr-2.5 rounded-2xl bg-brand-card border border-brand-cardBorder hover:border-cyan-400 transition-all cursor-pointer"
+              className="flex items-center gap-2 p-1 pl-2.5 rtl:pl-1 rtl:pr-2.5 rounded-2xl bg-brand-card/90 border border-white/10 hover:border-orange-500/80 transition-all cursor-pointer"
             >
-              <span className="text-[11px] font-black text-cyan-300 hidden lg:inline">
+              <span className="text-[11px] font-black text-orange-400 hidden lg:inline">
                 LVL {user?.level ?? 12}
               </span>
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-purple to-brand-blue flex items-center justify-center text-base shadow-glow text-white">
-                🧠
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-glow-orange overflow-hidden">
+                <GamerMascot variant="avatar" size="avatar" animated={false} className="scale-60" />
               </div>
             </button>
           </div>
@@ -107,7 +108,7 @@ export function DashboardLayout() {
       </main>
 
       {/* ── Mobile Bottom Navigation Bar (Tactile Gaming Dock) ──────── */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-brand-surface/95 backdrop-blur-2xl border-t-2 border-brand-cardBorder safe-area-inset-bottom shadow-2xl">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[#0E0E12]/95 backdrop-blur-2xl border-t border-white/10 safe-area-inset-bottom shadow-2xl">
         <div className="flex items-center justify-around px-2 py-2">
           {NAV_ITEMS.map(({ to, icon: Icon, labelAr, labelEn }) => (
             <NavLink
@@ -126,8 +127,8 @@ export function DashboardLayout() {
                     className={cn(
                       'w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200',
                       isActive
-                        ? 'bg-gradient-to-br from-brand-purple to-brand-blue shadow-glow text-white'
-                        : 'bg-brand-darkBg/60 text-slate-400 border border-brand-cardBorder'
+                        ? 'bg-gradient-to-br from-orange-500 to-amber-500 shadow-glow-orange text-slate-950'
+                        : 'bg-brand-darkBg/70 text-slate-400 border border-white/10'
                     )}
                   >
                     <Icon className="w-5 h-5" />
@@ -135,7 +136,7 @@ export function DashboardLayout() {
                   <span
                     className={cn(
                       'text-[9px] font-black',
-                      isActive ? 'text-cyan-300' : 'text-slate-400'
+                      isActive ? 'text-orange-400' : 'text-slate-400'
                     )}
                   >
                     {dir === 'rtl' ? labelAr : labelEn}
