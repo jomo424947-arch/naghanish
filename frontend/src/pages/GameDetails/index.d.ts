@@ -1,1 +1,0 @@
-export { GameDetailsPage } from './GameDetailsPage';

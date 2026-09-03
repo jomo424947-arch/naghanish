@@ -1,9 +1,0 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { motion } from 'framer-motion';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
-import { cn } from '@lib/utils';
-import { useThemeStore } from '@store/themeStore';
-export const SettingsCard = ({ icon, iconBgColor = 'bg-brand-purple/20 text-brand-purple', title, description, action, badge, onClick, isDanger = false, }) => {
-    const { dir } = useThemeStore();
-    return (_jsxs(motion.div, { whileHover: onClick ? { x: dir === 'rtl' ? -4 : 4 } : undefined, onClick: onClick, className: cn('w-full p-4 sm:p-5 rounded-3xl bg-brand-card/90 border border-brand-cardBorder flex items-center justify-between gap-4 transition-all duration-200 shadow-md', onClick && 'cursor-pointer hover:bg-brand-card hover:border-slate-600', isDanger && 'border-red-500/30 hover:border-red-500/60 bg-red-950/10'), children: [_jsxs("div", { className: "flex items-center gap-4", children: [_jsx("div", { className: cn('w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 font-bold', iconBgColor), children: icon }), _jsxs("div", { children: [_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("h4", { className: cn('text-sm sm:text-base font-bold', isDanger ? 'text-red-400' : 'text-white'), children: title }), badge && (_jsx("span", { className: "px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-brand-blue/20 text-cyan-300 border border-cyan-400/30", children: badge }))] }), description && _jsx("p", { className: "text-xs text-slate-400 font-medium mt-0.5", children: description })] })] }), _jsxs("div", { className: "shrink-0 flex items-center gap-2", children: [action, onClick && !action && (_jsx("div", { className: "text-slate-500 group-hover:text-white transition-colors", children: dir === 'rtl' ? _jsx(ChevronLeft, { className: "w-5 h-5" }) : _jsx(ChevronRight, { className: "w-5 h-5" }) }))] })] }));
-};
