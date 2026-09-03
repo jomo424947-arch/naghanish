@@ -99,6 +99,8 @@ const GAME_ENGINE_MAP: Record<string, EngineType> = {
   g30: 'simon',
   g31: 'math',
   g32: 'math',
+  g59: 'math',
+  g60: 'simon',
   // ── Shilla World ──
   g10: 'trivia',
   g11: 'trivia',
@@ -145,6 +147,13 @@ export function GameDetailsPage() {
   const isRtl = dir === 'rtl'
   const currentGame: GameItem = ALL_GAMES.find((g) => g.id === id) || ALL_GAMES[0]
   const engine: EngineType = GAME_ENGINE_MAP[currentGame.id] || 'trivia'
+
+  // Redirect quiz URLs if mistakenly routed here
+  useEffect(() => {
+    if (id && id.startsWith('q')) {
+      navigate(`/quizzes/${id}`, { replace: true })
+    }
+  }, [id, navigate])
 
   // ── Core State ──
   const [gameStarted, setGameStarted] = useState(false)
