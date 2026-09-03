@@ -42,11 +42,20 @@ class GameSubmitRequest(BaseModel):
 
 class GameSessionResponse(BaseModel):
     id: str
-    game_id: str
+    game_id: str = Field(..., alias="gameId")
     score: int
-    xp_earned: int
-    coins_earned: int
-    created_at: datetime
+    xp_earned: int = Field(..., alias="xpEarned")
+    coins_earned: int = Field(..., alias="coinsEarned")
+    user_xp: int = Field(0, alias="userXp")
+    user_max_xp: int = Field(1000, alias="userMaxXp")
+    user_level: int = Field(1, alias="userLevel")
+    user_coins: int = Field(0, alias="userCoins")
+    leveled_up: bool = Field(False, alias="leveledUp")
+    level_up_reward_coins: int = Field(0, alias="levelUpRewardCoins")
+    rank_title: str = Field("بطل نغنش 🏆", alias="rankTitle")
+    achievements_unlocked: list[str] = Field(default_factory=list, alias="achievementsUnlocked")
+    missions_updated: list[str] = Field(default_factory=list, alias="missionsUpdated")
+    created_at: datetime = Field(..., alias="createdAt")
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 

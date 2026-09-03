@@ -117,3 +117,33 @@ async def refresh_token(current_user: User = Depends(get_current_active_user)):
     new_token = create_access_token(current_user.id)
     return TokenResponse(token=new_token, user=UserResponse.model_validate(current_user))
 
+
+@router.post("/guest", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+async def create_guest_session(db: AsyncSession = Depends(get_db)):
+    """
+    Generate instant guest session for Mobile Apps (Flutter/React Native) or Web.
+    Allows instant gameplay, points accumulation, and score tracking with zero onboarding barriers.
+    """
+    guest_uuid = uuid.uuid4().hex[:8]
+    guest_user = User(
+        id=f"guest_{guest_uuid}",
+        email=f"guest_{guest_uuid}@naghanish.internal",
+        username=f"بطل_جديد_{guest_uuid[:4]}",
+        name=f"لاعب ضيف #{guest_uuid[:4]}",
+        avatar="/avatars/mascot-1.svg",
+        provider="guest",
+        level=1,
+        xp=0,
+        max_xp=1000,
+        coins=200,
+        rank="مبتدئ 🎮",
+        is_active=True,
+    )
+    db.add(guest_user)
+    await db.commit()
+    await db.refresh(guest_user)
+
+    token = create_access_token(guest_user.id)
+    return TokenResponse(token=token, user=UserResponse.model_validate(guest_user))
+
+

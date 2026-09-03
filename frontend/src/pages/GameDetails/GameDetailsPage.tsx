@@ -213,22 +213,30 @@ export function GameDetailsPage() {
         elapsed_seconds: elapsedTime,
       })
       if (res.data) {
-        setEarnedXp(res.data.xp_earned || currentGame.xpReward)
-        setEarnedCoins(res.data.coins_earned || 50)
+        const xpGot = res.data.xpEarned ?? res.data.xp_earned ?? currentGame.xpReward
+        const coinsGot = res.data.coinsEarned ?? res.data.coins_earned ?? 50
+        setEarnedXp(xpGot)
+        setEarnedCoins(coinsGot)
+
         if (user) {
           updateProfile({
-            xp: (user.xp || 0) + (res.data.xp_earned || currentGame.xpReward),
-            coins: (user.coins || 0) + (res.data.coins_earned || 50),
+            xp: res.data.userXp ?? ((user.xp || 0) + xpGot),
+            coins: res.data.userCoins ?? ((user.coins || 0) + coinsGot),
+            level: res.data.userLevel ?? user.level,
+            maxXp: res.data.userMaxXp ?? user.maxXp,
+            rank: res.data.rankTitle ?? user.rank,
           })
         }
       }
     } catch {
-      setEarnedXp(currentGame.xpReward)
-      setEarnedCoins(50)
+      const fallbackXp = currentGame.xpReward
+      const fallbackCoins = 50
+      setEarnedXp(fallbackXp)
+      setEarnedCoins(fallbackCoins)
       if (user) {
         updateProfile({
-          xp: (user.xp || 0) + currentGame.xpReward,
-          coins: (user.coins || 0) + 50,
+          xp: (user.xp || 0) + fallbackXp,
+          coins: (user.coins || 0) + fallbackCoins,
         })
       }
     }
