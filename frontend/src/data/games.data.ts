@@ -697,7 +697,7 @@ export const ALL_GAMES: GameItem[] = [
     difficultyAr: 'سهل',
     descAr: 'ادخل غرفة لايف وتنافس مع أصحابك في أسئلة سريعة ومضحكة تكشف معلوماتكم العامة.',
     descEn: 'Real-time live multiplayer quiz faceoff with friends & group lobbies.',
-    route: '/games/g1',
+    route: '/games/g10',
     playersCount: '2-8 Players',
     tags: ['shilla', 'multiplayer', 'party'],
   },
