@@ -1,0 +1,21 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useNavigate } from 'react-router-dom';
+import { Trophy, Zap, Brain, Star, Settings } from 'lucide-react';
+import { Button } from '@components/common/Button';
+import { Card } from '@components/common/Card';
+import { ProgressIndicator } from '@components/common/ProgressIndicator';
+import { ROUTES } from '@constants/routes';
+import { useAuthStore } from '@store/authStore';
+import { useThemeStore } from '@store/themeStore';
+export const ProfilePage = () => {
+    const navigate = useNavigate();
+    const { user } = useAuthStore();
+    const { dir } = useThemeStore();
+    const STATS = [
+        { label: dir === 'rtl' ? 'الألعاب' : 'Games', value: '142', icon: _jsx(Brain, { className: "w-4 h-4 text-purple-300" }) },
+        { label: dir === 'rtl' ? 'الانتصارات' : 'Wins', value: '89', icon: _jsx(Trophy, { className: "w-4 h-4 text-amber-300" }) },
+        { label: dir === 'rtl' ? 'الإنجازات' : 'Awards', value: '12', icon: _jsx(Star, { className: "w-4 h-4 text-cyan-300" }) },
+        { label: dir === 'rtl' ? 'الكوينز' : 'Coins', value: `${user?.coins ?? 2350}`, icon: _jsx(Zap, { className: "w-4 h-4 text-amber-400" }) },
+    ];
+    return (_jsxs("div", { className: "flex flex-col gap-8 py-4", children: [_jsxs("div", { className: "relative p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-brand-card via-[#1A1A36] to-[#12182F] border border-brand-cardBorder overflow-hidden", children: [_jsx("div", { className: "absolute top-0 right-0 w-48 h-48 bg-brand-purple/15 rounded-full blur-3xl pointer-events-none" }), _jsxs("div", { className: "flex flex-col sm:flex-row items-center sm:items-start gap-6 relative z-10", children: [_jsxs("div", { className: "relative shrink-0", children: [_jsx("div", { className: "w-24 h-24 rounded-3xl bg-gradient-to-br from-brand-purple to-brand-blue flex items-center justify-center text-4xl shadow-glow border-4 border-brand-card", children: "\uD83E\uDDE0" }), _jsxs("div", { className: "absolute -bottom-1 -right-1 rtl:-right-auto rtl:-left-1 px-2 py-0.5 rounded-full bg-brand-orange text-[10px] font-black text-white shadow", children: ["LVL ", user?.level ?? 12] })] }), _jsxs("div", { className: "flex-1 text-center sm:text-right rtl:sm:text-right sm:text-left", children: [_jsx("h2", { className: "text-2xl font-black text-white", children: user?.name ?? 'أحمد علي' }), _jsxs("p", { className: "text-sm text-brand-blue font-bold", children: ["@", user?.username ?? 'ahmed_naghanish'] }), _jsx("p", { className: "text-xs text-slate-400 mt-1", children: user?.bio ?? 'متحمس للألعاب الذهنية والتحديات! 🧠🎮' }), _jsxs("div", { className: "mt-4 w-full max-w-xs mx-auto sm:mx-0", children: [_jsxs("div", { className: "flex items-center justify-between text-[11px] font-bold text-slate-400 mb-1.5", children: [_jsx("span", { children: "XP" }), _jsxs("span", { className: "text-brand-blue", children: [user?.xp ?? 2450, " / ", user?.maxXp ?? 3500] })] }), _jsx(ProgressIndicator, { currentStep: user?.xp ?? 2450, totalSteps: user?.maxXp ?? 3500, variant: "bar" })] })] }), _jsx(Button, { variant: "outline", size: "sm", leftIcon: _jsx(Settings, { className: "w-4 h-4" }), onClick: () => navigate(ROUTES.SETTINGS), className: "shrink-0 self-start", children: dir === 'rtl' ? 'الإعدادات' : 'Settings' })] })] }), _jsx("div", { className: "grid grid-cols-2 sm:grid-cols-4 gap-3", children: STATS.map(stat => (_jsxs(Card, { variant: "default", className: "flex flex-col items-center gap-2 py-5 text-center", children: [_jsx("div", { className: "p-2.5 rounded-xl bg-brand-darkBg border border-brand-cardBorder", children: stat.icon }), _jsx("p", { className: "text-2xl font-black text-white", children: stat.value }), _jsx("p", { className: "text-[11px] text-slate-400 font-bold", children: stat.label })] }, stat.label))) }), user?.interests && user.interests.length > 0 && (_jsxs("div", { children: [_jsx("p", { className: "text-xs font-bold text-slate-400 uppercase tracking-wider mb-3", children: dir === 'rtl' ? 'الاهتمامات' : 'Interests' }), _jsx("div", { className: "flex flex-wrap gap-2", children: user.interests.map(interest => (_jsx("span", { className: "px-3 py-1.5 rounded-xl bg-brand-purple/20 text-purple-300 border border-purple-500/30 text-xs font-bold capitalize", children: interest }, interest))) })] }))] }));
+};

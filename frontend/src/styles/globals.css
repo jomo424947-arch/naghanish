@@ -1,0 +1,326 @@
+@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Readex+Pro:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Dark Theme Default: Deep Black Base (#0A0A0C - #121217) & Warm Energetic Orange Accent */
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
+    
+    --card: 240 10% 7.5%;
+    --card-foreground: 0 0% 98%;
+    --card-hover: 240 10% 11%;
+
+    --popover: 240 10% 7.5%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Brand Primary Accent: Warm Energetic Orange #F97316 */
+    --primary: 24 95% 53%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 24 95% 48%;
+
+    --secondary: 191 100% 50%;
+    --secondary-foreground: 240 10% 4%;
+
+    --accent: 24 95% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    --muted: 240 8% 16%;
+    --muted-foreground: 220 10% 65%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 8% 18%;
+    --input: 240 8% 16%;
+    --ring: 24 95% 53%;
+
+    --brand-dark-bg: 240 10% 4%;
+    --brand-surface: 240 10% 7%;
+    --brand-card: 240 10% 8.5%;
+    --brand-card-border: 240 8% 18%;
+
+    --radius: 1rem;
+  }
+
+  :root.light,
+  html.light {
+    --background: 220 33% 98%;
+    --foreground: 220 38% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 38% 10%;
+    --card-hover: 220 20% 96%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 38% 10%;
+
+    --primary: 24 95% 53%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 24 95% 48%;
+
+    --secondary: 191 100% 42%;
+    --secondary-foreground: 0 0% 100%;
+
+    --accent: 24 95% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    --muted: 220 14% 94%;
+    --muted-foreground: 215 16% 40%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 85%;
+    --input: 220 13% 88%;
+    --ring: 24 95% 53%;
+
+    --brand-dark-bg: 220 33% 98%;
+    --brand-surface: 0 0% 100%;
+    --brand-card: 0 0% 100%;
+    --brand-card-border: 220 13% 85%;
+  }
+
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply bg-background text-foreground transition-colors duration-300 antialiased selection:bg-primary/30 selection:text-white;
+    font-family: 'Readex Pro', 'Alexandria', 'Plus Jakarta Sans', system-ui, sans-serif;
+    line-height: 1.65;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Distinct Geometric Arabic Display Headings */
+  h1, h2, h3, h4, h5, h6, .font-display {
+    font-family: 'Alexandria', 'Readex Pro', 'Plus Jakarta Sans', system-ui, sans-serif;
+    letter-spacing: -0.015em;
+    line-height: 1.35;
+  }
+
+  /* Support Arabic RTL typography */
+  [dir="rtl"] body {
+    font-family: 'Readex Pro', 'Alexandria', 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+
+  [dir="rtl"] h1,
+  [dir="rtl"] h2,
+  [dir="rtl"] h3,
+  [dir="rtl"] h4,
+  [dir="rtl"] h5,
+  [dir="rtl"] h6,
+  [dir="rtl"] .font-display {
+    font-family: 'Alexandria', 'Readex Pro', system-ui, sans-serif;
+  }
+
+  .light {
+    color-scheme: light;
+  }
+
+  .light body {
+    background-color: #F8FAFC !important;
+    color: #0F172A !important;
+  }
+
+  /* High-contrast text overrides for Light Mode */
+  .light h1, .light h2, .light h3, .light h4, .light h5, .light h6 {
+    color: #0F172A;
+  }
+
+  .light .text-slate-100,
+  .light .text-slate-200,
+  .light .text-slate-300 {
+    color: #0F172A;
+  }
+
+  .light .text-slate-400,
+  .light .text-slate-500,
+  .light .text-muted-foreground {
+    color: #334155;
+  }
+
+  .light .text-slate-600 {
+    color: #1E293B;
+  }
+
+  /* Light mode container and card polish */
+  .light [class*="bg-brand-card"],
+  .light .bg-brand-card {
+    background-color: #FFFFFF !important;
+    border-color: #E2E8F0 !important;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  .light [class*="bg-brand-surface"],
+  .light .bg-brand-surface {
+    background-color: #FFFFFF !important;
+    border-color: #E2E8F0 !important;
+  }
+
+  .light [class*="bg-brand-darkBg"],
+  .light .bg-brand-darkBg {
+    background-color: #F1F5F9 !important;
+    border-color: #E2E8F0 !important;
+  }
+
+  .light .glass-panel {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(10, 10, 14, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(249, 115, 22, 0.35);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(249, 115, 22, 0.65);
+}
+
+/* Custom Frosted Dark Glass Utilities */
+.glass-panel {
+  background: rgba(18, 18, 23, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Brand & World Gradients */
+.text-gradient-primary {
+  background: linear-gradient(135deg, #FB7A2B 0%, #F97316 50%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-orange {
+  background: linear-gradient(135deg, #FB7A2B 0%, #F97316 50%, #EA580C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-cyan {
+  background: linear-gradient(135deg, #00D2FF 0%, #38BDF8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Shilla: Electric Teal / Aqua (Zero Orange) */
+.text-gradient-shilla {
+  background: linear-gradient(135deg, #06B6D4 0%, #0EA5E9 50%, #14B8A6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-arcade {
+  background: linear-gradient(135deg, #00D2FF 0%, #7C3AED 50%, #EC4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-iqlab {
+  background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #00D2FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Reflex: Crimson & Hot Rose (Zero Orange) */
+.text-gradient-reflex {
+  background: linear-gradient(135deg, #EF4444 0%, #F43F5E 50%, #FACC15 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #FDE047 0%, #EAB308 50%, #CA8A04 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-chaos {
+  background: linear-gradient(135deg, #84CC16 0%, #10B981 50%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Cosmic gaming radial background effect */
+.bg-gaming-grid {
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+  background-size: 32px 32px;
+}
+
+/* Mode border highlights with distinct World Accents */
+.mode-border-shilla {
+  border-color: rgba(6, 182, 212, 0.4);
+}
+.mode-border-shilla:hover {
+  border-color: rgba(6, 182, 212, 0.85);
+  box-shadow: 0 0 25px -4px rgba(6, 182, 212, 0.5);
+}
+
+.mode-border-arcade {
+  border-color: rgba(0, 210, 255, 0.4);
+}
+.mode-border-arcade:hover {
+  border-color: rgba(0, 210, 255, 0.85);
+  box-shadow: 0 0 25px -4px rgba(0, 210, 255, 0.5);
+}
+
+.mode-border-iqlab {
+  border-color: rgba(139, 92, 246, 0.4);
+}
+.mode-border-iqlab:hover {
+  border-color: rgba(236, 72, 153, 0.85);
+  box-shadow: 0 0 25px -4px rgba(139, 92, 246, 0.5);
+}
+
+.mode-border-reflex {
+  border-color: rgba(239, 68, 68, 0.4);
+}
+.mode-border-reflex:hover {
+  border-color: rgba(244, 63, 94, 0.85);
+  box-shadow: 0 0 25px -4px rgba(239, 68, 68, 0.5);
+}
+
+.mode-border-champions {
+  border-color: rgba(234, 179, 8, 0.4);
+}
+.mode-border-champions:hover {
+  border-color: rgba(234, 179, 8, 0.85);
+  box-shadow: 0 0 25px -4px rgba(234, 179, 8, 0.5);
+}
+
+.mode-border-chaos {
+  border-color: rgba(132, 204, 22, 0.4);
+}
+.mode-border-chaos:hover {
+  border-color: rgba(132, 204, 22, 0.85);
+  box-shadow: 0 0 25px -4px rgba(132, 204, 22, 0.5);
+}

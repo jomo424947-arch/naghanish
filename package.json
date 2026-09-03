@@ -1,0 +1,10 @@
+{
+  "name": "naghanish-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "start.bat",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && python -m uvicorn app.main:app --reload --port 8000"
+  }
+}

@@ -1,0 +1,16 @@
+﻿"""
+repositories/user.py
+
+Repository for User domain database operations.
+Services MUST use this repository. Never access the DB directly in services.
+"""
+
+# from sqlalchemy.ext.asyncio import AsyncSession
+# from app.models.user import User
+
+# TODO: Implement User repository methods
+# async def get_by_id(db: AsyncSession, id: str): ...
+# async def list_all(db: AsyncSession, skip: int = 0, limit: int = 20): ...
+# async def create(db: AsyncSession, data: dict): ...
+# async def update(db: AsyncSession, id: str, data: dict): ...
+# async def delete(db: AsyncSession, id: str): ...

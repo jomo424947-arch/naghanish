@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0A0A0C" />
+    <meta name="description" content="نغنِش - منصة الألعاب التفاعلية الذكية واختبارات الشخصية ومباريات البارتي الجماعية." />
+    <meta name="keywords" content="نغنش, ألعاب ذهنية, اختبارات شخصية, بارتي نايت, الذكاء, ترفيه, Naghanish" />
+    <meta name="author" content="Naghanish Team" />
+    
+    <!-- OpenGraph SEO -->
+    <meta property="og:title" content="نغنِش - منصة الترفيه الذكية" />
+    <meta property="og:description" content="ألعاب ذهنية، اختبارات شخصية، ومباريات بارتي نايت حية مع أصدقائك." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og-image.png" />
+
+    <!-- Google Fonts: Alexandria (Display) & Readex Pro (Body) & Plus Jakarta Sans (Latin) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>نغنِش - منصة الألعاب والاختبارات التفاعلية</title>
+
+    <!--
+      Theme bootstrap: must run BEFORE React mounts and BEFORE first paint.
+      Without this, <html> has no "light"/"dark" class for one frame (and,
+      if the mount effect ever fails to fire, indefinitely) — CSS-variable
+      driven tokens (bg-brand-card, text-foreground) fall back to the
+      :root dark defaults while Tailwind's `dark:` utility variants stay
+      OFF, producing a dark background with light-mode text colors.
+      This script removes that race entirely.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('naghanish-theme-storage');
+          var theme = stored ? JSON.parse(stored).state.theme : 'dark';
+          var resolved =
+            theme === 'system'
+              ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+              : theme;
+          document.documentElement.classList.add(resolved === 'light' ? 'light' : 'dark');
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+  </head>
+  <body class="bg-background text-foreground font-sans antialiased selection:bg-primary/30">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
