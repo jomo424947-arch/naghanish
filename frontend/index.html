@@ -20,16 +20,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="نغنِش" />
     <title>نغنِش - منصة الألعاب والاختبارات التفاعلية</title>
 
     <!--
       Theme bootstrap: must run BEFORE React mounts and BEFORE first paint.
-      Without this, <html> has no "light"/"dark" class for one frame (and,
-      if the mount effect ever fails to fire, indefinitely) — CSS-variable
-      driven tokens (bg-brand-card, text-foreground) fall back to the
-      :root dark defaults while Tailwind's `dark:` utility variants stay
-      OFF, producing a dark background with light-mode text colors.
-      This script removes that race entirely.
     -->
     <script>
       (function () {
@@ -50,5 +49,14 @@
   <body class="bg-background text-foreground font-sans antialiased selection:bg-primary/30">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Register PWA Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator && window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function () {});
+        });
+      }
+    </script>
   </body>
 </html>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { RotateCcw, Trophy, Heart } from 'lucide-react'
 import { Button } from '@components/common/Button'
+import { sound } from '@/utils/soundManager'
 
 interface BrickBreakerProps {
   onFinish: (score: number) => void
@@ -129,6 +130,7 @@ export const BrickBreakerGame: React.FC<BrickBreakerProps> = ({ onFinish, isRtl 
 
       if (activeCount === 0) {
         s.running = false
+        sound.playWin()
         setGameState('VICTORY')
         onFinish(s.score + 500)
         return
@@ -159,9 +161,11 @@ export const BrickBreakerGame: React.FC<BrickBreakerProps> = ({ onFinish, isRtl 
       // Wall bounce
       if (s.ballX + s.ballR > 320 || s.ballX - s.ballR < 0) {
         s.ballDX = -s.ballDX
+        sound.playBounce()
       }
       if (s.ballY - s.ballR < 0) {
         s.ballDY = -s.ballDY
+        sound.playBounce()
       }
 
       // Paddle bounce
@@ -175,6 +179,7 @@ export const BrickBreakerGame: React.FC<BrickBreakerProps> = ({ onFinish, isRtl 
         // Adjust angle based on where it hit
         const hitPoint = (s.ballX - (s.paddleX + s.paddleW / 2)) / (s.paddleW / 2)
         s.ballDX = hitPoint * 4.2
+        sound.playBounce()
       }
 
       // Bottom death
@@ -183,10 +188,12 @@ export const BrickBreakerGame: React.FC<BrickBreakerProps> = ({ onFinish, isRtl 
         setLives(s.lives)
         if (s.lives <= 0) {
           s.running = false
+          sound.playGameOver()
           setGameState('GAMEOVER')
           onFinish(s.score + 100)
           return
         } else {
+          sound.playTick()
           s.ballX = 160
           s.ballY = 240
           s.ballDY = -3.5
@@ -207,6 +214,7 @@ export const BrickBreakerGame: React.FC<BrickBreakerProps> = ({ onFinish, isRtl 
           s.ballDY = -s.ballDY
           s.score += 50
           setScore(s.score)
+          sound.playBrickSmash()
         }
       })
 

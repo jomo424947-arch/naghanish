@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { RotateCcw, Trophy } from 'lucide-react'
 import { Button } from '@components/common/Button'
+import { sound } from '@/utils/soundManager'
 
 interface PongGameProps {
   onFinish: (score: number) => void
@@ -29,6 +30,7 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl }) => {
   })
 
   const startGame = () => {
+    sound.playClick()
     stateRef.current = {
       running: true,
       paddlePlayerY: 120,
@@ -103,6 +105,7 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl }) => {
         s.ballDX = Math.abs(s.ballDX) * 1.05
         const delta = (s.ballY - (s.paddlePlayerY + s.paddleH / 2)) / (s.paddleH / 2)
         s.ballDY = delta * 4
+        sound.playBounce()
       }
 
       // AI Paddle Bounce (Right: x = 300)
@@ -115,6 +118,7 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl }) => {
         s.ballDX = -Math.abs(s.ballDX) * 1.05
         const delta = (s.ballY - (s.paddleAiY + s.paddleH / 2)) / (s.paddleH / 2)
         s.ballDY = delta * 4
+        sound.playBounce()
       }
 
       // Goal Check
@@ -124,10 +128,12 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl }) => {
         setAiScore(s.aScore)
         if (s.aScore >= 5) {
           s.running = false
+          sound.playGameOver()
           setGameState('AI_WIN')
           onFinish(s.pScore * 100 + 100)
           return
         }
+        sound.playTick()
         s.ballX = 160
         s.ballY = 120
         s.ballDX = 3.5
@@ -138,10 +144,12 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl }) => {
         setPlayerScore(s.pScore)
         if (s.pScore >= 5) {
           s.running = false
+          sound.playWin()
           setGameState('PLAYER_WIN')
           onFinish(1000)
           return
         }
+        sound.playCoin()
         s.ballX = 160
         s.ballY = 120
         s.ballDX = -3.5
