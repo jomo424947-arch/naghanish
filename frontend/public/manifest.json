@@ -1,0 +1,21 @@
+{
+  "name": "نغنِش — منصة الألعاب والترفيه التفاعلية",
+  "short_name": "نغنِش",
+  "description": "منصة ألعاب وترفيه رقمية تضم 6 عوالم فريدة: الشلة، الأركيد، مختبر الذكاء، ردة الفعل، الأبطال، وعالم الفوضى.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#ff7315",
+  "orientation": "portrait-primary",
+  "dir": "rtl",
+  "lang": "ar",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

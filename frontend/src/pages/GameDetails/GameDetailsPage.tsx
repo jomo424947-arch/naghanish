@@ -12,6 +12,8 @@ import {
   CheckCircle2,
   XCircle,
   Target,
+  Volume2,
+  VolumeX,
 } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { SEO } from '@components/common/SEO'
@@ -21,6 +23,7 @@ import { useAuthStore } from '@store/authStore'
 import { ROUTES } from '@constants/routes'
 import { ALL_GAMES, GameItem } from '@data/games.data'
 import { httpClient } from '@api/httpClient'
+import { sound } from '@utils/soundManager'
 
 // ── Import ALL dedicated game engine components ──
 import { SnakeGame } from '@components/games/SnakeGame'
@@ -162,6 +165,7 @@ export function GameDetailsPage() {
   const [elapsedTime, setElapsedTime] = useState(0)
   const [earnedXp, setEarnedXp] = useState(0)
   const [earnedCoins, setEarnedCoins] = useState(0)
+  const [isSoundOn, setIsSoundOn] = useState(sound.isEnabled())
 
   // ── Inline-engine state (Memory, Reflex, CPS, Math, Color, Aim) ──
   const [cards, setCards] = useState<{ id: number; emoji: string; flipped: boolean; matched: boolean }[]>([])
@@ -309,6 +313,7 @@ export function GameDetailsPage() {
 
   // ── Start / Restart ──
   const handleStartGame = () => {
+    sound.playClick()
     setGameStarted(true)
     setGameWon(false)
     setScore(0)
@@ -330,6 +335,7 @@ export function GameDetailsPage() {
   // ── Inline engine event handlers ──
   const handleCardClick = (index: number) => {
     if (flippedIndices.length === 2 || cards[index].flipped || cards[index].matched) return
+    sound.playClick()
     const newCards = [...cards]
     newCards[index].flipped = true
     setCards(newCards)
@@ -339,6 +345,7 @@ export function GameDetailsPage() {
       setMoves((m) => m + 1)
       const [a, b] = newFlipped
       if (cards[a].emoji === cards[b].emoji) {
+        sound.playCoin()
         newCards[a].matched = true
         newCards[b].matched = true
         setCards(newCards)
@@ -357,8 +364,10 @@ export function GameDetailsPage() {
 
   const handleReflexClick = () => {
     if (reactionState === 'waiting') {
+      sound.playGameOver()
       setReactionState('idle')
     } else if (reactionState === 'ready') {
+      sound.playWin()
       const diff = Date.now() - startTime
       setReactionTime(diff)
       setReactionState('result')
@@ -372,11 +381,13 @@ export function GameDetailsPage() {
     if (mathOp === '-') correct = mathNum1 - mathNum2
     if (mathOp === '×') correct = mathNum1 * mathNum2
     if (val === correct) {
+      sound.playCoin()
       const ns = mathStreak + 1
       setMathStreak(ns)
       if (ns >= 5) handleFinishGame(ns * 250)
       else generateMathQuestion()
     } else {
+      sound.playGameOver()
       setMathStreak(0)
       generateMathQuestion()
     }
@@ -384,16 +395,19 @@ export function GameDetailsPage() {
 
   const handleColorAnswer = (userSaysMatch: boolean) => {
     if (userSaysMatch === colorMatched) {
+      sound.playCoin()
       const ns = score + 200
       setScore(ns)
       if (ns >= 800) handleFinishGame(ns)
       else generateColorQuestion()
     } else {
+      sound.playGameOver()
       generateColorQuestion()
     }
   }
 
   const handleTargetHit = () => {
+    sound.playBounce()
     const ns = aimScore + 150
     setAimScore(ns)
     if (ns >= 750) handleFinishGame(ns)
@@ -608,9 +622,18 @@ export function GameDetailsPage() {
               <p className="text-xs text-slate-400 mt-0.5">{currentGame.descAr}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 font-mono text-sm font-black text-cyan-300 bg-black/40 px-3 py-1.5 rounded-xl border border-cyan-400/30">
-            <Clock className="w-4 h-4" />
-            <span>{elapsedTime}s</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsSoundOn(sound.toggleSound())}
+              title={isSoundOn ? (isRtl ? 'كتم الصوت' : 'Mute Sound') : (isRtl ? 'تشغيل الصوت' : 'Unmute Sound')}
+              className="p-2 rounded-xl bg-black/40 border border-white/10 text-slate-300 hover:text-white transition-all cursor-pointer"
+            >
+              {isSoundOn ? <Volume2 className="w-4 h-4 text-emerald-400" /> : <VolumeX className="w-4 h-4 text-rose-400" />}
+            </button>
+            <div className="flex items-center gap-2 font-mono text-sm font-black text-cyan-300 bg-black/40 px-3 py-1.5 rounded-xl border border-cyan-400/30">
+              <Clock className="w-4 h-4" />
+              <span>{elapsedTime}s</span>
+            </div>
           </div>
         </div>
 

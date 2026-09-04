@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+<<<<<<< HEAD
 from datetime import datetime
 
 from app.models.game import Game
@@ -9,6 +10,10 @@ from app.models.mission import DailyMission
 from app.models.leaderboard import Tournament
 from app.models.economy import StoreItem
 from app.models.ai import AIQuestion
+=======
+from app.models.game import Game
+from app.models.quiz import Quiz
+>>>>>>> 4e4404369b43681530fc0c06f81f3d68a0f6960b
 
 INITIAL_GAMES = [
     {
@@ -129,7 +134,11 @@ INITIAL_QUIZZES = [
         "world": "iqlab",
         "category": "Personality",
         "category_ar": "شخصية",
+<<<<<<< HEAD
         "questions_count": 3,
+=======
+        "questions_count": 10,
+>>>>>>> 4e4404369b43681530fc0c06f81f3d68a0f6960b
         "time_limit": "5m",
         "completions": "14.2k",
         "rating": 4.9,
@@ -147,7 +156,11 @@ INITIAL_QUIZZES = [
         "world": "iqlab",
         "category": "IQ",
         "category_ar": "ذكاء",
+<<<<<<< HEAD
         "questions_count": 3,
+=======
+        "questions_count": 12,
+>>>>>>> 4e4404369b43681530fc0c06f81f3d68a0f6960b
         "time_limit": "6m",
         "completions": "19.4k",
         "rating": 4.9,
@@ -160,6 +173,7 @@ INITIAL_QUIZZES = [
     },
 ]
 
+<<<<<<< HEAD
 INITIAL_QUIZ_QUESTIONS = [
     {
         "id": "qq_1",
@@ -501,3 +515,23 @@ async def seed_initial_data(db: AsyncSession):
             db.add(AIQuestion(**item))
 
     await db.commit()
+=======
+
+async def seed_initial_data(db: AsyncSession):
+    """Seed initial games and quizzes if database tables are empty."""
+    res = await db.execute(select(Game))
+    existing_games = res.scalars().all()
+
+    if not existing_games:
+        for item in INITIAL_GAMES:
+            db.add(Game(**item))
+        await db.commit()
+
+    res_q = await db.execute(select(Quiz))
+    existing_quizzes = res_q.scalars().all()
+
+    if not existing_quizzes:
+        for q_item in INITIAL_QUIZZES:
+            db.add(Quiz(**q_item))
+        await db.commit()
+>>>>>>> 4e4404369b43681530fc0c06f81f3d68a0f6960b

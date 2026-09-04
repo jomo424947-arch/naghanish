@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCcw, Trophy } from 'lucide-react'
 import { Button } from '@components/common/Button'
+import { sound } from '@utils/soundManager'
 
 interface SnakeGameProps {
   onFinish: (score: number) => void
@@ -86,6 +87,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onFinish, isRtl }) => {
 
         // Wall Collision
         if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
+          sound.playGameOver()
           setIsGameOver(true)
           onFinish(score * 50 + 200)
           return prevSnake
@@ -93,6 +95,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onFinish, isRtl }) => {
 
         // Self Collision
         if (prevSnake.some((segment) => segment.x === head.x && segment.y === head.y)) {
+          sound.playGameOver()
           setIsGameOver(true)
           onFinish(score * 50 + 200)
           return prevSnake
@@ -101,6 +104,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onFinish, isRtl }) => {
         // Eat Food
         const newSnake = [head, ...prevSnake]
         if (head.x === food.x && head.y === food.y) {
+          sound.playEat()
           setScore((s) => s + 1)
           setFood(generateFood())
           setSpeed((sp) => Math.max(70, sp - 3))

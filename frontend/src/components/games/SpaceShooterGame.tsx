@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { RotateCcw, Trophy, Heart } from 'lucide-react'
 import { Button } from '@components/common/Button'
+import { sound } from '@/utils/soundManager'
 
 interface SpaceShooterProps {
   onFinish: (score: number) => void
@@ -80,6 +81,7 @@ export const SpaceShooterGame: React.FC<SpaceShooterProps> = ({ onFinish, isRtl 
       // Fire bullet every 12 frames
       if (s.frameCount % 12 === 0) {
         s.bullets.push({ x: s.shipX + 13, y: 270 })
+        sound.playLaser()
       }
 
       // Spawn enemy every 45 frames
@@ -112,6 +114,7 @@ export const SpaceShooterGame: React.FC<SpaceShooterProps> = ({ onFinish, isRtl 
         if (hit) {
           s.score += 50
           setScore(s.score)
+          sound.playBrickSmash()
           return false
         }
         return true
@@ -125,8 +128,11 @@ export const SpaceShooterGame: React.FC<SpaceShooterProps> = ({ onFinish, isRtl 
           en.y = -100
           if (s.lives <= 0) {
             s.running = false
+            sound.playGameOver()
             setGameState('GAMEOVER')
             onFinish(s.score + 200)
+          } else {
+            sound.playTick()
           }
         }
       })

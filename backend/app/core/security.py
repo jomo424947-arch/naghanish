@@ -32,6 +32,7 @@ def create_access_token(subject: str | Any, expires_delta: timedelta | None = No
     return encoded_jwt
 
 
+<<<<<<< HEAD
 def create_refresh_token(subject: str | Any) -> tuple[str, datetime]:
     """Create a signed JWT refresh token and return its expiration datetime."""
     expire = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
@@ -41,6 +42,8 @@ def create_refresh_token(subject: str | Any) -> tuple[str, datetime]:
 
 
 
+=======
+>>>>>>> 4e4404369b43681530fc0c06f81f3d68a0f6960b
 def decode_token(token: str) -> dict[str, Any] | None:
     """Decode and validate a JWT access token."""
     try:

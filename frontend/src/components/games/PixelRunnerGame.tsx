@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { RotateCcw, Trophy, ArrowUp } from 'lucide-react'
 import { Button } from '@components/common/Button'
+import { sound } from '@/utils/soundManager'
 
 interface PixelRunnerProps {
   onFinish: (score: number) => void
@@ -31,6 +32,7 @@ export const PixelRunnerGame: React.FC<PixelRunnerProps> = ({ onFinish, isRtl })
     if (stateRef.current.isGrounded) {
       stateRef.current.playerVY = -11
       stateRef.current.isGrounded = false
+      sound.playJump()
     }
   }
 
@@ -166,6 +168,7 @@ export const PixelRunnerGame: React.FC<PixelRunnerProps> = ({ onFinish, isRtl })
           playerBox.y + playerBox.h > obsBox.y
         ) {
           s.running = false
+          sound.playGameOver()
           setGameState('GAMEOVER')
           onFinish(Math.floor(s.score / 5) * 5 + 150)
         }
