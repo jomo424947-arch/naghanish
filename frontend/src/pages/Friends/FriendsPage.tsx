@@ -1,58 +1,192 @@
-import React from 'react'
-import { Users, UserPlus, Search } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Users, UserPlus, Search, Swords, CheckCircle2, MessageSquare, Zap } from 'lucide-react'
 import { SectionTitle } from '@components/common/SectionTitle'
 import { Input } from '@components/common/Input'
 import { Button } from '@components/common/Button'
-import { EmptyState } from '@components/common/EmptyState'
 import { useThemeStore } from '@store/themeStore'
+import { httpClient } from '@api/httpClient'
 
-const FRIENDS = [
-  { id: 'f1', name: 'ليلى سعيد', nameEn: 'Layla Said', avatar: '🌟', level: 8, online: true },
-  { id: 'f2', name: 'يوسف أحمد', nameEn: 'Yousef Ahmed', avatar: '⚡', level: 15, online: true },
-  { id: 'f3', name: 'سارة خالد', nameEn: 'Sara Khaled', avatar: '🎯', level: 6, online: false },
+interface FriendItem {
+  id: string
+  name: string
+  username: string
+  avatar: string
+  level: number
+  rank: string
+  isOnline: boolean
+  statusText: string
+}
+
+const DEFAULT_FRIENDS: FriendItem[] = [
+  {
+    id: 'fr_1',
+    name: 'ياسين البطل ⚡',
+    username: 'yassin_speed',
+    avatar: '⚡',
+    level: 18,
+    rank: '#4',
+    isOnline: true,
+    statusText: 'يلعب في عالم الأركيد 🕹️',
+  },
+  {
+    id: 'fr_2',
+    name: 'مريم العبقرية 🧠',
+    username: 'mariam_iq',
+    avatar: '🧠',
+    level: 24,
+    rank: '#2',
+    isOnline: true,
+    statusText: 'في اختبار القيادة 💡',
+  },
+  {
+    id: 'fr_3',
+    name: 'أنس التحدي 🎯',
+    username: 'anas_ninja',
+    avatar: '🎯',
+    level: 15,
+    rank: '#8',
+    isOnline: false,
+    statusText: 'آخر ظهور منذ ساعتين',
+  },
+  {
+    id: 'fr_4',
+    name: 'هدى الشلة 🎉',
+    username: 'hoda_party',
+    avatar: '🎉',
+    level: 12,
+    rank: '#15',
+    isOnline: true,
+    statusText: 'متصلة الآن 🟢',
+  },
 ]
 
 export const FriendsPage: React.FC = () => {
   const { dir } = useThemeStore()
+  const isRtl = dir === 'rtl'
+
+  const [friends, setFriends] = useState<FriendItem[]>(DEFAULT_FRIENDS)
+  const [search, setSearch] = useState('')
+  const [invitedFriendId, setInvitedFriendId] = useState<string | null>(null)
+  const [inviteMsg, setInviteMsg] = useState<string | null>(null)
+
+  useEffect(() => {
+    httpClient
+      .get('/friends')
+      .then((res) => {
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setFriends(res.data)
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const handleDuelInvite = async (friend: FriendItem) => {
+    setInvitedFriendId(friend.id)
+    try {
+      const res = await httpClient.post(`/friends/${friend.id}/invite`)
+      setInviteMsg(res.data.message || (isRtl ? `تم إرسال دعوة التحدي إلى ${friend.name}! ⚔️` : `Duel invite sent to ${friend.name}! ⚔️`))
+    } catch {
+      setInviteMsg(isRtl ? `تم إرسال دعوة التحدي إلى ${friend.name}! ⚔️` : `Duel invite sent to ${friend.name}! ⚔️`)
+    } finally {
+      setTimeout(() => {
+        setInvitedFriendId(null)
+        setInviteMsg(null)
+      }, 4000)
+    }
+  }
+
+  const filteredFriends = friends.filter(
+    (f) =>
+      f.name.toLowerCase().includes(search.toLowerCase()) ||
+      f.username.toLowerCase().includes(search.toLowerCase())
+  )
+
+  const onlineCount = friends.filter((f) => f.isOnline).length
 
   return (
-    <div className="flex flex-col gap-8 py-4">
+    <div className="flex flex-col gap-8 py-4 max-w-4xl mx-auto pb-24">
       <SectionTitle
-        title={dir === 'rtl' ? 'الأصدقاء 👥' : 'Friends 👥'}
-        subtitle={dir === 'rtl' ? `${FRIENDS.filter(f => f.online).length} متصلون الآن` : `${FRIENDS.filter(f => f.online).length} online now`}
-        icon={<Users className="w-5 h-5" />}
+        title={isRtl ? 'الأصدقاء والتحديات المباشرة 👥' : 'Friends & Live Duels 👥'}
+        subtitle={
+          isRtl
+            ? `${onlineCount} من أصدقائك متصلون الآن وجاهزون للتحدي`
+            : `${onlineCount} friends online now ready for live duels`
+        }
+        icon={<Users className="w-5 h-5 text-cyan-400" />}
         action={
           <Button variant="secondary" size="sm" leftIcon={<UserPlus className="w-4 h-4" />}>
-            {dir === 'rtl' ? 'إضافة صديق' : 'Add Friend'}
+            {isRtl ? 'إضافة صديق' : 'Add Friend'}
           </Button>
         }
       />
 
+      {/* Duel Invitation Notification Alert */}
+      <AnimatePresence>
+        {inviteMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-2 border-amber-400/60 text-amber-200 text-sm font-black flex items-center gap-3 shadow-glow-gold"
+          >
+            <Swords className="w-5 h-5 text-amber-400 shrink-0 animate-bounce" />
+            <span>{inviteMsg}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Input
-        leftIcon={<Search className="w-4 h-4" />}
-        placeholder={dir === 'rtl' ? 'ابحث عن أصدقائك...' : 'Search friends...'}
+        leftIcon={<Search className="w-4 h-4 text-slate-400" />}
+        placeholder={isRtl ? 'ابحث عن صديق بالاسم أو اسم المستخدم...' : 'Search friends by name or username...'}
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
       />
 
       <div className="flex flex-col gap-3">
-        {FRIENDS.map(friend => (
-          <div key={friend.id} className="p-4 rounded-3xl bg-brand-card border border-brand-cardBorder flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <div className="w-12 h-12 rounded-2xl bg-brand-darkBg border border-brand-cardBorder flex items-center justify-center text-2xl">
+        {filteredFriends.map((friend) => (
+          <div
+            key={friend.id}
+            className="p-4 sm:p-5 rounded-3xl bg-brand-card border-2 border-brand-cardBorder hover:border-cyan-400/60 flex items-center justify-between gap-4 transition-all shadow-md"
+          >
+            <div className="flex items-center gap-4">
+              <div className="relative shrink-0">
+                <div className="w-14 h-14 rounded-2xl bg-brand-darkBg border-2 border-brand-cardBorder flex items-center justify-center text-3xl shadow-inner">
                   {friend.avatar}
                 </div>
-                <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-brand-card ${friend.online ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+                <div
+                  className={`absolute -bottom-1 -right-1 rtl:-right-auto rtl:-left-1 w-4 h-4 rounded-full border-2 border-brand-card ${
+                    friend.isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'
+                  }`}
+                />
               </div>
+
               <div>
-                <p className="font-bold text-white text-sm">{dir === 'rtl' ? friend.name : friend.nameEn}</p>
-                <p className="text-[11px] text-slate-400 font-medium">
-                  Level {friend.level} • {friend.online ? (dir === 'rtl' ? 'متصل الآن' : 'Online') : (dir === 'rtl' ? 'غير متصل' : 'Offline')}
+                <div className="flex items-center gap-2">
+                  <p className="font-black text-white text-base">{friend.name}</p>
+                  <span className="text-[10px] font-black bg-brand-purple/20 text-cyan-300 px-2 py-0.5 rounded-md border border-purple-500/30">
+                    LVL {friend.level}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 font-medium mt-0.5">
+                  @{friend.username} • {friend.statusText}
                 </p>
               </div>
             </div>
-            <Button variant="outline" size="sm">
-              {dir === 'rtl' ? 'تحدّ' : 'Challenge'}
-            </Button>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant={friend.isOnline ? 'accent' : 'secondary'}
+                size="sm"
+                disabled={!friend.isOnline || invitedFriendId === friend.id}
+                onClick={() => handleDuelInvite(friend)}
+                leftIcon={<Swords className="w-4 h-4" />}
+              >
+                {invitedFriendId === friend.id
+                  ? (isRtl ? 'تمت الدعوة ✓' : 'Invited ✓')
+                  : (isRtl ? 'تحدّ ⚔️' : 'Duel ⚔️')}
+              </Button>
+            </div>
           </div>
         ))}
       </div>

@@ -42,6 +42,7 @@
       "@constants/*": ["src/constants/*"],
       "@config/*": ["src/config/*"],
       "@lib/*": ["src/lib/*"],
+      "@api": ["src/api/index.ts"],
       "@api/*": ["src/api/*"],
       "@guards/*": ["src/guards/*"],
       "@routes/*": ["src/routes/*"],

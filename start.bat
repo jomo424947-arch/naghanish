@@ -23,13 +23,13 @@ echo.
 echo Waiting 3 seconds for servers to initialize...
 timeout /t 3 /nobreak >nul
 
-echo Opening browser at http://localhost:5173 ...
-start http://localhost:5173
+echo Opening browser at http://localhost:3000 ...
+start http://localhost:3000
 
 echo.
 echo ===================================================
 echo  All systems running! 
-echo  Frontend: http://localhost:5173
+echo  Frontend: http://localhost:3000
 echo  Backend Docs: http://localhost:8000/api/docs
 echo ===================================================
 pause

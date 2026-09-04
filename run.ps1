@@ -12,7 +12,7 @@ Write-Host "[2/2] Starting Backend (FastAPI)..." -ForegroundColor Green
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$scriptDir\backend'; python -m uvicorn app.main:app --reload --port 8000"
 
 Start-Sleep -Seconds 3
-Write-Host "`nOpening browser at http://localhost:5173 ..." -ForegroundColor Cyan
-Start-Process "http://localhost:5173"
+Write-Host "`nOpening browser at http://localhost:3000 ..." -ForegroundColor Cyan
+Start-Process "http://localhost:3000"
 
 Write-Host "`nAll systems launched successfully! 🎉" -ForegroundColor Green

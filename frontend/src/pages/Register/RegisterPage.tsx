@@ -6,23 +6,40 @@ import { ROUTES } from '@constants/routes'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
 
+import { authApi } from '@api'
+
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate()
   const { login } = useAuthStore()
   const { dir } = useThemeStore()
   const [isLoading, setIsLoading] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const handleSocialRegister = (provider: 'google' | 'apple') => {
+  const handleSocialRegister = async (provider: 'google' | 'apple') => {
     setIsLoading(provider)
-    setTimeout(() => {
-      login({
-        name: provider === 'google' ? 'لاعب جديد (Google)' : 'لاعب جديد (Apple)',
-        email: provider === 'google' ? 'new_user@gmail.com' : 'new_user@apple.com',
-        username: provider === 'google' ? 'new_google_player' : 'new_apple_player',
+    setErrorMsg(null)
+    try {
+      const authRes = await authApi.socialLogin({
+        provider,
+        idToken: `token_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        user: {
+          name: provider === 'google' ? 'لاعب جديد (Google)' : 'لاعب جديد (Apple)',
+          email: `${provider}_user_${Date.now().toString().slice(-4)}@naghanish.com`,
+          username: `${provider}_player_${Date.now().toString().slice(-4)}`,
+        },
       })
-      setIsLoading(null)
+
+      login(authRes.user, authRes.token, authRes.refreshToken)
       navigate(ROUTES.CHOOSE_INTERESTS)
-    }, 800)
+    } catch (err: any) {
+      console.error('Register error:', err)
+      setErrorMsg(
+        err.response?.data?.detail ||
+          (dir === 'rtl' ? 'تعذر الاتصال بالخادم، يرجى التأكد من تشغيل السيرفر' : 'Unable to connect to server')
+      )
+    } finally {
+      setIsLoading(null)
+    }
   }
 
   return (
@@ -43,6 +60,12 @@ export const RegisterPage: React.FC = () => {
             {dir === 'rtl' ? 'لا حاجة لإنشاء كلمة مرور جديدة، استخدم حسابك المعتمد' : 'No need to remember passwords, use your trusted social account'}
           </p>
         </div>
+
+        {errorMsg && (
+          <div className="p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-medium text-center">
+            {errorMsg}
+          </div>
+        )}
 
         {/* Social Register Buttons */}
         <div className="flex flex-col gap-3">

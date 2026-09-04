@@ -22,8 +22,9 @@ import { AdSlot } from '@components/common/AdSlot'
 import { ModeMascot } from '@components/common/ModeVisuals'
 import { ROUTES } from '@constants/routes'
 import { useThemeStore } from '@store/themeStore'
+import { httpClient } from '@api/httpClient'
 
-const MOCK_QUESTIONS = [
+const DEFAULT_QUESTIONS = [
   {
     id: 1,
     question: 'عندما تواجه قراراً حاسماً في فريق العمل، ما هي ردة فعلك الأولى؟',
@@ -66,11 +67,37 @@ export function QuizDetailsPage() {
 
   const isRtl = dir === 'rtl'
 
+  const [questions, setQuestions] = useState<any[]>(DEFAULT_QUESTIONS)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
   const [score, setScore] = useState<Record<string, number>>({})
   const [timer, setTimer] = useState(30)
   const [isFinished, setIsFinished] = useState(false)
+
+  // Fetch real questions from backend
+  useEffect(() => {
+    if (id) {
+      httpClient
+        .get(`/quizzes/${id}/questions`)
+        .then((res) => {
+          if (Array.isArray(res.data) && res.data.length > 0) {
+            setQuestions(
+              res.data.map((q: any) => ({
+                id: q.id,
+                question: q.questionAr || q.question_ar,
+                questionEn: q.questionEn || q.question_en,
+                options: (q.options || []).map((opt: any) => ({
+                  text: opt.text,
+                  textEn: opt.textEn || opt.text,
+                  traits: opt.trait || opt.traits || (opt.isCorrect ? 'Leader' : 'Analyst'),
+                })),
+              }))
+            )
+          }
+        })
+        .catch(() => {})
+    }
+  }, [id])
 
   // Timer interval
   useEffect(() => {
@@ -85,19 +112,19 @@ export function QuizDetailsPage() {
       })
     }, 1000)
     return () => clearInterval(interval)
-  }, [currentIndex, isFinished])
+  }, [currentIndex, isFinished, questions])
 
   const handleSelectOption = (index: number) => {
     setSelectedOption(index)
   }
 
   const handleNextQuestion = () => {
-    if (selectedOption !== null) {
-      const trait = MOCK_QUESTIONS[currentIndex].options[selectedOption].traits
+    if (selectedOption !== null && questions[currentIndex]?.options?.[selectedOption]) {
+      const trait = questions[currentIndex].options[selectedOption].traits
       setScore((prev) => ({ ...prev, [trait]: (prev[trait] || 0) + 1 }))
     }
 
-    if (currentIndex < MOCK_QUESTIONS.length - 1) {
+    if (currentIndex < questions.length - 1) {
       setCurrentIndex((prev) => prev + 1)
       setSelectedOption(null)
       setTimer(30)
@@ -106,7 +133,7 @@ export function QuizDetailsPage() {
     }
   }
 
-  const currentQ = MOCK_QUESTIONS[currentIndex]
+  const currentQ = questions[currentIndex] || DEFAULT_QUESTIONS[0]
 
   // Get top result personality
   const topTrait = Object.entries(score).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Leader'
@@ -177,16 +204,16 @@ export function QuizDetailsPage() {
               <span className="flex items-center gap-1.5 text-violet-300">
                 <Brain className="w-4 h-4" />
                 {isRtl
-                  ? `السؤال ${currentIndex + 1} من ${MOCK_QUESTIONS.length}`
-                  : `Question ${currentIndex + 1} of ${MOCK_QUESTIONS.length}`}
+                  ? `السؤال ${currentIndex + 1} من ${questions.length}`
+                  : `Question ${currentIndex + 1} of ${questions.length}`}
               </span>
               <span className="text-cyan-300 font-mono">
-                {Math.round(((currentIndex + 1) / MOCK_QUESTIONS.length) * 100)}%
+                {Math.round(((currentIndex + 1) / questions.length) * 100)}%
               </span>
             </div>
             <ProgressIndicator
               currentStep={currentIndex + 1}
-              totalSteps={MOCK_QUESTIONS.length}
+              totalSteps={questions.length}
               variant="bar"
             />
           </div>
@@ -198,7 +225,7 @@ export function QuizDetailsPage() {
 
           {/* Options Grid */}
           <div className="flex flex-col gap-3">
-            {currentQ.options.map((opt, idx) => {
+            {currentQ.options.map((opt: any, idx: number) => {
               const isSelected = selectedOption === idx
               return (
                 <button
@@ -233,7 +260,7 @@ export function QuizDetailsPage() {
             onClick={handleNextQuestion}
             className="shadow-glow mt-2"
           >
-            {currentIndex < MOCK_QUESTIONS.length - 1
+            {currentIndex < questions.length - 1
               ? isRtl
                 ? 'السؤال التالي ⚡'
                 : 'Next Question ⚡'

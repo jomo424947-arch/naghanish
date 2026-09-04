@@ -1,89 +1,167 @@
-import React from 'react'
-import { ShoppingBag, Star, Zap, Lock, Sparkles, CheckCircle2, Shield, Crown } from 'lucide-react'
-import { Card } from '@components/common/Card'
+import React, { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ShoppingBag, Star, Zap, Lock, Sparkles, CheckCircle2, Shield, Crown, AlertCircle } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
 
-const ITEMS = [
+interface StoreItem {
+  id: string
+  name: string
+  nameEn: string
+  icon: string
+  price: number
+  category: 'avatar' | 'frame' | 'effect' | 'badge' | 'sound'
+  rarity: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY'
+  rarityColor: string
+  owned: boolean
+  isEquipped?: boolean
+}
+
+const INITIAL_STORE_ITEMS: StoreItem[] = [
   {
     id: 'i1',
-    name: 'إطار العقل الخارق',
-    nameEn: 'Cyber Brain Frame',
+    name: 'إطار العقل الخارق النيوني',
+    nameEn: 'Cyber Brain Neon Frame',
     icon: '💎',
     price: 500,
-    type: 'frame',
+    category: 'frame',
     rarity: 'EPIC',
     rarityColor: 'text-violet-400 border-violet-500/40 bg-violet-500/20',
     owned: false,
   },
   {
     id: 'i2',
-    name: 'تأثير شهاب النجوم',
-    nameEn: 'Starfall Trail',
+    name: 'تأثير شهاب النجوم والبرق',
+    nameEn: 'Starfall Lightning Trail',
     icon: '⭐',
     price: 300,
-    type: 'effect',
+    category: 'effect',
     rarity: 'RARE',
     rarityColor: 'text-cyan-300 border-cyan-500/40 bg-cyan-500/20',
     owned: true,
+    isEquipped: true,
   },
   {
     id: 'i3',
-    name: 'شارة بطل الأساطير',
-    nameEn: 'Mythic Legend Badge',
+    name: 'شارة بطل الأساطير الذهبية',
+    nameEn: 'Mythic Legend Gold Badge',
     icon: '🏅',
     price: 800,
-    type: 'badge',
+    category: 'badge',
     rarity: 'LEGENDARY',
     rarityColor: 'text-amber-300 border-amber-500/40 bg-amber-500/20',
     owned: false,
   },
   {
     id: 'i4',
-    name: 'خلفية المجرة النيونية',
-    nameEn: 'Neon Galaxy Background',
-    icon: '🌌',
-    price: 1200,
-    type: 'bg',
-    rarity: 'MYTHIC',
+    name: 'أفاتار النمر السايبربانك',
+    nameEn: 'Cyber Tiger Avatar',
+    icon: '🐯',
+    price: 650,
+    category: 'avatar',
+    rarity: 'EPIC',
     rarityColor: 'text-pink-300 border-pink-500/40 bg-pink-500/20',
     owned: false,
   },
   {
     id: 'i5',
-    name: 'حزمة إيموجي الشلة',
-    nameEn: 'Shilla Emoji Pack',
+    name: 'حزمة إيموجي ومؤثرات الشلة',
+    nameEn: 'Shilla Live Emoji Pack',
     icon: '🎭',
     price: 400,
-    type: 'emoji',
+    category: 'sound',
     rarity: 'RARE',
     rarityColor: 'text-orange-400 border-orange-500/40 bg-orange-500/20',
     owned: true,
   },
   {
     id: 'i6',
-    name: 'درع الانتصار الذهبي',
-    nameEn: 'Victory Shield',
-    icon: '🛡️',
-    price: 650,
-    type: 'badge',
-    rarity: 'EPIC',
+    name: 'تاج العرش الذهبي الملكي',
+    nameEn: 'Royal Golden Crown',
+    icon: '👑',
+    price: 1500,
+    category: 'frame',
+    rarity: 'LEGENDARY',
     rarityColor: 'text-amber-400 border-amber-500/40 bg-amber-500/20',
+    owned: false,
+  },
+  {
+    id: 'i7',
+    name: 'أفاتار الروبوت الذكي نغنِش AI',
+    nameEn: 'Naghanish AI Bot Avatar',
+    icon: '🤖',
+    price: 450,
+    category: 'avatar',
+    rarity: 'RARE',
+    rarityColor: 'text-cyan-300 border-cyan-500/40 bg-cyan-500/20',
+    owned: false,
+  },
+  {
+    id: 'i8',
+    name: 'درع الحماية والتحدي الأسطوري',
+    nameEn: 'Mythic Victory Aegis',
+    icon: '🛡️',
+    price: 900,
+    category: 'badge',
+    rarity: 'EPIC',
+    rarityColor: 'text-indigo-400 border-indigo-500/40 bg-indigo-500/20',
     owned: false,
   },
 ]
 
 export const StorePage: React.FC = () => {
-  const { user } = useAuthStore()
+  const { user, updateProfile } = useAuthStore()
   const { dir } = useThemeStore()
   const isRtl = dir === 'rtl'
 
+  const [items, setItems] = useState<StoreItem[]>(INITIAL_STORE_ITEMS)
+  const [selectedCat, setSelectedCat] = useState<string>('all')
+  const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  const currentCoins = user?.coins ?? 2450
+
+  const handleBuyItem = (item: StoreItem) => {
+    if (currentCoins < item.price) {
+      setMsg({
+        type: 'error',
+        text: isRtl ? 'رصيد الكوينز غير كافٍ! العب واكسب المزيد من التحديات 🎮' : 'Not enough coins! Play more to earn coins 🎮',
+      })
+      setTimeout(() => setMsg(null), 3500)
+      return
+    }
+
+    // Deduct coins
+    updateProfile({
+      coins: currentCoins - item.price,
+    })
+
+    setItems((prev) =>
+      prev.map((i) => (i.id === item.id ? { ...i, owned: true, isEquipped: true } : i))
+    )
+
+    setMsg({
+      type: 'success',
+      text: isRtl ? `مبروك! تم شراء "${item.name}" وتجهيزها في حسابك 🎉` : `Purchased & equipped "${item.nameEn}"! 🎉`,
+    })
+    setTimeout(() => setMsg(null), 3500)
+  }
+
+  const handleToggleEquip = (item: StoreItem) => {
+    setItems((prev) =>
+      prev.map((i) =>
+        i.id === item.id ? { ...i, isEquipped: !i.isEquipped } : i
+      )
+    )
+  }
+
+  const filteredItems = items.filter(
+    (i) => selectedCat === 'all' || i.category === selectedCat
+  )
+
   return (
-    <div className="flex flex-col gap-8 py-4 max-w-5xl mx-auto">
-      {/* ─────────────────────────────────────────────────────────────
-          1. STORE BANNER
-      ───────────────────────────────────────────────────────────── */}
+    <div className="flex flex-col gap-8 py-4 max-w-5xl mx-auto pb-24">
+      {/* 1. STORE BANNER */}
       <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-[#22102B] via-brand-card to-[#0F1E33] border-2 border-brand-purple/50 shadow-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-5">
           <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-brand-purple via-pink-600 to-amber-500 flex items-center justify-center text-4xl shadow-glow text-white shrink-0">
@@ -91,14 +169,14 @@ export const StorePage: React.FC = () => {
           </div>
           <div>
             <span className="px-3 py-1 rounded-full bg-brand-purple/20 border border-brand-purple/40 text-cyan-300 text-xs font-black">
-              {isRtl ? 'المتجر الرقمي • EXCLUSIVE LOOT' : 'LOOT STORE • EXCLUSIVE'}
+              {isRtl ? 'المتجر والعناصر الحصرية • EXCLUSIVE LOOT' : 'LOOT STORE • EXCLUSIVE'}
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-white mt-2">
-              {isRtl ? 'متجر عناصر نغانيش الحصرية 🛍️' : 'Naghanish Gamer Store 🛍️'}
+              {isRtl ? 'متجر عناصر ومقتنيات نغنِش 🛍️' : 'Naghanish Gamer Store 🛍️'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 font-medium max-w-lg mt-1">
               {isRtl
-                ? 'استبدل الكوينز بإطارات أسطورية، تأثيرات حصرية، وميِّز ملفك الشخصي بين اللاعبين.'
+                ? 'استبدل الكوينز بإطارات أسطورية، أفاتارات حصرية، وميِّز ملفك الشخصي بين اللاعبين.'
                 : 'Trade your earned coins for legendary frames, effects, and custom avatar cosmetics.'}
             </p>
           </div>
@@ -107,27 +185,72 @@ export const StorePage: React.FC = () => {
         {/* User coins display */}
         <div className="px-5 py-3 rounded-2xl bg-black/60 border-2 border-amber-400/50 text-sm font-black text-amber-300 flex items-center gap-2.5 shadow-glow-gold shrink-0">
           <Zap className="w-5 h-5 text-amber-400 fill-amber-400" />
-          <span className="text-xl text-white font-black">{user?.coins ?? 2450}</span>
-          <span className="text-xs text-amber-300 uppercase font-black">COINS</span>
+          <span className="text-xl text-white font-black">{currentCoins.toLocaleString()}</span>
+          <span className="text-xs text-amber-300 uppercase font-black">{isRtl ? 'عملة' : 'COINS'}</span>
         </div>
       </div>
 
-      {/* ─────────────────────────────────────────────────────────────
-          2. LOOT ITEMS GRID
-      ───────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {ITEMS.map((item) => (
+      {/* Message notification */}
+      <AnimatePresence>
+        {msg && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={`p-4 rounded-2xl border-2 text-sm font-black flex items-center gap-3 ${
+              msg.type === 'success'
+                ? 'bg-emerald-500/20 border-emerald-400/60 text-emerald-200'
+                : 'bg-red-500/20 border-red-400/60 text-red-200'
+            }`}
+          >
+            {msg.type === 'success' ? (
+              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            ) : (
+              <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+            )}
+            <span>{msg.text}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 2. Category Filter Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto py-1 no-scrollbar">
+        {[
+          { id: 'all', labelAr: 'الكل 🛍️', labelEn: 'All' },
+          { id: 'avatar', labelAr: 'الأفاتارات 👤', labelEn: 'Avatars' },
+          { id: 'frame', labelAr: 'الإطارات والتاج 👑', labelEn: 'Frames' },
+          { id: 'effect', labelAr: 'المؤثرات ⭐', labelEn: 'Effects' },
+          { id: 'badge', labelAr: 'الأوسمة 🏅', labelEn: 'Badges' },
+          { id: 'sound', labelAr: 'الحزم والأصوات 🎭', labelEn: 'Packs' },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setSelectedCat(tab.id)}
+            className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all cursor-pointer shrink-0 ${
+              selectedCat === tab.id
+                ? 'bg-gradient-to-r from-brand-purple to-brand-blue text-white shadow-glow'
+                : 'bg-brand-card text-slate-400 hover:text-white border border-brand-cardBorder'
+            }`}
+          >
+            {isRtl ? tab.labelAr : tab.labelEn}
+          </button>
+        ))}
+      </div>
+
+      {/* 3. LOOT ITEMS GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {filteredItems.map((item) => (
           <div
             key={item.id}
-            className="rounded-3xl p-6 bg-brand-card/90 border-2 border-brand-cardBorder hover:border-brand-purple shadow-xl hover:shadow-glow transition-all duration-300 flex flex-col justify-between items-center text-center gap-4 group"
+            className="rounded-3xl p-5 bg-brand-card/90 border-2 border-brand-cardBorder hover:border-brand-purple shadow-xl hover:shadow-glow transition-all duration-300 flex flex-col justify-between items-center text-center gap-4 group"
           >
             {/* Top Rarity Badge */}
             <div className="w-full flex items-center justify-between">
-              <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black border ${item.rarityColor}`}>
+              <span className={`px-2 py-0.5 rounded-full text-[8px] font-black border ${item.rarityColor}`}>
                 {item.rarity}
               </span>
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
-                {item.type}
+                {item.category}
               </span>
             </div>
 
@@ -137,25 +260,32 @@ export const StorePage: React.FC = () => {
             </div>
 
             <div>
-              <h4 className="font-black text-white text-base group-hover:text-cyan-300 transition-colors">
+              <h4 className="font-black text-white text-sm group-hover:text-cyan-300 transition-colors">
                 {isRtl ? item.name : item.nameEn}
               </h4>
             </div>
 
             {/* Action State */}
             {item.owned ? (
-              <span className="w-full py-2.5 rounded-2xl bg-emerald-500/20 text-emerald-400 text-xs font-black border border-emerald-500/40 flex items-center justify-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>{isRtl ? 'عنصر مملوك ✓' : 'Owned in Inventory ✓'}</span>
-              </span>
+              <Button
+                variant={item.isEquipped ? 'primary' : 'secondary'}
+                size="sm"
+                fullWidth
+                onClick={() => handleToggleEquip(item)}
+              >
+                {item.isEquipped
+                  ? (isRtl ? 'مُجهّز حالياً ✓' : 'Equipped ✓')
+                  : (isRtl ? 'تجهيز العنصر' : 'Equip')}
+              </Button>
             ) : (
               <Button
-                variant="accent"
-                size="md"
+                variant="gold"
+                size="sm"
                 fullWidth
-                leftIcon={<Zap className="w-4 h-4 fill-current" />}
+                onClick={() => handleBuyItem(item)}
+                leftIcon={<Zap className="w-3.5 h-3.5 fill-current" />}
               >
-                <span>{item.price} {isRtl ? 'كوينز' : 'Coins'}</span>
+                <span>{item.price} {isRtl ? 'عملة' : 'Coins'}</span>
               </Button>
             )}
           </div>

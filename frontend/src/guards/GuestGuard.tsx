@@ -7,12 +7,10 @@
 
 import { Outlet, Navigate } from 'react-router-dom'
 import { ROUTES } from '@constants/routes'
-// TODO: import { useAuthStore } from '@store/authStore'
+import { useAuthStore } from '@store/authStore'
 
 export function GuestGuard() {
-  // TODO: Read auth state from store
-  // const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
-  const isAuthenticated = false // placeholder — always guest until auth is implemented
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
   if (isAuthenticated) {
     return <Navigate to={ROUTES.HOME} replace />

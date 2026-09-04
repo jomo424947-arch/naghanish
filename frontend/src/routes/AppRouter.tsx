@@ -87,13 +87,21 @@ export function AppRouter() {
             <Route path={ROUTES.QUIZ_CENTER} element={<QuizCenterPage />} />
             <Route path={`${ROUTES.QUIZ_CENTER}/:id`} element={<QuizDetailsPage />} />
 
-            {/* 2. The 6 Gaming Worlds */}
+            {/* 2. The 6 Gaming Worlds (Supports both /world/ and /worlds/ routes) */}
             <Route path={ROUTES.WORLD_SHILLA} element={<ShillaWorldPage />} />
             <Route path={ROUTES.WORLD_ARCADE} element={<ArcadeWorldPage />} />
             <Route path={ROUTES.WORLD_IQ_LAB} element={<IQLabWorldPage />} />
             <Route path={ROUTES.WORLD_REFLEX} element={<ReflexWorldPage />} />
             <Route path={ROUTES.WORLD_CHAMPIONS} element={<ChampionsWorldPage />} />
             <Route path={ROUTES.WORLD_CHAOS} element={<ChaosWorldPage />} />
+
+            {/* Plural route aliases for /worlds/* */}
+            <Route path="/worlds/shilla" element={<ShillaWorldPage />} />
+            <Route path="/worlds/arcade" element={<ArcadeWorldPage />} />
+            <Route path="/worlds/iq-lab" element={<IQLabWorldPage />} />
+            <Route path="/worlds/reflex" element={<ReflexWorldPage />} />
+            <Route path="/worlds/champions" element={<ChampionsWorldPage />} />
+            <Route path="/worlds/chaos" element={<ChaosWorldPage />} />
 
             {/* Route Aliases for backwards compatibility */}
             <Route path={ROUTES.PARTY} element={<ShillaWorldPage />} />

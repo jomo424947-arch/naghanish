@@ -6,23 +6,40 @@ import { ROUTES } from '@constants/routes'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
 
+import { authApi } from '@api'
+
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate()
   const { login } = useAuthStore()
   const { dir } = useThemeStore()
   const [isLoading, setIsLoading] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const handleSocialLogin = (provider: 'google' | 'apple') => {
+  const handleSocialLogin = async (provider: 'google' | 'apple') => {
     setIsLoading(provider)
-    setTimeout(() => {
-      login({
-        name: provider === 'google' ? 'مستخدم Google' : 'مستخدم Apple',
-        email: provider === 'google' ? 'user@gmail.com' : 'user@apple.com',
-        username: provider === 'google' ? 'google_player' : 'apple_player',
+    setErrorMsg(null)
+    try {
+      const authRes = await authApi.socialLogin({
+        provider,
+        idToken: `token_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        user: {
+          name: provider === 'google' ? 'مستخدم Google' : 'مستخدم Apple',
+          email: `${provider}_user_${Date.now().toString().slice(-4)}@naghanish.com`,
+          username: `${provider}_player_${Date.now().toString().slice(-4)}`,
+        },
       })
-      setIsLoading(null)
+
+      login(authRes.user, authRes.token, authRes.refreshToken)
       navigate(ROUTES.WELCOME)
-    }, 800)
+    } catch (err: any) {
+      console.error('Login error:', err)
+      setErrorMsg(
+        err.response?.data?.detail ||
+          (dir === 'rtl' ? 'تعذر الاتصال بالخادم، يرجى التأكد من تشغيل السيرفر' : 'Unable to connect to server')
+      )
+    } finally {
+      setIsLoading(null)
+    }
   }
 
   return (
@@ -42,6 +59,12 @@ export const LoginPage: React.FC = () => {
             {dir === 'rtl' ? 'تسجيل السريع والآمن عبر حساباتك المعتمدة' : 'Fast and secure login via verified accounts'}
           </p>
         </div>
+
+        {errorMsg && (
+          <div className="p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-medium text-center">
+            {errorMsg}
+          </div>
+        )}
 
         {/* Social Login Buttons */}
         <div className="flex flex-col gap-3">

@@ -1,46 +1,69 @@
-"""
-migrations/env.py
+import asyncio
+from logging.config import fileConfig
+from sqlalchemy import pool
+from sqlalchemy.ext.asyncio import create_async_engine
+from alembic import context
 
-Alembic environment configuration.
-Connects to the database and runs migrations.
-"""
+from app.database.base import Base
+from app.config.settings import settings
 
-# from logging.config import fileConfig
-# from sqlalchemy import engine_from_config, pool
-# from alembic import context
-# from app.database.base import Base
-# from app.config.settings import settings
+# Import all models so Alembic can detect their tables in Base.metadata
+import app.models.user  # noqa: F401
+import app.models.game  # noqa: F401
+import app.models.quiz  # noqa: F401
+import app.models.leaderboard  # noqa: F401
+import app.models.achievement  # noqa: F401
+import app.models.mission  # noqa: F401
+import app.models.room  # noqa: F401
+import app.models.economy  # noqa: F401
+import app.models.friend  # noqa: F401
+import app.models.notification  # noqa: F401
+import app.models.auth  # noqa: F401
+import app.models.ai  # noqa: F401
 
-# Import all models here so Alembic can detect them:
-# from app.models import user, game, quiz, party  # noqa: F401
+config = context.config
 
-# config = context.config
-# config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
 
-# if config.config_file_name is not None:
-#     fileConfig(config.config_file_name)
-
-# target_metadata = Base.metadata
-
-
-# def run_migrations_offline() -> None:
-#     url = config.get_main_option("sqlalchemy.url")
-#     context.configure(url=url, target_metadata=target_metadata, literal_binds=True)
-#     with context.begin_transaction():
-#         context.run_migrations()
-
-
-# def run_migrations_online() -> None:
-#     connectable = engine_from_config(config.get_section(config.config_ini_section), prefix="sqlalchemy.", poolclass=pool.NullPool)
-#     with connectable.connect() as connection:
-#         context.configure(connection=connection, target_metadata=target_metadata)
-#         with context.begin_transaction():
-#             context.run_migrations()
+target_metadata = Base.metadata
 
 
-# if context.is_offline_mode():
-#     run_migrations_offline()
-# else:
-#     run_migrations_online()
+def run_migrations_offline() -> None:
+    """Run migrations in 'offline' mode."""
+    url = settings.DATABASE_URL
+    context.configure(
+        url=url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
+    )
 
-# TODO: Uncomment and configure above
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+def do_run_migrations(connection):
+    context.configure(connection=connection, target_metadata=target_metadata)
+
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+async def run_migrations_online() -> None:
+    """Run migrations in 'online' mode with async engine."""
+    connectable = create_async_engine(
+        settings.DATABASE_URL,
+        poolclass=pool.NullPool,
+    )
+
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
+
+    await connectable.dispose()
+
+
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    asyncio.run(run_migrations_online())

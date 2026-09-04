@@ -9,12 +9,10 @@
 
 import { Outlet, Navigate } from 'react-router-dom'
 import { ROUTES } from '@constants/routes'
-// TODO: import { useAuthStore } from '@store/authStore'
+import { useAuthStore } from '@store/authStore'
 
 export function AuthGuard() {
-  // TODO: Read auth state from store
-  // const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
-  const isAuthenticated = true // placeholder — always authenticated until auth is implemented
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
   if (!isAuthenticated) {
     return <Navigate to={ROUTES.LOGIN} replace />

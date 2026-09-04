@@ -6,9 +6,7 @@
  */
 
 export { httpClient } from './httpClient'
-
-// TODO: Export endpoint modules as they are created:
-// export * from './endpoints/auth.api'
+export * from './endpoints/auth.api'
 // export * from './endpoints/users.api'
 // export * from './endpoints/games.api'
 // export * from './endpoints/quizzes.api'

@@ -31,10 +31,11 @@ interface AuthState {
   isAuthenticated: boolean
   selectedInterests: string[]
   pendingEmailForOtp: string | null
+  refreshToken: string | null
 }
 
 interface AuthActions {
-  login: (user: Partial<UserProfile>, token?: string) => void
+  login: (user: Partial<UserProfile>, token?: string, refreshToken?: string) => void
   logout: () => void
   setPendingEmail: (email: string) => void
   setInterests: (interests: string[]) => void
@@ -45,44 +46,52 @@ interface AuthActions {
 
 type AuthStore = AuthState & AuthActions
 
-const MOCK_USER: UserProfile = {
-  id: 'usr_101',
-  name: 'أحمد علي',
-  username: 'ahmed_naghanish',
-  email: 'ahmed@example.com',
-  avatar: '/avatars/mascot-1.svg',
-  level: 12,
-  xp: 2450,
-  maxXp: 3500,
-  coins: 2350,
-  rank: '#2',
-  interests: ['brain', 'party', 'memory', 'speed'],
-  bio: 'متحمس للألعاب الذهنية والتحديات! 🧠🎮',
-  favoriteCategory: 'Brain Games',
-  hasCompletedOnboarding: false,
-  hasCompletedProfileSetup: false,
-}
-
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
-      user: MOCK_USER,
-      token: 'demo-token-12345',
-      isAuthenticated: true,
-      selectedInterests: ['brain', 'party', 'memory', 'speed'],
+      user: null,
+      token: null,
+      refreshToken: null,
+      isAuthenticated: false,
+      selectedInterests: [],
       pendingEmailForOtp: null,
 
-      login: (userData, token = 'demo-token-12345') => {
-        const currentUser = get().user || MOCK_USER
+      login: (userData, token = '', refreshToken = '') => {
+        const currentUser = get().user
+        const mergedUser: UserProfile = {
+          id: userData.id || currentUser?.id || `usr_${Date.now()}`,
+          name: userData.name || currentUser?.name || 'لاعب نغنِش',
+          username: userData.username || currentUser?.username || 'player',
+          email: userData.email || currentUser?.email || '',
+          avatar: userData.avatar || currentUser?.avatar || '/avatars/mascot-1.svg',
+          level: userData.level ?? currentUser?.level ?? 1,
+          xp: userData.xp ?? currentUser?.xp ?? 0,
+          maxXp: userData.maxXp ?? currentUser?.maxXp ?? 1000,
+          coins: userData.coins ?? currentUser?.coins ?? 100,
+          rank: userData.rank || currentUser?.rank || '#--',
+          interests: userData.interests || currentUser?.interests || [],
+          bio: userData.bio || currentUser?.bio || '',
+          favoriteCategory: userData.favoriteCategory || currentUser?.favoriteCategory || '',
+          hasCompletedOnboarding: userData.hasCompletedOnboarding ?? currentUser?.hasCompletedOnboarding ?? false,
+          hasCompletedProfileSetup: userData.hasCompletedProfileSetup ?? currentUser?.hasCompletedProfileSetup ?? false,
+        }
         set({
-          user: { ...currentUser, ...userData },
-          token,
-          isAuthenticated: true,
+          user: mergedUser,
+          token: token || get().token,
+          refreshToken: refreshToken || get().refreshToken,
+          isAuthenticated: Boolean(token || get().token),
         })
       },
 
       logout: () => {
-        set({ user: null, token: null, isAuthenticated: false })
+        set({
+          user: null,
+          token: null,
+          refreshToken: null,
+          isAuthenticated: false,
+          selectedInterests: [],
+          pendingEmailForOtp: null,
+        })
       },
 
       setPendingEmail: (email: string) => {
@@ -108,10 +117,12 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       updateProfile: (profileData: Partial<UserProfile>) => {
-        const currentUser = get().user || MOCK_USER
-        set({
-          user: { ...currentUser, ...profileData },
-        })
+        const currentUser = get().user
+        if (currentUser) {
+          set({
+            user: { ...currentUser, ...profileData },
+          })
+        }
       },
 
       completeOnboarding: () => {
