@@ -41,6 +41,7 @@ export const ROUTES = {
   SEARCH: '/search',
 
   // 6 Gaming Worlds Routes
+  WORLDS: '/worlds',
   WORLD_SHILLA: '/world/shilla',
   WORLD_ARCADE: '/world/arcade',
   WORLD_IQ_LAB: '/world/iq-lab',

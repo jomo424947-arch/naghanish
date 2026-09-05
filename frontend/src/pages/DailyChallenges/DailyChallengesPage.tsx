@@ -26,84 +26,29 @@ interface MissionItem {
   expiresIn?: string
 }
 
-const DEFAULT_MISSIONS: MissionItem[] = [
-  {
-    id: 'm_play_3_arcade',
-    titleAr: 'بطل الأركيد اليومي 🕹️',
-    titleEn: 'Daily Arcade Hero 🕹️',
-    descAr: 'العب 3 مباريات في كابينات عالم الأركيد.',
-    descEn: 'Play 3 matches in Arcade World cabinets.',
-    icon: '🕹️',
-    targetCount: 3,
-    currentCount: 2,
-    xpReward: 350,
-    coinsReward: 75,
-    completed: false,
-    claimed: false,
-  },
-  {
-    id: 'm_reflex_lightning',
-    titleAr: 'صاعقة ردة الفعل ⚡',
-    titleEn: 'Reflex Lightning Strike ⚡',
-    descAr: 'حقق 3 محاولات استجابة سريعة في حلبة السرعة.',
-    descEn: 'Achieve 3 fast reaction rounds in Speed Arena.',
-    icon: '⚡',
-    targetCount: 3,
-    currentCount: 3,
-    xpReward: 400,
-    coinsReward: 80,
-    completed: true,
-    claimed: false,
-  },
-  {
-    id: 'm_math_rapid',
-    titleAr: 'تمرين العقل الصباحي 🧮',
-    titleEn: 'Morning Math Sprint 🧮',
-    descAr: 'أكمل جولة حساب ذهني واحدة بنجاح.',
-    descEn: 'Complete 1 mental math calculation sprint.',
-    icon: '🧮',
-    targetCount: 1,
-    currentCount: 1,
-    xpReward: 250,
-    coinsReward: 50,
-    completed: true,
-    claimed: true,
-  },
-  {
-    id: 'm_shilla_invite',
-    titleAr: 'اجتماع الشلة 🎉',
-    titleEn: 'Crew Gathering 🎉',
-    descAr: 'ادخل غرفة لعب جماعي مع صديق.',
-    descEn: 'Join a party room with a friend.',
-    icon: '🎉',
-    targetCount: 1,
-    currentCount: 0,
-    xpReward: 500,
-    coinsReward: 100,
-    completed: false,
-    claimed: false,
-  },
-]
-
 export const DailyChallengesPage: React.FC = () => {
   const navigate = useNavigate()
   const { dir } = useThemeStore()
   const { user, updateProfile } = useAuthStore()
   const isRtl = dir === 'rtl'
 
-  const [missions, setMissions] = useState<MissionItem[]>(DEFAULT_MISSIONS)
+  const [missions, setMissions] = useState<MissionItem[]>([])
   const [claimingId, setClaimingId] = useState<string | null>(null)
   const [claimMsg, setClaimMsg] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     httpClient
       .get('/missions')
       .then((res) => {
-        if (Array.isArray(res.data) && res.data.length > 0) {
+        if (Array.isArray(res.data)) {
           setMissions(res.data)
         }
       })
-      .catch(() => {})
+      .catch(() => {
+        setMissions([])
+      })
+      .finally(() => setIsLoading(false))
   }, [])
 
   const handleClaimReward = async (m: MissionItem) => {

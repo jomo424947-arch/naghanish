@@ -53,6 +53,7 @@ const IQLabWorldPage = lazy(() => import('../worlds/iq-lab/IQLabPage').then((m) 
 const ReflexWorldPage = lazy(() => import('../worlds/reflex/ReflexPage').then((m) => ({ default: m.ReflexPage })))
 const ChampionsWorldPage = lazy(() => import('../worlds/champions/ChampionsPage').then((m) => ({ default: m.ChampionsPage })))
 const ChaosWorldPage = lazy(() => import('../worlds/chaos/ChaosPage').then((m) => ({ default: m.ChaosPage })))
+const WorldsPage = lazy(() => import('@pages/Worlds/WorldsPage').then((m) => ({ default: m.WorldsPage })))
 
 export function AppRouter() {
   return (
@@ -87,7 +88,9 @@ export function AppRouter() {
             <Route path={ROUTES.QUIZ_CENTER} element={<QuizCenterPage />} />
             <Route path={`${ROUTES.QUIZ_CENTER}/:id`} element={<QuizDetailsPage />} />
 
-            {/* 2. The 6 Gaming Worlds (Supports both /world/ and /worlds/ routes) */}
+            {/* 2. Worlds Hub & The 6 Gaming Worlds */}
+            <Route path={ROUTES.WORLDS} element={<WorldsPage />} />
+            <Route path="/world" element={<WorldsPage />} />
             <Route path={ROUTES.WORLD_SHILLA} element={<ShillaWorldPage />} />
             <Route path={ROUTES.WORLD_ARCADE} element={<ArcadeWorldPage />} />
             <Route path={ROUTES.WORLD_IQ_LAB} element={<IQLabWorldPage />} />

@@ -24,19 +24,19 @@ export function LobbyPage() {
   const { user } = useAuthStore()
   const { dir } = useThemeStore()
 
-  const roomCode = id || 'NGAI23'
+  const roomCode = id || 'ROOM1'
 
   const [players, setPlayers] = useState<Player[]>([
-    { id: '1', name: user?.name || 'أحمد علي (أنت)', avatar: '🧠', isHost: true, isReady: true },
-    { id: '2', name: 'ليلى سعيد', avatar: '🌟', isHost: false, isReady: true },
-    { id: '3', name: 'يوسف أحمد', avatar: '⚡', isHost: false, isReady: false },
-    { id: '4', name: 'سارة خالد', avatar: '🎯', isHost: false, isReady: true },
+    {
+      id: user?.id || 'host_1',
+      name: `${user?.name || (dir === 'rtl' ? 'لاعب' : 'Player')} (${dir === 'rtl' ? 'أنت' : 'You'})`,
+      avatar: user?.avatar || '🧠',
+      isHost: true,
+      isReady: true,
+    },
   ])
 
-  const [messages, setMessages] = useState<string[]>([
-    'أهلاً بكم في الغرفة! 👋',
-    'جاهزون للبدء؟ 🔥',
-  ])
+  const [messages, setMessages] = useState<string[]>([])
   const [chatInput, setChatInput] = useState('')
 
   const handleSendMessage = () => {

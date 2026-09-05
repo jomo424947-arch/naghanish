@@ -1,45 +1,66 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Trophy, Zap, Brain, Star, Settings, ShieldCheck, Flame, Award, Gamepad2 } from 'lucide-react'
+import { Trophy, Zap, Settings, Award, Gamepad2 } from 'lucide-react'
 import { Button } from '@components/common/Button'
-import { Card } from '@components/common/Card'
-import { ProgressIndicator } from '@components/common/ProgressIndicator'
 import { ROUTES } from '@constants/routes'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
+import { httpClient } from '@api/httpClient'
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate()
   const { user } = useAuthStore()
   const { dir } = useThemeStore()
-
   const isRtl = dir === 'rtl'
+
+  const [stats, setStats] = useState({
+    gamesPlayed: 0,
+    achievementsUnlocked: 0,
+    itemsOwned: 0,
+  })
+
+  useEffect(() => {
+    httpClient
+      .get('/profile')
+      .then((res) => {
+        if (res.data) {
+          setStats({
+            gamesPlayed: res.data.gamesPlayed ?? 0,
+            achievementsUnlocked: res.data.achievementsUnlocked ?? 0,
+            itemsOwned: res.data.itemsOwned ?? 0,
+          })
+        }
+      })
+      .catch(() => {
+        // Fallback to default 0 stats
+      })
+  }, [])
 
   const STATS = [
     {
       label: isRtl ? 'الألعاب الملعوبة' : 'Games Played',
-      value: '142',
+      value: `${stats.gamesPlayed}`,
       icon: <Gamepad2 className="w-5 h-5 text-brand-purple" />,
       border: 'border-purple-500/30',
       bg: 'bg-purple-500/10',
     },
     {
-      label: isRtl ? 'الانتصارات الكبرى' : 'Total Wins',
-      value: '89',
+      label: isRtl ? 'الإنجازات المحققة' : 'Achievements',
+      value: `${stats.achievementsUnlocked}`,
       icon: <Trophy className="w-5 h-5 text-amber-400" />,
       border: 'border-amber-500/30',
       bg: 'bg-amber-500/10',
     },
     {
-      label: isRtl ? 'الأوسمة والجوائز' : 'Trophies',
-      value: '12',
+      label: isRtl ? 'العناصر المملوكة' : 'Items Owned',
+      value: `${stats.itemsOwned}`,
       icon: <Award className="w-5 h-5 text-cyan-300" />,
       border: 'border-cyan-500/30',
       bg: 'bg-cyan-500/10',
     },
     {
       label: isRtl ? 'رصيد الكوينز' : 'Total Coins',
-      value: `${user?.coins ?? 2450}`,
+      value: `${user?.coins ?? 100}`,
       icon: <Zap className="w-5 h-5 text-orange-400" />,
       border: 'border-orange-500/30',
       bg: 'bg-orange-500/10',
@@ -49,8 +70,13 @@ export const ProfilePage: React.FC = () => {
   const defaultInterests = ['Brain Games', 'Party Night', 'Memory', 'Speed Run', 'IQ Lab']
   const userInterests = user?.interests && user.interests.length > 0 ? user.interests : defaultInterests
 
+  const xpProgress = Math.min(
+    100,
+    Math.round(((user?.xp ?? 0) / (user?.maxXp || 1000)) * 100)
+  )
+
   return (
-    <div className="flex flex-col gap-8 py-4 max-w-5xl mx-auto">
+    <div className="flex flex-col gap-8 py-4 max-w-5xl mx-auto pb-24">
       {/* ─────────────────────────────────────────────────────────────
           1. HERO GAMER PROFILE CARD
       ───────────────────────────────────────────────────────────── */}
@@ -63,11 +89,11 @@ export const ProfilePage: React.FC = () => {
           <div className="relative shrink-0">
             <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-brand-purple via-indigo-600 to-cyan-400 p-1 shadow-glow flex items-center justify-center">
               <div className="w-full h-full rounded-[22px] bg-brand-darkBg flex items-center justify-center text-5xl">
-                🧠
+                {user?.avatar || '🧠'}
               </div>
             </div>
             <div className="absolute -bottom-2 -right-2 rtl:-right-auto rtl:-left-2 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-xs font-black text-slate-950 shadow-glow-gold">
-              LVL {user?.level ?? 12}
+              LVL {user?.level ?? 1}
             </div>
           </div>
 
@@ -75,19 +101,19 @@ export const ProfilePage: React.FC = () => {
           <div className="flex-1 text-center sm:text-start">
             <div className="flex items-center justify-center sm:justify-start gap-2.5">
               <h1 className="text-2xl sm:text-3xl font-black text-white">
-                {user?.name ?? (isRtl ? 'أحمد علي' : 'Ahmed Ali')}
+                {user?.name || (isRtl ? 'لاعب نغنِش' : 'Player')}
               </h1>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
-                PRO GAMER
+                {user?.rank || (isRtl ? 'مبتدئ 🎮' : 'NOVICE')}
               </span>
             </div>
 
             <p className="text-xs sm:text-sm text-cyan-400 font-extrabold mt-0.5">
-              @{user?.username ?? 'naghanish_pro'}
+              @{user?.username || 'player'}
             </p>
 
             <p className="text-xs sm:text-sm text-slate-300 font-medium mt-2 max-w-lg leading-relaxed">
-              {user?.bio ?? (isRtl ? 'متحمس لتحديات السرعة والألعاب الذهنية وتحدي الشلة! 🧠🎮' : 'Passionate gamer & brain challenge champion! 🧠🎮')}
+              {user?.bio || (isRtl ? 'متحمس لتحديات السرعة والألعاب الذهنية وتحدي الشلة! 🧠🎮' : 'Passionate gamer ready for brain challenges & party games! 🧠🎮')}
             </p>
 
             {/* XP Progression Bar */}
@@ -95,13 +121,13 @@ export const ProfilePage: React.FC = () => {
               <div className="flex items-center justify-between text-xs font-black text-slate-300 mb-1.5">
                 <span className="text-cyan-300">XP PROGRESS</span>
                 <span className="font-mono text-white">
-                  {user?.xp ?? 2450} / {user?.maxXp ?? 3500} XP
+                  {user?.xp ?? 0} / {user?.maxXp ?? 1000} XP
                 </span>
               </div>
               <div className="w-full h-2.5 rounded-full bg-brand-darkBg border border-brand-cardBorder overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-brand-purple via-brand-blue to-cyan-300 rounded-full shadow-glow-blue"
-                  style={{ width: '70%' }}
+                  className="h-full bg-gradient-to-r from-brand-purple via-brand-blue to-cyan-300 rounded-full shadow-glow-blue transition-all duration-500"
+                  style={{ width: `${xpProgress}%` }}
                 />
               </div>
             </div>

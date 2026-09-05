@@ -16,7 +16,7 @@ from sqlalchemy import select, or_
 from app.database.session import get_db
 from app.models.user import User
 from app.models.auth import RefreshToken
-from app.schemas.auth import UserRegister, UserLogin, SocialLoginRequest, TokenResponse, RefreshTokenRequest
+from app.schemas.auth import UserRegister, UserLogin, SocialLoginRequest, TokenResponse, RefreshTokenRequest, NameLoginRequest
 from app.schemas.user import UserResponse
 from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
 from app.dependencies.auth import get_current_active_user
@@ -198,3 +198,48 @@ async def create_guest_session(db: AsyncSession = Depends(get_db)):
     await db.refresh(guest_user)
 
     return await _issue_token_response(guest_user, db)
+
+
+@router.post("/name-login", response_model=TokenResponse)
+async def name_login(payload: NameLoginRequest, db: AsyncSession = Depends(get_db)):
+    """
+    Login or register instantly by Name only.
+    If a user with this name exists, logs them in.
+    If not, creates a fresh user with this name and returns a full JWT token.
+    """
+    clean_name = payload.name.strip()
+    if not clean_name or len(clean_name) < 2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="يرجى إدخال اسم صحيح يحتوي على حرفين على الأقل",
+        )
+
+    # Check if a user with this name already exists
+    query = select(User).where(or_(User.name == clean_name, User.username == clean_name))
+    result = await db.execute(query)
+    user = result.scalars().first()
+
+    if not user:
+        user_uuid = uuid.uuid4().hex[:6]
+        base_username = clean_name.replace(" ", "_")
+        safe_username = f"{base_username}_{user_uuid}"
+
+        user = User(
+            id=f"usr_{uuid.uuid4().hex[:10]}",
+            email=f"{user_uuid}@naghanish.internal",
+            username=safe_username,
+            name=clean_name,
+            avatar=payload.avatar or "/avatars/mascot-1.svg",
+            provider="name",
+            level=1,
+            xp=0,
+            max_xp=1000,
+            coins=100,
+            rank="مبتدئ 🎮",
+            is_active=True,
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+
+    return await _issue_token_response(user, db)

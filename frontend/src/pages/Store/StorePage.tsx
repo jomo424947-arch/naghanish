@@ -39,8 +39,8 @@ const INITIAL_STORE_ITEMS: StoreItem[] = [
     category: 'effect',
     rarity: 'RARE',
     rarityColor: 'text-cyan-300 border-cyan-500/40 bg-cyan-500/20',
-    owned: true,
-    isEquipped: true,
+    owned: false,
+    isEquipped: false,
   },
   {
     id: 'i3',
@@ -73,7 +73,8 @@ const INITIAL_STORE_ITEMS: StoreItem[] = [
     category: 'sound',
     rarity: 'RARE',
     rarityColor: 'text-orange-400 border-orange-500/40 bg-orange-500/20',
-    owned: true,
+    owned: false,
+    isEquipped: false,
   },
   {
     id: 'i6',
@@ -119,7 +120,7 @@ export const StorePage: React.FC = () => {
   const [selectedCat, setSelectedCat] = useState<string>('all')
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
-  const currentCoins = user?.coins ?? 2450
+  const currentCoins = user?.coins ?? 100
 
   const handleBuyItem = (item: StoreItem) => {
     if (currentCoins < item.price) {

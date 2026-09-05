@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -23,51 +23,40 @@ import { AdSlot } from '@components/common/AdSlot'
 import { ModeMascot } from '@components/common/ModeVisuals'
 import { ROUTES } from '@constants/routes'
 import { useThemeStore } from '@store/themeStore'
+import { httpClient } from '@api/httpClient'
 
-const ACTIVE_ROOMS = [
-  {
-    code: 'AB12CD',
-    name: 'تحدي الأسئلة السريعة ⚡',
-    nameEn: 'Speed Trivia Challenge ⚡',
-    players: 6,
-    max: 8,
-    host: 'أحمد',
-    icon: '⚡',
-    category: 'Trivia & Speed',
-    badge: 'LIVE MATCH',
-    badgeColor: 'bg-orange-500',
-  },
-  {
-    code: 'XY342Q',
-    name: 'ذاكرة الأبطال الخارقة 🃏',
-    nameEn: 'Champions Memory 🃏',
-    players: 4,
-    max: 6,
-    host: 'ليلى',
-    icon: '🏆',
-    category: 'Memory Battle',
-    badge: 'FIERCE',
-    badgeColor: 'bg-amber-500',
-  },
-  {
-    code: 'MN789R',
-    name: 'اختبار الشخصية والضحك 🎭',
-    nameEn: 'Personality & Dares 🎭',
-    players: 3,
-    max: 4,
-    host: 'يوسف',
-    icon: '🧠',
-    category: 'Social Quiz',
-    badge: 'CHILL',
-    badgeColor: 'bg-cyan-500',
-  },
-]
+interface LiveRoom {
+  id: string
+  code: string
+  name: string
+  hostName: string
+  playersCount: number
+  maxPlayers: number
+  status: string
+  gameId: string
+}
 
 export const PartyPage: React.FC = () => {
   const navigate = useNavigate()
   const { dir } = useThemeStore()
   const [joinCode, setJoinCode] = useState('')
   const [activeTab, setActiveTab] = useState<'browse' | 'join'>('browse')
+  const [rooms, setRooms] = useState<LiveRoom[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    httpClient
+      .get('/party/rooms')
+      .then((res) => {
+        if (Array.isArray(res.data)) {
+          setRooms(res.data)
+        }
+      })
+      .catch(() => {
+        setRooms([])
+      })
+      .finally(() => setIsLoading(false))
+  }, [])
 
   const isRtl = dir === 'rtl'
 
@@ -183,65 +172,92 @@ export const PartyPage: React.FC = () => {
               <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
               <p className="text-xs font-black text-slate-300 uppercase tracking-wider">
                 {isRtl
-                  ? `${ACTIVE_ROOMS.length} غرف لعب جماعية مفتوحة الآن`
-                  : `${ACTIVE_ROOMS.length} Live Multiplayer Rooms`}
+                  ? `${rooms.length} غرف لعب جماعية مفتوحة الآن`
+                  : `${rooms.length} Live Multiplayer Rooms`}
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3.5">
-            {ACTIVE_ROOMS.map((room, i) => (
-              <motion.div
-                key={room.code}
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.08 }}
-                className="p-5 rounded-3xl bg-brand-card/90 border-2 border-brand-cardBorder hover:border-orange-400/80 transition-all duration-300 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg hover:shadow-glow-orange group"
+          {isLoading ? (
+            <div className="p-8 text-center text-slate-400">
+              <p className="animate-pulse">{isRtl ? 'جاري فحص الغرف النشطة...' : 'Checking active rooms...'}</p>
+            </div>
+          ) : rooms.length === 0 ? (
+            <div className="p-10 rounded-3xl bg-brand-card/60 border border-brand-cardBorder text-center flex flex-col items-center gap-3">
+              <div className="w-14 h-14 rounded-2xl bg-brand-darkBg border border-brand-cardBorder flex items-center justify-center text-3xl">
+                🎲
+              </div>
+              <h4 className="text-base font-bold text-white">
+                {isRtl ? 'لا توجد غرف نشطة حالياً' : 'No active rooms right now'}
+              </h4>
+              <p className="text-xs text-slate-400 max-w-sm">
+                {isRtl
+                  ? 'كن أول من ينشئ غرفة الآن، وادعُ أصحابك للتحدي الجماعي المباشر!'
+                  : 'Be the first to create a party room and invite your squad!'}
+              </p>
+              <Button
+                variant="shilla"
+                size="sm"
+                onClick={() => navigate('/party/create')}
+                leftIcon={<Plus className="w-4 h-4" />}
+                className="mt-2 shadow-glow-orange"
               >
-                <div className="flex items-center gap-4 w-full sm:w-auto">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500/20 via-brand-card to-cyan-500/20 border border-orange-500/30 flex items-center justify-center text-3xl shrink-0 group-hover:scale-105 transition-transform">
-                    {room.icon}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-black text-white text-base truncate">
-                        {isRtl ? room.name : room.nameEn}
-                      </h4>
-                      <span
-                        className={`px-2 py-0.5 rounded-md text-[9px] font-black text-white ${room.badgeColor}`}
-                      >
-                        {room.badge}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 mt-1 text-xs text-slate-400 font-bold flex-wrap">
-                      <span className="font-mono text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded-md border border-cyan-400/30">
-                        #{room.code}
-                      </span>
-                      <span>•</span>
-                      <span className="flex items-center gap-1 text-slate-300">
-                        <Users className="w-3.5 h-3.5 text-orange-400" />
-                        {room.players}/{room.max} {isRtl ? 'لاعبين' : 'players'}
-                      </span>
-                      <span>•</span>
-                      <span className="text-amber-300">
-                        {isRtl ? `المضيف: ${room.host}` : `Host: ${room.host}`}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <Button
-                  variant="shilla"
-                  size="md"
-                  className="w-full sm:w-auto shrink-0"
-                  onClick={() => handleJoin(room.code)}
+                {isRtl ? 'أنشئ غرفة الآن 🎉' : 'Create Room Now 🎉'}
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3.5">
+              {rooms.map((room, i) => (
+                <motion.div
+                  key={room.code}
+                  initial={{ opacity: 0, x: -16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.08 }}
+                  className="p-5 rounded-3xl bg-brand-card/90 border-2 border-brand-cardBorder hover:border-orange-400/80 transition-all duration-300 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg hover:shadow-glow-orange group"
                 >
-                  {isRtl ? 'انضم للغرفة ⚡' : 'Join Room ⚡'}
-                </Button>
-              </motion.div>
-            ))}
-          </div>
+                  <div className="flex items-center gap-4 w-full sm:w-auto">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500/20 via-brand-card to-cyan-500/20 border border-orange-500/30 flex items-center justify-center text-3xl shrink-0 group-hover:scale-105 transition-transform">
+                      🎉
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-black text-white text-base truncate">
+                          {room.name}
+                        </h4>
+                        <span className="px-2 py-0.5 rounded-md text-[9px] font-black text-white bg-orange-500">
+                          {room.status.toUpperCase()}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 mt-1 text-xs text-slate-400 font-bold flex-wrap">
+                        <span className="font-mono text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded-md border border-cyan-400/30">
+                          #{room.code}
+                        </span>
+                        <span>•</span>
+                        <span className="flex items-center gap-1 text-slate-300">
+                          <Users className="w-3.5 h-3.5 text-orange-400" />
+                          {room.playersCount}/{room.maxPlayers} {isRtl ? 'لاعبين' : 'players'}
+                        </span>
+                        <span>•</span>
+                        <span className="text-amber-300">
+                          {isRtl ? `المضيف: ${room.hostName}` : `Host: ${room.hostName}`}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="shilla"
+                    size="md"
+                    className="w-full sm:w-auto shrink-0"
+                    onClick={() => handleJoin(room.code)}
+                  >
+                    {isRtl ? 'انضم للغرفة ⚡' : 'Join Room ⚡'}
+                  </Button>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

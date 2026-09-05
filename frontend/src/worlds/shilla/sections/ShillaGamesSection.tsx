@@ -15,7 +15,7 @@ export const ShillaGamesSection: React.FC = () => {
     <section className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-2xl bg-orange-500/20 text-orange-400 flex items-center justify-center text-lg shadow-sm border border-orange-500/30">
+          <div className="w-9 h-9 rounded-2xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-lg shadow-sm border border-cyan-500/30">
             🎮
           </div>
           <div>
@@ -34,7 +34,7 @@ export const ShillaGamesSection: React.FC = () => {
           <div
             key={game.id}
             onClick={() => navigate(game.route)}
-            className="p-6 rounded-[2rem] bg-gradient-to-br from-orange-950/40 via-brand-card to-black/60 border border-orange-500/40 hover:border-orange-400 shadow-xl hover:shadow-[0_0_25px_rgba(255,115,21,0.25)] transition-all flex flex-col justify-between gap-4 group cursor-pointer"
+            className="p-6 rounded-[2rem] bg-gradient-to-br from-cyan-950/40 via-brand-card to-black/60 border border-cyan-500/40 hover:border-cyan-400 shadow-xl hover:shadow-[0_0_25px_rgba(6,182,212,0.25)] transition-all flex flex-col justify-between gap-4 group cursor-pointer"
           >
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3.5">
@@ -47,16 +47,16 @@ export const ShillaGamesSection: React.FC = () => {
                   {game.icon}
                 </div>
                 <div>
-                  <span className="text-[10px] font-black uppercase text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-md border border-orange-500/20">
+                  <span className="text-[10px] font-black uppercase text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/20">
                     {game.playersCount || 'Multiplayer'}
                   </span>
-                  <h4 className="text-lg font-black text-white group-hover:text-amber-300 transition-colors mt-1">
+                  <h4 className="text-lg font-black text-white group-hover:text-cyan-300 transition-colors mt-1">
                     {isRtl ? game.titleAr : game.title}
                   </h4>
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-xs text-amber-400 font-black">
-                <Star className="w-3.5 h-3.5 fill-amber-400" />
+              <div className="flex items-center gap-1 text-xs text-cyan-300 font-black">
+                <Star className="w-3.5 h-3.5 fill-cyan-400 text-cyan-400" />
                 <span>{game.stars}</span>
               </div>
             </div>
@@ -66,13 +66,13 @@ export const ShillaGamesSection: React.FC = () => {
             </p>
 
             <div className="flex items-center justify-between pt-3 border-t border-white/10">
-              <span className="text-xs font-black text-cyan-400">+{game.xpReward} XP</span>
+              <span className="text-xs font-black text-teal-400">+{game.xpReward} XP</span>
               <button
                 onClick={(e) => {
                   e.stopPropagation()
                   navigate(game.route)
                 }}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs shadow-md hover:scale-105 transition-all flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 text-slate-950 font-black text-xs shadow-md hover:scale-105 transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
                 <span>{isRtl ? 'العب جماعي' : 'Play Party'}</span>

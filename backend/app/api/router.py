@@ -21,6 +21,7 @@ from app.api.routers.profile import router as profile_router
 from app.api.routers.settings import router as settings_router
 from app.api.routers.community import router as community_router
 from app.api.routers.ai import router as ai_router
+from app.api.routers.store import router as store_router
 
 api_router = APIRouter()
 
@@ -39,3 +40,5 @@ api_router.include_router(profile_router, prefix="/profile", tags=["Profile"])
 api_router.include_router(settings_router, prefix="/settings", tags=["Settings"])
 api_router.include_router(community_router, prefix="/community", tags=["Community"])
 api_router.include_router(ai_router, prefix="/ai", tags=["AI"])
+api_router.include_router(store_router, prefix="/store", tags=["Store"])
+

@@ -61,9 +61,9 @@ export const WorldShell: React.FC<WorldShellProps> = ({
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
           {worldId === 'shilla' && (
             <>
-              <div className="absolute top-10 right-10 w-96 h-96 bg-orange-600/15 rounded-full blur-3xl" />
-              <div className="absolute bottom-20 left-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
-              <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl" />
+              <div className="absolute top-10 right-10 w-96 h-96 bg-cyan-600/15 rounded-full blur-3xl" />
+              <div className="absolute bottom-20 left-10 w-96 h-96 bg-teal-500/15 rounded-full blur-3xl" />
+              <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl" />
             </>
           )}
 

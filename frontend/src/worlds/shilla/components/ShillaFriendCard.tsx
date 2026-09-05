@@ -20,10 +20,10 @@ export const ShillaFriendCard: React.FC<ShillaFriendCardProps> = ({ friend, onJo
   const isRtl = dir === 'rtl'
 
   return (
-    <div className="flex items-center justify-between p-3.5 rounded-2xl bg-brand-card/90 border border-orange-500/30 hover:border-orange-400/60 shadow-md hover:shadow-glow transition-all">
+    <div className="flex items-center justify-between p-3.5 rounded-2xl bg-brand-card/90 border border-cyan-500/30 hover:border-cyan-400/60 shadow-md hover:shadow-[0_0_20px_rgba(6,182,212,0.25)] transition-all">
       <div className="flex items-center gap-3">
         <div className="relative">
-          <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-xl">
+          <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-xl">
             {friend.avatar}
           </div>
           <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-brand-card" />
@@ -31,7 +31,7 @@ export const ShillaFriendCard: React.FC<ShillaFriendCardProps> = ({ friend, onJo
         <div>
           <h5 className="text-sm font-black text-white">{friend.name}</h5>
           <p className="text-[11px] text-slate-300 flex items-center gap-1 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
             {friend.status}
           </p>
         </div>
@@ -40,7 +40,7 @@ export const ShillaFriendCard: React.FC<ShillaFriendCardProps> = ({ friend, onJo
       {friend.roomCode && onJoinRoom && (
         <button
           onClick={() => onJoinRoom(friend.roomCode!)}
-          className="px-3 py-1.5 rounded-xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-orange-300 hover:text-white text-xs font-black transition-all flex items-center gap-1 cursor-pointer"
+          className="px-3 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 hover:text-white text-xs font-black transition-all flex items-center gap-1 cursor-pointer"
         >
           <Play className="w-3 h-3 fill-current" />
           <span>{isRtl ? 'الحق صاحبك' : 'Join'}</span>

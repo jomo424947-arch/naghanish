@@ -20,6 +20,18 @@ from app.dependencies.auth import get_current_active_user
 router = APIRouter()
 
 
+@router.get("", response_model=List[UserResponse])
+async def list_users(
+    limit: int = 50,
+    offset: int = 0,
+    db: AsyncSession = Depends(get_db),
+):
+    """List all registered users for monitoring and administration."""
+    result = await db.execute(select(User).order_by(User.created_at.desc()).offset(offset).limit(limit))
+    users = result.scalars().all()
+    return [UserResponse.model_validate(u) for u in users]
+
+
 @router.get("/me", response_model=UserResponse)
 async def read_user_me(current_user: User = Depends(get_current_active_user)):
     """Get current active user."""

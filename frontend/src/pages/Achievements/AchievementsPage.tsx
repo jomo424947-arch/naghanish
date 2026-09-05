@@ -24,127 +24,30 @@ interface AchievementItem {
   claimed: boolean
 }
 
-const DEFAULT_ACHIEVEMENTS: AchievementItem[] = [
-  {
-    id: 'ach_first_game',
-    titleAr: 'الخطوة الأولى 🚀',
-    titleEn: 'First Step 🚀',
-    descAr: 'العب أول لعبة لك في أي عالم من عوالم نغنِش.',
-    descEn: 'Play your very first game in any Naghanish world.',
-    icon: '🚀',
-    category: 'games',
-    tier: 'bronze',
-    xpReward: 250,
-    coinsReward: 50,
-    progress: 1,
-    maxProgress: 1,
-    unlocked: true,
-    claimed: false,
-  },
-  {
-    id: 'ach_speed_demon',
-    titleAr: 'شيطان السرعة ⚡',
-    titleEn: 'Speed Demon ⚡',
-    descAr: 'حقق وقت استجابة أقل من 250ms في عالم ردة الفعل.',
-    descEn: 'Score under 250ms reaction time in Reflex World.',
-    icon: '⚡',
-    category: 'reflex',
-    tier: 'silver',
-    xpReward: 500,
-    coinsReward: 100,
-    progress: 0,
-    maxProgress: 1,
-    unlocked: false,
-    claimed: false,
-  },
-  {
-    id: 'ach_brain_power',
-    titleAr: 'العقل المدبر 🧠',
-    titleEn: 'Mastermind 🧠',
-    descAr: 'أجب على 10 معادلات رياضية متتالية بدون أي خطأ.',
-    descEn: 'Solve 10 consecutive math problems with 0 mistakes.',
-    icon: '🧠',
-    category: 'iqlab',
-    tier: 'gold',
-    xpReward: 750,
-    coinsReward: 150,
-    progress: 6,
-    maxProgress: 10,
-    unlocked: false,
-    claimed: false,
-  },
-  {
-    id: 'ach_memory_titan',
-    titleAr: 'عملاق الذاكرة 🃏',
-    titleEn: 'Memory Titan 🃏',
-    descAr: 'أكمل لعبة بطاقات الذاكرة في أقل من 15 حركة.',
-    descEn: 'Finish the Memory Cards game in fewer than 15 moves.',
-    icon: '🃏',
-    category: 'arcade',
-    tier: 'gold',
-    xpReward: 800,
-    coinsReward: 200,
-    progress: 1,
-    maxProgress: 1,
-    unlocked: true,
-    claimed: true,
-  },
-  {
-    id: 'ach_party_host',
-    titleAr: 'روح الشلة 🎉',
-    titleEn: 'Party Animal 🎉',
-    descAr: 'أنشئ غرفة والعب جولة كاملة مع أصدقائك في عالم الشلة.',
-    descEn: 'Host a room and play a full match with friends.',
-    icon: '🎉',
-    category: 'party',
-    tier: 'silver',
-    xpReward: 500,
-    coinsReward: 100,
-    progress: 2,
-    maxProgress: 5,
-    unlocked: false,
-    claimed: false,
-  },
-  {
-    id: 'ach_champion_throne',
-    titleAr: 'عرش الأبطال 👑',
-    titleEn: 'Champion Throne 👑',
-    descAr: 'ادخل قائمة أفضل 10 لاعبين في لوحة الصدارة العالمية.',
-    descEn: 'Reach the Top 10 on the Global Leaderboard.',
-    icon: '👑',
-    category: 'champions',
-    tier: 'diamond',
-    xpReward: 2000,
-    coinsReward: 500,
-    progress: 0,
-    maxProgress: 1,
-    unlocked: false,
-    claimed: false,
-  },
-]
-
 export const AchievementsPage: React.FC = () => {
   const { dir } = useThemeStore()
   const { user, updateProfile } = useAuthStore()
   const isRtl = dir === 'rtl'
 
-  const [achievements, setAchievements] = useState<AchievementItem[]>(DEFAULT_ACHIEVEMENTS)
+  const [achievements, setAchievements] = useState<AchievementItem[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [claimingId, setClaimingId] = useState<string | null>(null)
   const [claimMessage, setClaimMessage] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     // Fetch live achievements from backend
     httpClient
       .get('/achievements')
       .then((res) => {
-        if (Array.isArray(res.data) && res.data.length > 0) {
+        if (Array.isArray(res.data)) {
           setAchievements(res.data)
         }
       })
       .catch(() => {
-        // Fallback to initial list
+        setAchievements([])
       })
+      .finally(() => setIsLoading(false))
   }, [])
 
   const handleClaim = async (ach: AchievementItem) => {

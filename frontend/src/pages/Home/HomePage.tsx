@@ -76,12 +76,12 @@ export const HomePage: React.FC = () => {
         <div className="flex items-center gap-3.5 min-w-0">
           <div className="relative shrink-0">
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 p-0.5 shadow-glow-orange flex items-center justify-center">
-              <div className="w-full h-full rounded-[14px] bg-brand-darkBg flex items-center justify-center overflow-hidden">
-                <GamerMascot variant="avatar" size="avatar" animated={false} className="scale-60" />
+              <div className="w-full h-full rounded-[14px] bg-brand-darkBg flex items-center justify-center overflow-hidden text-2xl sm:text-3xl">
+                {user?.avatar || '🧠'}
               </div>
             </div>
             <span className="absolute -bottom-1 -right-1 rtl:-right-auto rtl:-left-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 shadow-glow-orange">
-              LVL {user?.level || 12}
+              LVL {user?.level ?? 1}
             </span>
           </div>
 
@@ -91,7 +91,7 @@ export const HomePage: React.FC = () => {
                 {isRtl ? `أهلاً، ${user?.name || 'يا بطل'}!` : `Welcome, ${user?.name || 'Champion'}!`}
               </h2>
               <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md text-[10px] font-black bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                PRO GAMER
+                {user?.rank || (isRtl ? 'مبتدئ 🎮' : 'NOVICE')}
               </span>
             </div>
 
@@ -100,11 +100,11 @@ export const HomePage: React.FC = () => {
               <div className="w-28 sm:w-44 h-2 rounded-full bg-brand-card border border-white/10 overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-orange-600 via-orange-500 to-amber-400 rounded-full shadow-glow-orange"
-                  style={{ width: '72%' }}
+                  style={{ width: `${Math.min(100, Math.round(((user?.xp ?? 0) / (user?.maxXp || 1000)) * 100))}%` }}
                 />
               </div>
               <span className="text-[10px] font-black text-orange-400 shrink-0">
-                2,450 / 3,500 XP
+                {user?.xp ?? 0} / {user?.maxXp ?? 1000} XP
               </span>
             </div>
           </div>
@@ -117,7 +117,7 @@ export const HomePage: React.FC = () => {
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-brand-card/90 border border-amber-400/40 text-xs font-black text-amber-300 shadow-sm hover:scale-105 transition-all cursor-pointer"
           >
             <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
-            <span>{user?.coins ?? 2450}</span>
+            <span>{user?.coins ?? 100}</span>
           </button>
 
           <button

@@ -33,6 +33,14 @@ export interface AuthResponse {
 
 export const authApi = {
   /**
+   * Login or register instantly with player name only
+   */
+  nameLogin: async (payload: { name: string; avatar?: string }): Promise<AuthResponse> => {
+    const res = await httpClient.post<AuthResponse>('/auth/name-login', payload)
+    return res.data
+  },
+
+  /**
    * Register a new user with email and password
    */
   register: async (payload: {

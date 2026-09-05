@@ -29,7 +29,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClos
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="relative w-full max-w-md p-6 sm:p-8 rounded-[2.5rem] bg-gradient-to-br from-[#2E160C] via-[#1E0F07] to-[#120803] border-2 border-orange-500/50 shadow-2xl flex flex-col gap-6">
+      <div className="relative w-full max-w-md p-6 sm:p-8 rounded-[2.5rem] bg-gradient-to-br from-[#0C242B] via-[#08181D] to-[#040C0E] border-2 border-cyan-500/50 shadow-2xl flex flex-col gap-6">
         <button
           onClick={onClose}
           className="absolute top-5 right-5 rtl:right-auto rtl:left-5 p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors"
@@ -38,7 +38,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClos
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-orange-500/20 text-orange-400 flex items-center justify-center text-2xl border border-orange-500/40">
+          <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-2xl border border-cyan-500/40">
             🎉
           </div>
           <div>
@@ -61,7 +61,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClos
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={isRtl ? 'مثال: سهرة الخميس والضحك 😂' : 'e.g. Weekend Laughs & Trivia 😂'}
-              className="w-full px-4 py-3 rounded-2xl bg-black/50 border border-orange-500/30 text-white placeholder:text-slate-500 text-sm focus:outline-none focus:border-orange-400"
+              className="w-full px-4 py-3 rounded-2xl bg-black/50 border border-cyan-500/30 text-white placeholder:text-slate-500 text-sm focus:outline-none focus:border-cyan-400"
             />
           </div>
 
@@ -77,8 +77,8 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClos
                   onClick={() => setMaxPlayers(count)}
                   className={`py-2 rounded-xl font-black text-xs transition-all ${
                     maxPlayers === count
-                      ? 'bg-orange-500 text-slate-950 shadow-md'
-                      : 'bg-black/40 text-slate-300 border border-white/10 hover:border-orange-500/40'
+                      ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 shadow-md'
+                      : 'bg-black/40 text-slate-300 border border-white/10 hover:border-cyan-500/40'
                   }`}
                 >
                   {count} {isRtl ? 'لاعبين' : 'P'}
@@ -89,7 +89,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClos
 
           <div className="flex items-center justify-between p-3 rounded-2xl bg-black/40 border border-white/10">
             <div className="flex items-center gap-2">
-              {isPrivate ? <Lock className="w-4 h-4 text-amber-400" /> : <Unlock className="w-4 h-4 text-cyan-400" />}
+              {isPrivate ? <Lock className="w-4 h-4 text-teal-400" /> : <Unlock className="w-4 h-4 text-cyan-400" />}
               <span className="text-xs font-bold text-slate-200">
                 {isRtl ? 'غرفة خاصة برمز سري' : 'Private Room (Code only)'}
               </span>
@@ -98,13 +98,13 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClos
               type="checkbox"
               checked={isPrivate}
               onChange={(e) => setIsPrivate(e.target.checked)}
-              className="w-4 h-4 rounded text-orange-500 focus:ring-orange-400 cursor-pointer"
+              className="w-4 h-4 rounded text-cyan-500 focus:ring-cyan-400 cursor-pointer"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-slate-950 font-black text-sm shadow-xl hover:scale-105 transition-all cursor-pointer mt-2"
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 text-slate-950 font-black text-sm shadow-xl hover:scale-105 transition-all cursor-pointer mt-2"
           >
             {isRtl ? 'إطلاق الغرفة الآن 🚀' : 'Launch Room Now 🚀'}
           </button>

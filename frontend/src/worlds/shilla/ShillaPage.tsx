@@ -63,7 +63,7 @@ export const ShillaPage: React.FC = () => {
           {
             label: isRtl ? 'غرف نشطة الآن' : 'Active Rooms',
             value: '42 غرفة',
-            icon: <Radio className="w-3.5 h-3.5 text-orange-400 animate-pulse" />,
+            icon: <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />,
           },
           {
             label: isRtl ? 'لاعبين أونلاين' : 'Online Players',

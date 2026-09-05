@@ -1305,7 +1305,7 @@ export const LIVE_ROOMS: LiveRoomItem[] = [
     icon: '⚡',
     category: 'Trivia & Speed',
     badge: 'LIVE MATCH',
-    badgeColor: 'bg-orange-500',
+    badgeColor: 'bg-cyan-500',
   },
   {
     code: 'WARRIOR',
@@ -1318,7 +1318,7 @@ export const LIVE_ROOMS: LiveRoomItem[] = [
     icon: '🏆',
     category: 'Memory Battle',
     badge: 'FIERCE',
-    badgeColor: 'bg-amber-500',
+    badgeColor: 'bg-teal-500',
   },
   {
     code: 'LAUGH101',
@@ -1331,7 +1331,7 @@ export const LIVE_ROOMS: LiveRoomItem[] = [
     icon: '🧠',
     category: 'Social Lounge',
     badge: 'CHILL',
-    badgeColor: 'bg-cyan-500',
+    badgeColor: 'bg-sky-500',
   },
   {
     code: 'CHAMPION',
@@ -1344,7 +1344,7 @@ export const LIVE_ROOMS: LiveRoomItem[] = [
     icon: '👑',
     category: 'Ranked Cup',
     badge: 'FINAL SLOT',
-    badgeColor: 'bg-red-500',
+    badgeColor: 'bg-emerald-500',
   },
 ]
 

@@ -68,7 +68,7 @@ export const useAuthStore = create<AuthStore>()(
           xp: userData.xp ?? currentUser?.xp ?? 0,
           maxXp: userData.maxXp ?? currentUser?.maxXp ?? 1000,
           coins: userData.coins ?? currentUser?.coins ?? 100,
-          rank: userData.rank || currentUser?.rank || '#--',
+          rank: userData.rank || currentUser?.rank || 'مبتدئ 🎮',
           interests: userData.interests || currentUser?.interests || [],
           bio: userData.bio || currentUser?.bio || '',
           favoriteCategory: userData.favoriteCategory || currentUser?.favoriteCategory || '',

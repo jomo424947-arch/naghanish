@@ -51,3 +51,9 @@ class RefreshTokenRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class NameLoginRequest(BaseModel):
+    name: str = Field(..., min_length=2, max_length=50, description="Player name or nickname")
+    avatar: Optional[str] = Field(None, description="Optional chosen avatar")
+
+
+
