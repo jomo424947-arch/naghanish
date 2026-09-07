@@ -14,6 +14,7 @@ import {
   Target,
   Volume2,
   VolumeX,
+  Star,
 } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { SEO } from '@components/common/SEO'
@@ -41,9 +42,17 @@ import { WouldYouRatherGame } from '@components/games/WouldYouRatherGame'
 import { DrawAndGuessGame } from '@components/games/DrawAndGuessGame'
 import { CrewTriviaGame } from '@components/games/CrewTriviaGame'
 import { ReverseControlsGame } from '@components/games/ReverseControlsGame'
+import { Game2048 } from '@components/games/Game2048'
+import { SudokuGame } from '@components/games/SudokuGame'
+import { MinesweeperGame } from '@components/games/MinesweeperGame'
+import { FlappyHeroGame } from '@components/games/FlappyHeroGame'
 
 // ── Engine type for each game ──
 type EngineType =
+  | '2048'
+  | 'sudoku'
+  | 'minesweeper'
+  | 'flappy'
   | 'snake'
   | 'brick'
   | 'pong'
@@ -72,8 +81,8 @@ type EngineType =
  */
 const GAME_ENGINE_MAP: Record<string, EngineType> = {
   // ── Arcade World ──
-  g1: 'memory',
-  g4: 'color',
+  g1: '2048',
+  g4: 'flappy',
   g7: 'runner',
   g14: 'brick',
   g15: 'snake',
@@ -94,14 +103,14 @@ const GAME_ENGINE_MAP: Record<string, EngineType> = {
   g26: 'second',
   g27: 'pong',
   // ── IQ Lab World ──
-  g3: 'math',
-  g5: 'scramble',
+  g3: 'sudoku',
+  g5: 'minesweeper',
   g6: 'simon',
-  g28: 'math',
+  g28: '2048',
   g29: 'runner',
   g30: 'simon',
-  g31: 'math',
-  g32: 'math',
+  g31: 'sudoku',
+  g32: 'minesweeper',
   g59: 'math',
   g60: 'simon',
   // ── Shilla World ──
@@ -159,6 +168,7 @@ export function GameDetailsPage() {
   }, [id, navigate])
 
   // ── Core State ──
+  const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium')
   const [gameStarted, setGameStarted] = useState(false)
   const [gameWon, setGameWon] = useState(false)
   const [score, setScore] = useState(0)
@@ -166,6 +176,9 @@ export function GameDetailsPage() {
   const [earnedXp, setEarnedXp] = useState(0)
   const [earnedCoins, setEarnedCoins] = useState(0)
   const [isSoundOn, setIsSoundOn] = useState(sound.isEnabled())
+
+  // Multiplier: Easy = 1.0x, Medium = 1.5x, Hard = 2.5x
+  const diffMultiplier = difficulty === 'Hard' ? 2.5 : difficulty === 'Medium' ? 1.5 : 1.0
 
   // ── Inline-engine state (Memory, Reflex, CPS, Math, Color, Aim) ──
   const [cards, setCards] = useState<{ id: number; emoji: string; flipped: boolean; matched: boolean }[]>([])
@@ -211,14 +224,16 @@ export function GameDetailsPage() {
     setGameWon(true)
     setScore(finalScore)
 
+    const baseReward = Math.round(currentGame.xpReward * diffMultiplier)
+
     try {
       const res = await httpClient.post(`/games/${currentGame.id}/submit`, {
         score: finalScore,
         elapsed_seconds: elapsedTime,
       })
       if (res.data) {
-        const xpGot = res.data.xpEarned ?? res.data.xp_earned ?? currentGame.xpReward
-        const coinsGot = res.data.coinsEarned ?? res.data.coins_earned ?? 50
+        const xpGot = Math.round((res.data.xpEarned ?? res.data.xp_earned ?? baseReward) * (difficulty === 'Hard' ? 1.5 : difficulty === 'Medium' ? 1.2 : 1.0))
+        const coinsGot = Math.round((res.data.coinsEarned ?? res.data.coins_earned ?? 50) * diffMultiplier)
         setEarnedXp(xpGot)
         setEarnedCoins(coinsGot)
 
@@ -233,8 +248,8 @@ export function GameDetailsPage() {
         }
       }
     } catch {
-      const fallbackXp = currentGame.xpReward
-      const fallbackCoins = 50
+      const fallbackXp = baseReward
+      const fallbackCoins = Math.round(50 * diffMultiplier)
       setEarnedXp(fallbackXp)
       setEarnedCoins(fallbackCoins)
       if (user) {
@@ -245,7 +260,7 @@ export function GameDetailsPage() {
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentGame, elapsedTime, user])
+  }, [currentGame, elapsedTime, user, diffMultiplier, difficulty])
 
   // ── Inline engine helpers ──
   const initMemoryGame = () => {
@@ -417,22 +432,26 @@ export function GameDetailsPage() {
   // ── Render the correct dedicated component ──
   const renderDedicatedEngine = () => {
     switch (engine) {
-      case 'snake':    return <SnakeGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'brick':    return <BrickBreakerGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'pong':     return <PongGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'runner':   return <PixelRunnerGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'simon':    return <SimonPatternGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'stack':    return <StackTowerGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'shooter':  return <SpaceShooterGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'scramble': return <WordScrambleGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'second':   return <PerfectSecondGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'roulette': return <ChaosRouletteGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'dontpress':return <DontPressButtonGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'rather':   return <WouldYouRatherGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'draw':     return <DrawAndGuessGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'trivia':   return <CrewTriviaGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'reverse':  return <ReverseControlsGame onFinish={handleFinishGame} isRtl={isRtl} />
-      default:         return null
+      case '2048':       return <Game2048 onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'sudoku':     return <SudokuGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'minesweeper':return <MinesweeperGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'flappy':     return <FlappyHeroGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'snake':      return <SnakeGame onFinish={handleFinishGame} isRtl={isRtl} />
+      case 'brick':      return <BrickBreakerGame onFinish={handleFinishGame} isRtl={isRtl} />
+      case 'pong':       return <PongGame onFinish={handleFinishGame} isRtl={isRtl} />
+      case 'runner':     return <PixelRunnerGame onFinish={handleFinishGame} isRtl={isRtl} />
+      case 'simon':      return <SimonPatternGame onFinish={handleFinishGame} isRtl={isRtl} />
+      case 'stack':      return <StackTowerGame onFinish={handleFinishGame} isRtl={isRtl} />
+      case 'shooter':    return <SpaceShooterGame onFinish={handleFinishGame} isRtl={isRtl} />
+      case 'scramble':   return <WordScrambleGame onFinish={handleFinishGame} isRtl={isRtl} />
+      case 'second':     return <PerfectSecondGame onFinish={handleFinishGame} isRtl={isRtl} />
+      case 'roulette':   return <ChaosRouletteGame onFinish={handleFinishGame} isRtl={isRtl} />
+      case 'dontpress':  return <DontPressButtonGame onFinish={handleFinishGame} isRtl={isRtl} />
+      case 'rather':     return <WouldYouRatherGame onFinish={handleFinishGame} isRtl={isRtl} />
+      case 'draw':       return <DrawAndGuessGame onFinish={handleFinishGame} isRtl={isRtl} />
+      case 'trivia':     return <CrewTriviaGame onFinish={handleFinishGame} isRtl={isRtl} />
+      case 'reverse':    return <ReverseControlsGame onFinish={handleFinishGame} isRtl={isRtl} />
+      default:           return null
     }
   }
 
@@ -639,7 +658,7 @@ export function GameDetailsPage() {
 
         {/* ── START SCREEN ── */}
         {!gameStarted && !gameWon && (
-          <div className="flex flex-col items-center gap-6 py-12 text-center max-w-md">
+          <div className="flex flex-col items-center gap-6 py-8 text-center max-w-md w-full">
             <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-brand-purple to-brand-blue flex items-center justify-center text-5xl shadow-glow animate-bounce">
               {currentGame.icon}
             </div>
@@ -647,8 +666,44 @@ export function GameDetailsPage() {
               <h2 className="text-2xl font-black text-white">{currentGame.titleAr}</h2>
               <p className="text-xs text-slate-300 font-medium mt-2 leading-relaxed">{currentGame.descAr}</p>
             </div>
-            <Button variant="primary" size="lg" onClick={handleStartGame} leftIcon={<Play className="w-5 h-5 fill-current" />}>
-              {isRtl ? 'ابدأ اللعب 🚀' : 'Play Now 🚀'}
+
+            {/* Difficulty Selector */}
+            <div className="w-full flex flex-col items-center gap-2 p-3 rounded-2xl bg-black/40 border border-white/10">
+              <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">
+                {isRtl ? 'اختر مستوى الصعوبة ومضاعف الـ XP' : 'Select Difficulty & XP Multiplier'}
+              </span>
+              <div className="grid grid-cols-3 gap-2 w-full">
+                {(
+                  [
+                    { id: 'Easy', labelAr: 'سهل', mult: '1.0x', color: 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10' },
+                    { id: 'Medium', labelAr: 'متوسط', mult: '1.5x', color: 'border-cyan-500/40 text-cyan-400 bg-cyan-500/10' },
+                    { id: 'Hard', labelAr: 'صعب 🔥', mult: '2.5x', color: 'border-rose-500/40 text-rose-400 bg-rose-500/10' },
+                  ] as const
+                ).map((d) => {
+                  const isSelected = difficulty === d.id
+                  return (
+                    <button
+                      key={d.id}
+                      onClick={() => {
+                        sound.playClick()
+                        setDifficulty(d.id)
+                      }}
+                      className={`py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 transition-all cursor-pointer ${
+                        isSelected
+                          ? `${d.color} shadow-glow scale-[1.03] border-current`
+                          : 'border-white/5 bg-white/[0.02] text-slate-400 hover:border-white/20'
+                      }`}
+                    >
+                      <span className="text-xs font-black">{isRtl ? d.labelAr : d.id}</span>
+                      <span className="text-[10px] font-mono opacity-80">{d.mult} XP</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            <Button variant="primary" size="lg" fullWidth onClick={handleStartGame} leftIcon={<Play className="w-5 h-5 fill-current" />}>
+              {isRtl ? 'ابدأ اللعب الآن 🚀' : 'Play Now 🚀'}
             </Button>
           </div>
         )}
@@ -667,29 +722,55 @@ export function GameDetailsPage() {
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center gap-6 py-8 text-center max-w-md w-full"
           >
-            <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center text-5xl shadow-glow-gold">
-              🏆
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center text-5xl shadow-glow-gold">
+                🏆
+              </div>
+              {/* Star Rating Display */}
+              <div className="flex items-center gap-1.5 mt-2">
+                {[1, 2, 3].map((starIdx) => {
+                  const earned = score > 600 ? 3 : score > 250 ? 2 : 1
+                  return (
+                    <Star
+                      key={starIdx}
+                      className={`w-7 h-7 ${
+                        starIdx <= earned
+                          ? 'text-amber-400 fill-amber-400 animate-in zoom-in duration-300'
+                          : 'text-slate-700'
+                      }`}
+                    />
+                  )
+                })}
+              </div>
             </div>
+
             <div>
               <h2 className="text-2xl sm:text-3xl font-black text-white">
-                {isRtl ? 'مبروك! 🎉' : 'Victory! 🎉'}
+                {isRtl ? 'مبروك الفوز! 🎉' : 'Victory! 🎉'}
               </h2>
-              <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1">
-                {isRtl ? 'تم تسجيل نتيجتك بنجاح!' : 'Score submitted!'}
-              </p>
+              <div className="flex items-center justify-center gap-2 mt-1">
+                <span className="text-sm font-mono text-cyan-400 font-bold">
+                  {isRtl ? 'النتيجة:' : 'Score:'} {score}
+                </span>
+                <span className="text-slate-500">•</span>
+                <span className="text-xs font-black px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300">
+                  {difficulty === 'Hard' ? (isRtl ? 'صعب (2.5x)' : 'Hard (2.5x)') : difficulty === 'Easy' ? (isRtl ? 'سهل (1.0x)' : 'Easy (1.0x)') : (isRtl ? 'متوسط (1.5x)' : 'Medium (1.5x)')}
+                </span>
+              </div>
             </div>
+
             <div className="grid grid-cols-2 gap-4 w-full">
               <div className="p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-400/40 flex flex-col items-center">
                 <span className="text-xs font-bold text-amber-300 flex items-center gap-1">
                   <Zap className="w-4 h-4 text-amber-400" />
-                  {isRtl ? 'الخبرة' : 'XP'}
+                  {isRtl ? 'الخبرة المكتسبة' : 'XP Gained'}
                 </span>
                 <span className="text-2xl font-black text-white mt-1">+{earnedXp || currentGame.xpReward}</span>
               </div>
               <div className="p-4 rounded-2xl bg-cyan-500/10 border-2 border-cyan-400/40 flex flex-col items-center">
                 <span className="text-xs font-bold text-cyan-300 flex items-center gap-1">
                   <Sparkles className="w-4 h-4 text-cyan-400" />
-                  {isRtl ? 'عملات' : 'Coins'}
+                  {isRtl ? 'العملات' : 'Coins'}
                 </span>
                 <span className="text-2xl font-black text-white mt-1">+{earnedCoins || 50} 💰</span>
               </div>
