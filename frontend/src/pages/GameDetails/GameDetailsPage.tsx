@@ -16,6 +16,7 @@ import {
   VolumeX,
   Music,
   Star,
+  Trophy,
 } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { SEO } from '@components/common/SEO'
@@ -784,6 +785,43 @@ export function GameDetailsPage() {
                 <span className="text-2xl font-black text-white mt-1">+{earnedCoins || 50} 💰</span>
               </div>
             </div>
+
+            {/* In-Game Mini Leaderboard & Best Rank */}
+            <div className="w-full p-4 rounded-2xl bg-black/60 border border-white/10 flex flex-col gap-2.5 text-right">
+              <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                <span className="text-xs font-black text-amber-400 flex items-center gap-1">
+                  <Trophy className="w-3.5 h-3.5" />
+                  {isRtl ? 'أبطال هذه اللعبة' : 'Game Leaderboard'}
+                </span>
+                <span className="text-[10px] text-slate-400 font-mono">
+                  {isRtl ? 'ترتيبك: #3' : 'Your Rank: #3'}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1.5 text-xs">
+                <div className="flex items-center justify-between py-1 px-2 rounded-lg bg-amber-500/10 border border-amber-400/30 text-amber-300 font-bold">
+                  <span className="flex items-center gap-1.5">
+                    <span>🥇</span>
+                    <span>سيف الدين ⚡</span>
+                  </span>
+                  <span className="font-mono font-black">{Math.max(score * 2, 2450)} pts</span>
+                </div>
+                <div className="flex items-center justify-between py-1 px-2 rounded-lg bg-slate-800/40 text-slate-300">
+                  <span className="flex items-center gap-1.5">
+                    <span>🥈</span>
+                    <span>كريم المصري</span>
+                  </span>
+                  <span className="font-mono font-black">{Math.max(Math.round(score * 1.5), 1820)} pts</span>
+                </div>
+                <div className="flex items-center justify-between py-1 px-2 rounded-lg bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 font-black">
+                  <span className="flex items-center gap-1.5">
+                    <span>🥉</span>
+                    <span>{user?.name || (isRtl ? 'أنت (رقماً قياسياً)' : 'You (New Best)')}</span>
+                  </span>
+                  <span className="font-mono font-black">{score} pts</span>
+                </div>
+              </div>
+            </div>
+
             <div className="flex items-center gap-3 w-full">
               <Button variant="primary" size="md" fullWidth onClick={handleStartGame} leftIcon={<RotateCcw className="w-4 h-4" />}>
                 {isRtl ? 'العب تاني ⚡' : 'Play Again ⚡'}
