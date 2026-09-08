@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Home, Gamepad2, Globe, Trophy, User, Bell, Zap, ChevronDown, Sparkles, ArrowLeft, ArrowRight } from 'lucide-react'
+import { Home, Gamepad2, Globe, Trophy, User, Bell, Zap, ChevronDown, Sparkles, ArrowLeft, ArrowRight, Volume2, VolumeX, Music } from 'lucide-react'
+import { sound } from '@/utils/soundManager'
 import { AnimatedBackground } from '@components/common/AnimatedBackground'
 import { Logo } from '@components/common/Logo'
 import { ModeMascot, NaghanishModeId } from '@components/common/ModeVisuals'
@@ -36,6 +37,8 @@ export function DashboardLayout() {
   const { dir } = useThemeStore()
   const isRtl = dir === 'rtl'
   const [isWorldsMenuOpen, setIsWorldsMenuOpen] = useState(false)
+  const [isSfxOn, setIsSfxOn] = useState(sound.isEnabled())
+  const [isBgmOn, setIsBgmOn] = useState(sound.isBgmEnabled())
   const menuTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const isShilla = location.pathname.includes('shilla')
@@ -208,6 +211,33 @@ export function DashboardLayout() {
 
           {/* Right: Coins + Level + Avatar */}
           <div className="flex items-center gap-3">
+            {/* Sound & Music Controls */}
+            <div className="hidden sm:flex items-center gap-1 bg-black/40 p-1 rounded-2xl border border-white/10">
+              <button
+                onClick={() => setIsSfxOn(sound.toggleSound())}
+                className={`p-1.5 rounded-xl transition-all cursor-pointer ${
+                  isSfxOn
+                    ? 'text-emerald-400 bg-emerald-500/15 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                    : 'text-slate-500 hover:text-slate-300'
+                }`}
+                title={isSfxOn ? (isRtl ? 'كتم المؤثرات الصوتية' : 'Mute SFX') : (isRtl ? 'تشغيل المؤثرات' : 'Unmute SFX')}
+              >
+                {isSfxOn ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+              </button>
+
+              <button
+                onClick={() => setIsBgmOn(sound.toggleBgm())}
+                className={`p-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1 ${
+                  isBgmOn
+                    ? 'text-cyan-400 bg-cyan-500/15 shadow-[0_0_10px_rgba(6,182,212,0.3)]'
+                    : 'text-slate-500 hover:text-slate-300'
+                }`}
+                title={isBgmOn ? (isRtl ? 'إيقاف موسيقى الخلفية' : 'Stop Music') : (isRtl ? 'تشغيل موسيقى الخلفية' : 'Play Music')}
+              >
+                <Music className={`w-3.5 h-3.5 ${isBgmOn ? 'animate-bounce' : ''}`} />
+              </button>
+            </div>
+
             {/* Coins */}
             <button
               onClick={() => navigate(ROUTES.STORE)}

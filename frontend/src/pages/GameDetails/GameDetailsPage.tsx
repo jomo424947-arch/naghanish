@@ -14,6 +14,7 @@ import {
   Target,
   Volume2,
   VolumeX,
+  Music,
   Star,
 } from 'lucide-react'
 import { Button } from '@components/common/Button'
@@ -176,6 +177,7 @@ export function GameDetailsPage() {
   const [earnedXp, setEarnedXp] = useState(0)
   const [earnedCoins, setEarnedCoins] = useState(0)
   const [isSoundOn, setIsSoundOn] = useState(sound.isEnabled())
+  const [isBgmOn, setIsBgmOn] = useState(sound.isBgmEnabled())
 
   // Multiplier: Easy = 1.0x, Medium = 1.5x, Hard = 2.5x
   const diffMultiplier = difficulty === 'Hard' ? 2.5 : difficulty === 'Medium' ? 1.5 : 1.0
@@ -644,10 +646,17 @@ export function GameDetailsPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsSoundOn(sound.toggleSound())}
-              title={isSoundOn ? (isRtl ? 'كتم الصوت' : 'Mute Sound') : (isRtl ? 'تشغيل الصوت' : 'Unmute Sound')}
+              title={isSoundOn ? (isRtl ? 'كتم المؤثرات' : 'Mute SFX') : (isRtl ? 'تشغيل المؤثرات' : 'Unmute SFX')}
               className="p-2 rounded-xl bg-black/40 border border-white/10 text-slate-300 hover:text-white transition-all cursor-pointer"
             >
               {isSoundOn ? <Volume2 className="w-4 h-4 text-emerald-400" /> : <VolumeX className="w-4 h-4 text-rose-400" />}
+            </button>
+            <button
+              onClick={() => setIsBgmOn(sound.toggleBgm())}
+              title={isBgmOn ? (isRtl ? 'إيقاف الموسيقى' : 'Stop Music') : (isRtl ? 'تشغيل الموسيقى' : 'Play Music')}
+              className="p-2 rounded-xl bg-black/40 border border-white/10 text-slate-300 hover:text-white transition-all cursor-pointer"
+            >
+              <Music className={`w-4 h-4 ${isBgmOn ? 'text-cyan-400 animate-bounce' : 'text-slate-500'}`} />
             </button>
             <div className="flex items-center gap-2 font-mono text-sm font-black text-cyan-300 bg-black/40 px-3 py-1.5 rounded-xl border border-cyan-400/30">
               <Clock className="w-4 h-4" />
