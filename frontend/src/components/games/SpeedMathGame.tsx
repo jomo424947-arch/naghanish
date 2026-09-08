@@ -301,3 +301,4 @@ export const SpeedMathGame: React.FC<SpeedMathProps> = ({ onFinish, isRtl, diffi
     </div>
   )
 }
+

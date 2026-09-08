@@ -583,7 +583,7 @@ export const DodgeRunnerGame: React.FC<DodgeRunnerProps> = ({
                   : 'Switch between 3 lanes to dodge barriers, collect shields, and trigger Slow-Mo!'}
               </p>
             </div>
-            <Button variant="glow" onClick={resetGame} className="px-6 py-2.5 text-sm font-black">
+            <Button variant="primary" onClick={resetGame} className="px-6 py-2.5 text-sm font-black">
               {isRtl ? 'انطلاق نفاث ⚡' : 'Launch Runner ⚡'}
             </Button>
           </div>
@@ -602,7 +602,7 @@ export const DodgeRunnerGame: React.FC<DodgeRunnerProps> = ({
                 <span className="text-cyan-400 text-lg font-black">{distance} m</span>
               </p>
             </div>
-            <Button variant="glow" onClick={resetGame} className="flex items-center gap-2 px-6 py-2.5">
+            <Button variant="primary" onClick={resetGame} className="flex items-center gap-2 px-6 py-2.5">
               <RotateCcw className="w-4 h-4" />
               <span>{isRtl ? 'محاولة جديدة' : 'Try Again'}</span>
             </Button>
@@ -637,3 +637,4 @@ export const DodgeRunnerGame: React.FC<DodgeRunnerProps> = ({
     </div>
   )
 }
+

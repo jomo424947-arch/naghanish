@@ -439,7 +439,7 @@ export const MinesweeperGame: React.FC<MinesweeperProps> = ({
             <p className="text-sm font-bold text-slate-200">
               {isRtl ? 'تم اكتشاف جميع التهديدات بنجاح' : 'All malicious threat nodes neutralized'}
             </p>
-            <Button variant="glow" onClick={initBoard} className="flex items-center gap-2 px-6 py-2.5">
+            <Button variant="primary" onClick={initBoard} className="flex items-center gap-2 px-6 py-2.5">
               <RotateCcw className="w-4 h-4" />
               <span>{isRtl ? 'تأمين شبكة أخرى' : 'Play Again'}</span>
             </Button>
@@ -456,7 +456,7 @@ export const MinesweeperGame: React.FC<MinesweeperProps> = ({
             <p className="text-sm font-bold text-slate-200">
               {isRtl ? 'تم تفجير خلية لغم مفخخة' : 'Detonated a corrupted data node'}
             </p>
-            <Button variant="glow" onClick={initBoard} className="flex items-center gap-2 px-6 py-2.5">
+            <Button variant="primary" onClick={initBoard} className="flex items-center gap-2 px-6 py-2.5">
               <RotateCcw className="w-4 h-4" />
               <span>{isRtl ? 'إعادة المحاولة' : 'Try Again'}</span>
             </Button>
@@ -472,3 +472,4 @@ export const MinesweeperGame: React.FC<MinesweeperProps> = ({
     </div>
   )
 }
+

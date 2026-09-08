@@ -467,7 +467,7 @@ export const LaserMirrorsGame: React.FC<LaserMirrorsProps> = ({
             <p className="text-xs text-slate-300">
               {isRtl ? `حُل في ${rotations} تدويرات` : `Solved in ${rotations} rotations`}
             </p>
-            <Button variant="glow" onClick={handleNextLevel} className="px-6 py-2.5 text-sm font-black">
+            <Button variant="primary" onClick={handleNextLevel} className="px-6 py-2.5 text-sm font-black">
               {isRtl ? 'اللغز التالي 🚀' : 'Next Puzzle 🚀'}
             </Button>
           </div>
@@ -482,3 +482,4 @@ export const LaserMirrorsGame: React.FC<LaserMirrorsProps> = ({
     </div>
   )
 }
+

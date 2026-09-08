@@ -375,7 +375,7 @@ export const Game2048: React.FC<Game2048Props> = ({ onFinish, isRtl, difficulty 
               {isRtl ? 'النقاط:' : 'Final Score:'}{' '}
               <span className="text-cyan-400 text-lg font-black">{score}</span>
             </p>
-            <Button variant="glow" onClick={handleRestart} className="flex items-center gap-2 px-6 py-2.5">
+            <Button variant="primary" onClick={handleRestart} className="flex items-center gap-2 px-6 py-2.5">
               <RotateCcw className="w-4 h-4" />
               <span>{isRtl ? 'العب مجدداً' : 'Play Again'}</span>
             </Button>
@@ -425,3 +425,4 @@ export const Game2048: React.FC<Game2048Props> = ({ onFinish, isRtl, difficulty 
     </div>
   )
 }
+

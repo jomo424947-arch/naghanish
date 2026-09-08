@@ -483,3 +483,4 @@ export const ImpostorGame: React.FC<ImpostorGameProps> = ({ onFinish, isRtl }) =
     </div>
   )
 }
+

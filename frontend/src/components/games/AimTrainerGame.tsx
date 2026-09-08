@@ -382,7 +382,7 @@ export const AimTrainerGame: React.FC<AimTrainerProps> = ({
                   : 'Hit 30 pop-up targets with maximum accuracy to benchmark your reaction speed!'}
               </p>
             </div>
-            <Button variant="glow" onClick={startGame} className="px-6 py-2.5 text-sm font-black">
+            <Button variant="primary" onClick={startGame} className="px-6 py-2.5 text-sm font-black">
               {isRtl ? 'بدء الاختبار 🎯' : 'Start Reflex Test 🎯'}
             </Button>
           </div>
@@ -407,7 +407,7 @@ export const AimTrainerGame: React.FC<AimTrainerProps> = ({
                 </div>
               </div>
             </div>
-            <Button variant="glow" onClick={startGame} className="flex items-center gap-2 px-6 py-2.5">
+            <Button variant="primary" onClick={startGame} className="flex items-center gap-2 px-6 py-2.5">
               <RotateCcw className="w-4 h-4" />
               <span>{isRtl ? 'إعادة الاختبار' : 'Retest Reflex'}</span>
             </Button>
@@ -423,3 +423,4 @@ export const AimTrainerGame: React.FC<AimTrainerProps> = ({
     </div>
   )
 }
+

@@ -132,3 +132,4 @@ export const WordScrambleGame: React.FC<WordScrambleProps> = ({ onFinish, isRtl 
     </div>
   )
 }
+

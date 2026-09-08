@@ -296,7 +296,7 @@ export const ReverseControlsGame: React.FC<ReverseControlsProps> = ({
                   : 'Arrow points left? Tap right! Pick the contradictory color or directive!'}
               </p>
             </div>
-            <Button variant="glow" onClick={startGame} className="px-6 py-2.5 text-sm font-black">
+            <Button variant="primary" onClick={startGame} className="px-6 py-2.5 text-sm font-black">
               {isRtl ? 'ابدأ التحدي العكسي 🔄' : 'Start Reverse Reflex 🔄'}
             </Button>
           </div>
@@ -318,7 +318,7 @@ export const ReverseControlsGame: React.FC<ReverseControlsProps> = ({
                 {isRtl ? `أعلى سلسلة: ${streak}` : `Best Streak: ${streak}`}
               </p>
             </div>
-            <Button variant="glow" onClick={startGame} className="flex items-center gap-2 px-6 py-2.5">
+            <Button variant="primary" onClick={startGame} className="flex items-center gap-2 px-6 py-2.5">
               <RotateCcw className="w-4 h-4" />
               <span>{isRtl ? 'إعادة المحاولة' : 'Try Again'}</span>
             </Button>
@@ -368,3 +368,4 @@ export const ReverseControlsGame: React.FC<ReverseControlsProps> = ({
     </div>
   )
 }
+

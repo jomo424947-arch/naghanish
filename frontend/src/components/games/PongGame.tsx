@@ -481,3 +481,4 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl, difficulty 
     </div>
   )
 }
+

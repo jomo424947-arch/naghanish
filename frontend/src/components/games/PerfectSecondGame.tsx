@@ -110,3 +110,4 @@ export const PerfectSecondGame: React.FC<PerfectSecondProps> = ({ onFinish, isRt
     </div>
   )
 }
+

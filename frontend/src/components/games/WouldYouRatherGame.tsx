@@ -461,3 +461,4 @@ export const WouldYouRatherGame: React.FC<WouldYouRatherProps> = ({ onFinish, is
     </div>
   )
 }
+

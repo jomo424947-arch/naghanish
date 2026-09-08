@@ -268,3 +268,4 @@ export const FlappyHeroGame: React.FC<FlappyHeroProps> = ({ onFinish, isRtl, dif
     </div>
   )
 }
+

@@ -477,7 +477,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
                 ? 'بوابات أبعاد تلتف حول الجدران، تفاح ذهبي نادر، وكبسولات سرعة خارقة!'
                 : 'Portal walls, rare golden apples, and turbo speed boosters!'}
             </p>
-            <Button variant="glow" size="sm" onClick={() => setHasStarted(true)}>
+            <Button variant="primary" size="sm" onClick={() => setHasStarted(true)}>
               {isRtl ? 'ابدأ اللعب الآن 🚀' : 'Start Snake DX 🚀'}
             </Button>
           </div>
@@ -489,7 +489,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
             <span className="text-4xl">💥</span>
             <p className="text-base font-black text-rose-400">{isRtl ? 'اصطدم الثعبان!' : 'Game Over!'}</p>
             <p className="text-xs text-white font-mono">{isRtl ? 'النتيجة:' : 'Score:'} {score * 50}</p>
-            <Button variant="glow" size="sm" onClick={restartGame} className="flex items-center gap-1.5">
+            <Button variant="primary" size="sm" onClick={restartGame} className="flex items-center gap-1.5">
               <RotateCcw className="w-3.5 h-3.5" />
               <span>{isRtl ? 'العب ثانية ⚡' : 'Play Again ⚡'}</span>
             </Button>
@@ -541,3 +541,4 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
     </div>
   )
 }
+

@@ -864,7 +864,7 @@ export const BrickBreakerGame: React.FC<BrickBreakerProps> = ({
                   : 'Smash armored and explosive bricks, and collect multiballs and lasers!'}
               </p>
             </div>
-            <Button variant="glow" onClick={startGame} className="px-6 py-2.5 text-sm font-black">
+            <Button variant="primary" onClick={startGame} className="px-6 py-2.5 text-sm font-black">
               {isRtl ? 'بدء اللعبة 🕹️' : 'Start Smasher 🕹️'}
             </Button>
           </div>
@@ -885,7 +885,7 @@ export const BrickBreakerGame: React.FC<BrickBreakerProps> = ({
                 {isRtl ? 'النقاط:' : 'Score:'} {score}
               </p>
             </div>
-            <Button variant="glow" onClick={startGame} className="flex items-center gap-2 px-6 py-2.5">
+            <Button variant="primary" onClick={startGame} className="flex items-center gap-2 px-6 py-2.5">
               <RotateCcw className="w-4 h-4" />
               <span>{isRtl ? 'العب مجدداً' : 'Play Again'}</span>
             </Button>
@@ -905,7 +905,7 @@ export const BrickBreakerGame: React.FC<BrickBreakerProps> = ({
                 <span className="text-cyan-400 text-lg font-black">{score}</span>
               </p>
             </div>
-            <Button variant="glow" onClick={startGame} className="flex items-center gap-2 px-6 py-2.5">
+            <Button variant="primary" onClick={startGame} className="flex items-center gap-2 px-6 py-2.5">
               <RotateCcw className="w-4 h-4" />
               <span>{isRtl ? 'إعادة المحاولة' : 'Try Again'}</span>
             </Button>
@@ -921,3 +921,4 @@ export const BrickBreakerGame: React.FC<BrickBreakerProps> = ({
     </div>
   )
 }
+

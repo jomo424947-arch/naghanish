@@ -249,3 +249,4 @@ export const SpaceShooterGame: React.FC<SpaceShooterProps> = ({ onFinish, isRtl 
     </div>
   )
 }
+

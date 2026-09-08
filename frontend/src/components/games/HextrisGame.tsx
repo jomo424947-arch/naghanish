@@ -620,7 +620,7 @@ export const HextrisGame: React.FC<HextrisGameProps> = ({
                   : 'Rotate the central hexagon to match 3+ blocks of identical color!'}
               </p>
             </div>
-            <Button variant="glow" onClick={resetGame} className="px-6 py-2.5 text-sm font-black">
+            <Button variant="primary" onClick={resetGame} className="px-6 py-2.5 text-sm font-black">
               {isRtl ? 'ابدأ اللعب الآن 🕹️' : 'Start Playing 🕹️'}
             </Button>
           </div>
@@ -639,7 +639,7 @@ export const HextrisGame: React.FC<HextrisGameProps> = ({
                 <span className="text-cyan-400 text-lg font-black">{score}</span>
               </p>
             </div>
-            <Button variant="glow" onClick={resetGame} className="flex items-center gap-2 px-6 py-2.5">
+            <Button variant="primary" onClick={resetGame} className="flex items-center gap-2 px-6 py-2.5">
               <RotateCcw className="w-4 h-4" />
               <span>{isRtl ? 'العب مجدداً' : 'Play Again'}</span>
             </Button>
@@ -685,3 +685,4 @@ export const HextrisGame: React.FC<HextrisGameProps> = ({
     </div>
   )
 }
+

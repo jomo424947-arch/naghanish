@@ -287,3 +287,4 @@ export const SudokuGame: React.FC<SudokuGameProps> = ({ onFinish, isRtl, difficu
     </div>
   )
 }
+

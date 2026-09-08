@@ -490,7 +490,7 @@ export const SokobanGame: React.FC<SokobanProps> = ({ onFinish, isRtl, difficult
             <p className="text-xs text-slate-300">
               {isRtl ? `أنجزت في ${moveCount} حركة` : `Solved in ${moveCount} moves`}
             </p>
-            <Button variant="glow" onClick={nextLevel} className="px-6 py-2.5 text-sm font-black">
+            <Button variant="primary" onClick={nextLevel} className="px-6 py-2.5 text-sm font-black">
               {isRtl ? 'المستوى التالي 🚀' : 'Next Level 🚀'}
             </Button>
           </div>
@@ -535,3 +535,4 @@ export const SokobanGame: React.FC<SokobanProps> = ({ onFinish, isRtl, difficult
     </div>
   )
 }
+

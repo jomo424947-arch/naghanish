@@ -482,3 +482,4 @@ export const StackTowerGame: React.FC<StackTowerProps> = ({ onFinish, isRtl, dif
     </div>
   )
 }
+

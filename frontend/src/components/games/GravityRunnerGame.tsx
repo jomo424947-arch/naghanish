@@ -460,3 +460,4 @@ export const GravityRunnerGame: React.FC<GravityRunnerProps> = ({ onFinish, isRt
     </div>
   )
 }
+

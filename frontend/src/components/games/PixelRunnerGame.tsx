@@ -240,3 +240,4 @@ export const PixelRunnerGame: React.FC<PixelRunnerProps> = ({ onFinish, isRtl })
     </div>
   )
 }
+

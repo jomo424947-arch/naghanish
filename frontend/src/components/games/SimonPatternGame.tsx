@@ -147,3 +147,4 @@ export const SimonPatternGame: React.FC<SimonPatternProps> = ({ onFinish, isRtl 
     </div>
   )
 }
+

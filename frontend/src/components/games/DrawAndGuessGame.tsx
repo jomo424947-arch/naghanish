@@ -297,7 +297,7 @@ export const DrawAndGuessGame: React.FC<DrawAndGuessProps> = ({
                   : 'Draw prompts on the board or guess correctly against the clock!'}
               </p>
             </div>
-            <Button variant="glow" onClick={startGame} className="px-6 py-2.5 text-sm font-black">
+            <Button variant="primary" onClick={startGame} className="px-6 py-2.5 text-sm font-black">
               {isRtl ? 'ابدأ الرسم 🎨' : 'Start Studio 🎨'}
             </Button>
           </div>
@@ -327,7 +327,7 @@ export const DrawAndGuessGame: React.FC<DrawAndGuessProps> = ({
                 <span className="text-cyan-400 text-lg font-black">{score}</span>
               </p>
             </div>
-            <Button variant="glow" onClick={startGame} className="flex items-center gap-2 px-6 py-2.5">
+            <Button variant="primary" onClick={startGame} className="flex items-center gap-2 px-6 py-2.5">
               <RotateCcw className="w-4 h-4" />
               <span>{isRtl ? 'جولة جديدة' : 'Play Again'}</span>
             </Button>
@@ -384,7 +384,7 @@ export const DrawAndGuessGame: React.FC<DrawAndGuessProps> = ({
           placeholder={isRtl ? 'خمّن الكلمة واضغط إرسال...' : 'Guess the word...'}
           className="flex-1 bg-brand-darkBg border-2 border-brand-purple/40 rounded-2xl px-4 py-2 text-xs font-bold text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 shadow-inner"
         />
-        <Button variant="glow" type="submit" size="sm" className="px-4 py-2.5">
+        <Button variant="primary" type="submit" size="sm" className="px-4 py-2.5">
           <Send className="w-4 h-4" />
         </Button>
       </form>
@@ -405,3 +405,4 @@ export const DrawAndGuessGame: React.FC<DrawAndGuessProps> = ({
     </div>
   )
 }
+

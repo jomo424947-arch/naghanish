@@ -125,3 +125,4 @@ export const DontPressButtonGame: React.FC<DontPressButtonProps> = ({ onFinish, 
     </div>
   )
 }
+

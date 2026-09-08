@@ -15,6 +15,7 @@ export type ButtonVariant =
   | 'gold'
   | 'reflex'
   | 'chaos'
+  | 'glow'
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl'
 
 export interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
@@ -63,6 +64,8 @@ export const Button: React.FC<ButtonProps> = ({
       'bg-transparent text-slate-300 font-bold hover:bg-white/10 hover:text-white',
     danger:
       'bg-gradient-to-r from-red-600 to-rose-500 text-white font-extrabold shadow-md hover:shadow-red-500/40 border border-red-400/30',
+    glow:
+      'bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500 text-slate-950 font-black shadow-glow-orange hover:shadow-orange-400/70 hover:brightness-110 border border-amber-200/60 active:translate-y-0.5',
   }
 
   const sizeStyles: Record<ButtonSize, string> = {

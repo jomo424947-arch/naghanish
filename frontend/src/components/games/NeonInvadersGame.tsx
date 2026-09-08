@@ -932,7 +932,7 @@ export const NeonInvadersGame: React.FC<NeonInvadersGameProps> = ({
                   : 'Move ship with touch or arrow keys to blast alien swarms and the giant Boss!'}
               </p>
             </div>
-            <Button variant="glow" onClick={resetGame} className="px-6 py-2.5 text-sm font-black">
+            <Button variant="primary" onClick={resetGame} className="px-6 py-2.5 text-sm font-black">
               {isRtl ? 'انطلاق للمجرة 🚀' : 'Launch Ship 🚀'}
             </Button>
           </div>
@@ -951,7 +951,7 @@ export const NeonInvadersGame: React.FC<NeonInvadersGameProps> = ({
                 <span className="text-cyan-400 text-lg font-black">{score}</span>
               </p>
             </div>
-            <Button variant="glow" onClick={resetGame} className="flex items-center gap-2 px-6 py-2.5">
+            <Button variant="primary" onClick={resetGame} className="flex items-center gap-2 px-6 py-2.5">
               <RotateCcw className="w-4 h-4" />
               <span>{isRtl ? 'إعادة الإطلاق' : 'Restart Mission'}</span>
             </Button>
@@ -967,3 +967,4 @@ export const NeonInvadersGame: React.FC<NeonInvadersGameProps> = ({
     </div>
   )
 }
+
