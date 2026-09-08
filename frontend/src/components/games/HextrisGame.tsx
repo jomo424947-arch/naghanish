@@ -204,12 +204,26 @@ export const HextrisGame: React.FC<HextrisGameProps> = ({
     }
   }, [])
 
-  // Drop fastest current falling block
+  // Hard-drop nearest falling block onto its stack
   const dropFast = useCallback(() => {
     if (isGameOverRef.current) return
-    fallingBlocksRef.current.forEach((b) => {
-      b.dist = Math.max(HEX_RADIUS + 5, b.dist - 20)
+    if (fallingBlocksRef.current.length === 0) return
+
+    const currentRot = targetRotationRef.current
+    let nearestIdx = 0
+    let nearestDist = Infinity
+    fallingBlocksRef.current.forEach((b, i) => {
+      if (b.dist < nearestDist) {
+        nearestDist = b.dist
+        nearestIdx = i
+      }
     })
+
+    const b = fallingBlocksRef.current[nearestIdx]
+    const rotatedSectorIndex = (b.sector - Math.round(currentRot / (Math.PI / 3))) % 6
+    const normalizedSector = (rotatedSectorIndex + 600) % 6
+    const stack = stackedBlocksRef.current[normalizedSector]
+    b.dist = HEX_RADIUS + stack.length * BLOCK_THICKNESS
   }, [])
 
   // Start / Reset Game
@@ -331,17 +345,16 @@ export const HextrisGame: React.FC<HextrisGameProps> = ({
       }
 
       // 5. Update Falling Blocks
-      const currentRot = rotationRef.current
       const survivingFalling: FallingBlock[] = []
 
       for (let i = 0; i < fallingBlocksRef.current.length; i++) {
         const b = fallingBlocksRef.current[i]
         b.dist -= b.speed
 
-        // Calculate landing sector accounting for current hex rotation
-        // Relative sector is (b.sector - Math.round(currentRot / (Math.PI/3))) % 6
+        // Calculate landing sector from snapped target rotation (not mid-lerp visual rot)
+        const snappedRot = targetRotationRef.current
         const rotatedSectorIndex =
-          (b.sector - Math.round(currentRot / (Math.PI / 3))) % 6
+          (b.sector - Math.round(snappedRot / (Math.PI / 3))) % 6
         const normalizedSector = (rotatedSectorIndex + 600) % 6
 
         const stack = stackedBlocksRef.current[normalizedSector]
@@ -413,7 +426,7 @@ export const HextrisGame: React.FC<HextrisGameProps> = ({
 
       ctx.save()
       ctx.translate(cx, cy)
-      ctx.rotate(currentRot)
+      ctx.rotate(rotationRef.current)
 
       // Outer Danger Ring
       ctx.beginPath()

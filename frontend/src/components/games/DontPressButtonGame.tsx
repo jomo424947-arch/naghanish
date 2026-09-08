@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { RotateCcw, AlertTriangle, Trophy, ShieldCheck } from 'lucide-react'
+import { RotateCcw, AlertTriangle, ShieldCheck } from 'lucide-react'
 import { Button } from '@components/common/Button'
 
 interface DontPressButtonProps {

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { RotateCcw, Trophy, Sparkles } from 'lucide-react'
+import React, { useState } from 'react'
+import { RotateCcw, Trophy } from 'lucide-react'
 import { Button } from '@components/common/Button'
 
 interface SimonPatternProps {

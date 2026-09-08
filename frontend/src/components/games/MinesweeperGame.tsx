@@ -11,7 +11,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { RotateCcw, Flag, Trophy, ShieldAlert, Cpu, CheckCircle2 } from 'lucide-react'
+import { RotateCcw, Flag, ShieldAlert } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { sound } from '@/utils/soundManager'
 

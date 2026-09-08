@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { RotateCcw, Trophy, ArrowUp } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { sound } from '@/utils/soundManager'
+import { useEventCallback } from '@hooks/useEventCallback'
 
 interface PixelRunnerProps {
   onFinish: (score: number) => void
@@ -24,7 +25,7 @@ export const PixelRunnerGame: React.FC<PixelRunnerProps> = ({ onFinish, isRtl })
     frameCount: 0,
   })
 
-  const jump = () => {
+  const jump = useEventCallback(() => {
     if (!stateRef.current.running) {
       startGame()
       return
@@ -34,7 +35,7 @@ export const PixelRunnerGame: React.FC<PixelRunnerProps> = ({ onFinish, isRtl })
       stateRef.current.isGrounded = false
       sound.playJump()
     }
-  }
+  })
 
   const startGame = () => {
     stateRef.current = {
@@ -61,7 +62,7 @@ export const PixelRunnerGame: React.FC<PixelRunnerProps> = ({ onFinish, isRtl })
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [])
+  }, [jump])
 
   useEffect(() => {
     let animId: number

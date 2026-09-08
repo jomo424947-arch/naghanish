@@ -12,17 +12,16 @@
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { RotateCcw, Trophy, Star, Undo2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Layers } from 'lucide-react'
+import { RotateCcw, Star, Undo2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Layers } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { sound } from '@/utils/soundManager'
+import { useEventCallback } from '@hooks/useEventCallback'
 
 export interface SokobanProps {
   onFinish: (score: number) => void
   isRtl?: boolean
   difficulty?: 'Easy' | 'Medium' | 'Hard'
 }
-
-type CellType = 'EMPTY' | 'WALL' | 'TARGET'
 
 interface LevelData {
   width: number
@@ -205,9 +204,9 @@ export const SokobanGame: React.FC<SokobanProps> = ({ onFinish, isRtl, difficult
   }
 
   // Check if cell is a target
-  const isTargetAt = (r: number, c: number) => {
+  const isTargetAt = useEventCallback((r: number, c: number) => {
     return currentLevel.map[r] && currentLevel.map[r][c] === '.'
-  }
+  })
 
   // Move Player
   const move = useCallback(
@@ -288,11 +287,11 @@ export const SokobanGame: React.FC<SokobanProps> = ({ onFinish, isRtl, difficult
         sound.playSwoosh()
       }
     },
-    [playerPos, boxes, currentLevel, levelSolved, moveCount]
+    [playerPos, boxes, currentLevel, levelSolved, moveCount, isTargetAt]
   )
 
   // Undo Step
-  const handleUndo = () => {
+  const handleUndo = useEventCallback(() => {
     if (history.length === 0 || levelSolved) return
     sound.playClick()
     const last = history[history.length - 1]
@@ -300,7 +299,7 @@ export const SokobanGame: React.FC<SokobanProps> = ({ onFinish, isRtl, difficult
     setBoxes(last.boxes)
     setMoveCount((m) => Math.max(0, m - 1))
     setHistory((prev) => prev.slice(0, prev.length - 1))
-  }
+  })
 
   // Keyboard navigation
   useEffect(() => {

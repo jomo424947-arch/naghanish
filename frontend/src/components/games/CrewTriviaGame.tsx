@@ -11,10 +11,11 @@
  * - Procedural Web Audio API sounds for correct hits, misses, and lifelines.
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { RotateCcw, Trophy, CheckCircle2, XCircle, Zap, Clock, HelpCircle, Shield, FastForward } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { sound } from '@/utils/soundManager'
+import { useEventCallback } from '@hooks/useEventCallback'
 
 export interface CrewTriviaProps {
   onFinish: (score: number) => void
@@ -130,12 +131,15 @@ export const CrewTriviaGame: React.FC<CrewTriviaProps> = ({
   isRtl,
   difficulty = 'Medium',
 }) => {
+  // Seconds allowed per question, tightened on higher difficulties
+  const questionTime = difficulty === 'Easy' ? 20 : difficulty === 'Hard' ? 10 : 15
+
   const [currentIdx, setCurrentIdx] = useState(0)
   const [selectedOpt, setSelectedOpt] = useState<number | null>(null)
   const [score, setScore] = useState(0)
   const [streak, setStreak] = useState(0)
   const [multiplier, setMultiplier] = useState(1)
-  const [timeLeft, setTimeLeft] = useState(15)
+  const [timeLeft, setTimeLeft] = useState(questionTime)
   const [hiddenOptions, setHiddenOptions] = useState<number[]>([])
   const [used5050, setUsed5050] = useState(false)
   const [usedFreeze, setUsedFreeze] = useState(false)
@@ -145,29 +149,8 @@ export const CrewTriviaGame: React.FC<CrewTriviaProps> = ({
   const currentQ = TRIVIA_BANK[currentIdx % TRIVIA_BANK.length]
   const timerRef = useRef<number | null>(null)
 
-  // Timer per question
-  useEffect(() => {
-    if (isFinished || selectedOpt !== null) return
-
-    timerRef.current = window.setInterval(() => {
-      setTimeLeft((t) => {
-        if (t <= 1) {
-          if (timerRef.current) clearInterval(timerRef.current)
-          handleAnswer(-1) // Timeout
-          return 0
-        }
-        if (t === 4) sound.playCountdown(true)
-        return t - 1
-      })
-    }, 1000)
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-    }
-  }, [currentIdx, selectedOpt, isFinished])
-
-  // Answer handler
-  const handleAnswer = (index: number) => {
+  // Answer handler (stable identity: safe to reference from the timer below)
+  const handleAnswer = useEventCallback((index: number) => {
     if (selectedOpt !== null) return
     setSelectedOpt(index)
     if (timerRef.current) clearInterval(timerRef.current)
@@ -197,14 +180,39 @@ export const CrewTriviaGame: React.FC<CrewTriviaProps> = ({
         setCurrentIdx((i) => i + 1)
         setSelectedOpt(null)
         setHiddenOptions([])
-        setTimeLeft(15)
+        setTimeLeft(questionTime)
       } else {
         setIsFinished(true)
         sound.playWin()
-        onFinish(score + gained + 300)
+        setScore((s) => {
+          const finalScore = s + 300
+          onFinish(finalScore)
+          return finalScore
+        })
       }
     }, 1300)
-  }
+  })
+
+  // Timer per question
+  useEffect(() => {
+    if (isFinished || selectedOpt !== null) return
+
+    timerRef.current = window.setInterval(() => {
+      setTimeLeft((t) => {
+        if (t <= 1) {
+          if (timerRef.current) clearInterval(timerRef.current)
+          handleAnswer(-1) // Timeout
+          return 0
+        }
+        if (t === 4) sound.playCountdown(true)
+        return t - 1
+      })
+    }, 1000)
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
+  }, [currentIdx, selectedOpt, isFinished, handleAnswer])
 
   // ── Lifelines ──
   const handle5050 = () => {

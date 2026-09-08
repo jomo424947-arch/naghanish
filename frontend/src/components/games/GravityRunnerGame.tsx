@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { RotateCcw, Trophy, Zap, Compass, Flame } from 'lucide-react'
+import { RotateCcw, Trophy, Zap, Compass } from 'lucide-react'
 import { soundManager } from '@utils/soundManager'
+import { useEventCallback } from '@hooks/useEventCallback'
 
 export interface GravityRunnerProps {
   onFinish: (score: number) => void
@@ -85,7 +86,7 @@ export const GravityRunnerGame: React.FC<GravityRunnerProps> = ({ onFinish, isRt
   }
 
   // Invert Gravity
-  const invertGravity = () => {
+  const invertGravity = useEventCallback(() => {
     if (gameState === 'IDLE') {
       startGame()
       return
@@ -108,7 +109,7 @@ export const GravityRunnerGame: React.FC<GravityRunnerProps> = ({ onFinish, isRt
         color: s.gravity > 0 ? '#06b6d4' : '#ec4899',
       })
     }
-  }
+  })
 
   // Keyboard space / up
   useEffect(() => {
@@ -120,7 +121,7 @@ export const GravityRunnerGame: React.FC<GravityRunnerProps> = ({ onFinish, isRt
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [gameState])
+  }, [invertGravity])
 
   // Canvas Physics & Render Loop
   useEffect(() => {
@@ -307,7 +308,6 @@ export const GravityRunnerGame: React.FC<GravityRunnerProps> = ({ onFinish, isRt
 
       // Draw Obstacles (Spike Lasers)
       s.obstacles.forEach((ob) => {
-        const obY = ob.atCeiling ? 40 : 280 - ob.h
         ctx.fillStyle = ob.atCeiling ? '#f43f5e' : '#38bdf8'
         ctx.shadowColor = ob.atCeiling ? '#f43f5e' : '#38bdf8'
         ctx.shadowBlur = 10

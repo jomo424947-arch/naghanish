@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { RotateCcw, Trophy, Layers, Flame, Sparkles } from 'lucide-react'
+import { RotateCcw, Trophy, Layers, Flame } from 'lucide-react'
 import { soundManager } from '@utils/soundManager'
 
 export interface StackTowerProps {

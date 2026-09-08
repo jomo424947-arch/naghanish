@@ -13,7 +13,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { RotateCcw, Trophy, Star, Sparkles, Layers, RefreshCw } from 'lucide-react'
+import { RotateCcw, Star, Layers } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { sound } from '@/utils/soundManager'
 

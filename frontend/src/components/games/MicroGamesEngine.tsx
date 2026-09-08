@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Zap, Heart, Trophy, RotateCcw, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 import { soundManager } from '@utils/soundManager'
+import { useEventCallback } from '@hooks/useEventCallback'
 
 export interface MicroGamesEngineProps {
   onFinish: (score: number) => void
@@ -36,12 +37,11 @@ export const MicroGamesEngine: React.FC<MicroGamesEngineProps> = ({ onFinish, is
   const [targetShape, setTargetShape] = useState<'circle' | 'square' | 'triangle'>('circle')
   const [requiredColor, setRequiredColor] = useState<'cyan' | 'pink' | 'amber'>('cyan')
 
-  const timerRef = useRef<number | null>(null)
   const roundStartTime = useRef<number>(0)
   const roundDuration = useRef<number>(3500) // ms
 
   // Choose next micro-game
-  const startNextMicroGame = (nextRound: number, currentScore: number, currentLives: number) => {
+  const startNextMicroGame = (nextRound: number) => {
     setRound(nextRound)
     setRoundStatus('pending')
     setTimeLeft(100)
@@ -121,7 +121,7 @@ export const MicroGamesEngine: React.FC<MicroGamesEngineProps> = ({ onFinish, is
   }
 
   // Handle Win Round
-  const handleSuccess = () => {
+  const handleSuccess = useEventCallback(() => {
     if (roundStatus !== 'pending') return
     setRoundStatus('success')
     soundManager.playPerfectHit()
@@ -129,12 +129,12 @@ export const MicroGamesEngine: React.FC<MicroGamesEngineProps> = ({ onFinish, is
     setScore((s) => s + points)
 
     setTimeout(() => {
-      startNextMicroGame(round + 1, score + points, lives)
+      startNextMicroGame(round + 1)
     }, 800)
-  }
+  })
 
   // Handle Fail Round
-  const handleFail = () => {
+  const handleFail = useEventCallback(() => {
     if (roundStatus !== 'pending') return
     setRoundStatus('fail')
     soundManager.playMiss()
@@ -149,10 +149,10 @@ export const MicroGamesEngine: React.FC<MicroGamesEngineProps> = ({ onFinish, is
       }, 900)
     } else {
       setTimeout(() => {
-        startNextMicroGame(round + 1, score, newLives)
+        startNextMicroGame(round + 1)
       }, 900)
     }
-  }
+  })
 
   // Timer loop for active round
   useEffect(() => {
@@ -179,7 +179,7 @@ export const MicroGamesEngine: React.FC<MicroGamesEngineProps> = ({ onFinish, is
 
     animId = requestAnimationFrame(updateTimer)
     return () => cancelAnimationFrame(animId)
-  }, [gameState, roundStatus, currentGame])
+  }, [gameState, roundStatus, currentGame, handleSuccess, handleFail])
 
   // Subgame Actions
   const handleTap = () => {
@@ -225,7 +225,7 @@ export const MicroGamesEngine: React.FC<MicroGamesEngineProps> = ({ onFinish, is
     setLives(3)
     setScore(0)
     setGameState('PLAYING')
-    startNextMicroGame(1, 0, 3)
+    startNextMicroGame(1)
     soundManager.playPowerUp()
   }
 

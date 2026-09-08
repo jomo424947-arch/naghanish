@@ -14,9 +14,10 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { RotateCcw, Trophy, Zap, Sparkles, Flame, CheckCircle2, XCircle } from 'lucide-react'
+import { RotateCcw, Trophy, Zap, Flame } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { sound } from '@/utils/soundManager'
+import { useEventCallback } from '@hooks/useEventCallback'
 
 export interface ReverseControlsProps {
   onFinish: (score: number) => void
@@ -126,6 +127,49 @@ export const ReverseControlsGame: React.FC<ReverseControlsProps> = ({
     }
   }, [isRtl])
 
+  // Answer Submission (stable identity: safe to reference from timers below)
+  const handleAnswer = useEventCallback((selectedOption: string) => {
+    if (!currentChallenge) return
+
+    if (selectedOption === currentChallenge.correctOption) {
+      // Correct!
+      sound.playCoin()
+      setFeedback('correct')
+      setTimeout(() => setFeedback(null), 250)
+
+      streakRef.current++
+      setStreak(streakRef.current)
+
+      let curMult = 1
+      if (streakRef.current >= 20) {
+        curMult = 8
+        if (streakRef.current === 20) sound.playComboX8()
+      } else if (streakRef.current >= 10) {
+        curMult = 4
+        if (streakRef.current === 10) sound.playComboX4()
+      } else if (streakRef.current >= 5) {
+        curMult = 2
+        if (streakRef.current === 5) sound.playComboX2()
+      }
+      setMultiplier(curMult)
+
+      scoreRef.current += 100 * curMult
+      setScore(scoreRef.current)
+      solvedCountRef.current++
+
+      nextQuestion()
+    } else {
+      // Wrong or Timeout!
+      sound.playMiss()
+      sound.playGameOver()
+      setFeedback('wrong')
+
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current)
+      setGameState('GAMEOVER')
+      onFinish(scoreRef.current)
+    }
+  })
+
   // Step into Next Question with Timer
   const nextQuestion = useCallback(() => {
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current)
@@ -152,7 +196,7 @@ export const ReverseControlsGame: React.FC<ReverseControlsProps> = ({
         return prev - 1
       })
     }, stepTime)
-  }, [baseDuration, generateChallenge])
+  }, [baseDuration, generateChallenge, handleAnswer])
 
   // Start / Reset Game
   const startGame = useCallback(() => {
@@ -169,52 +213,6 @@ export const ReverseControlsGame: React.FC<ReverseControlsProps> = ({
 
     nextQuestion()
   }, [nextQuestion])
-
-  // Answer Submission
-  const handleAnswer = useCallback(
-    (selectedOption: string) => {
-      if (!currentChallenge) return
-
-      if (selectedOption === currentChallenge.correctOption) {
-        // Correct!
-        sound.playCoin()
-        setFeedback('correct')
-        setTimeout(() => setFeedback(null), 250)
-
-        streakRef.current++
-        setStreak(streakRef.current)
-
-        let curMult = 1
-        if (streakRef.current >= 20) {
-          curMult = 8
-          if (streakRef.current === 20) sound.playComboX8()
-        } else if (streakRef.current >= 10) {
-          curMult = 4
-          if (streakRef.current === 10) sound.playComboX4()
-        } else if (streakRef.current >= 5) {
-          curMult = 2
-          if (streakRef.current === 5) sound.playComboX2()
-        }
-        setMultiplier(curMult)
-
-        scoreRef.current += 100 * curMult
-        setScore(scoreRef.current)
-        solvedCountRef.current++
-
-        nextQuestion()
-      } else {
-        // Wrong or Timeout!
-        sound.playMiss()
-        sound.playGameOver()
-        setFeedback('wrong')
-
-        if (timerIntervalRef.current) clearInterval(timerIntervalRef.current)
-        setGameState('GAMEOVER')
-        onFinish(scoreRef.current)
-      }
-    },
-    [currentChallenge, nextQuestion, onFinish]
-  )
 
   useEffect(() => {
     return () => {

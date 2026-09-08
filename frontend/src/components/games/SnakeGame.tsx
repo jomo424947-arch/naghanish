@@ -74,19 +74,27 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
   const isGameOverRef = useRef(false)
   const scoreRef = useRef(score)
   scoreRef.current = score
+  const foodRef = useRef(food)
+  foodRef.current = food
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
 
-  const generatePoint = useCallback((currentSnake: Point[]): Point => {
-    let pt: Point
-    while (true) {
-      pt = {
-        x: Math.floor(Math.random() * GRID_SIZE),
-        y: Math.floor(Math.random() * GRID_SIZE),
+  const generatePoint = useCallback(
+    (currentSnake: Point[], extraOccupied: (Point | null)[] = []): Point => {
+      const blocked = [...currentSnake, ...extraOccupied.filter(Boolean) as Point[]]
+      let pt: Point
+      let tries = 0
+      while (tries < 200) {
+        pt = {
+          x: Math.floor(Math.random() * GRID_SIZE),
+          y: Math.floor(Math.random() * GRID_SIZE),
+        }
+        if (!blocked.some((s) => s.x === pt.x && s.y === pt.y)) return pt
+        tries++
       }
-      if (!currentSnake.some((s) => s.x === pt.x && s.y === pt.y)) break
-    }
-    return pt
-  }, [])
+      return { x: 0, y: 0 }
+    },
+    []
+  )
 
   // Particle emission helper
   const emitParticles = useCallback((x: number, y: number, color: string, count = 12) => {
@@ -134,6 +142,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isGameOverRef.current) return
       if (['ArrowUp', 'KeyW'].includes(e.code) && directionRef.current !== 'DOWN') {
         e.preventDefault()
         setDirection('UP')
@@ -190,10 +199,10 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
 
     const bonusInterval = setInterval(() => {
       if (Math.random() < 0.4 && !goldenFood) {
-        setGoldenFood(generatePoint(snake))
+        setGoldenFood(generatePoint(snake, [foodRef.current, speedBoost]))
       }
       if (Math.random() < 0.25 && !speedBoost) {
-        setSpeedBoost(generatePoint(snake))
+        setSpeedBoost(generatePoint(snake, [foodRef.current, goldenFood]))
       }
     }, 15000)
 
@@ -206,7 +215,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
 
     const moveSnake = () => {
       setSnake((prevSnake) => {
-        let head = { ...prevSnake[0] }
+        const head = { ...prevSnake[0] }
         const curDir = directionRef.current
 
         if (curDir === 'UP') head.y -= 1
@@ -246,7 +255,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
           setScreenShake(8)
           setIsGameOver(true)
           isGameOverRef.current = true
-          onFinish(scoreRef.current * 50 + 250)
+          onFinish(scoreRef.current * 50)
           return prevSnake
         }
 
@@ -258,8 +267,11 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
           emitParticles(head.x, head.y, '#f43f5e', 16)
           setSpeedBoost(null)
           setIsTurbo(true)
-          setMultiplier((m) => m + 1)
-          setTimeout(() => setIsTurbo(false), 4000)
+          setMultiplier((m) => m * 2)
+          setTimeout(() => {
+            setIsTurbo(false)
+            setMultiplier((m) => Math.max(1, Math.floor(m / 2)))
+          }, 4000)
         }
 
         // Eat Golden Apple
@@ -477,7 +489,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
                 ? 'بوابات أبعاد تلتف حول الجدران، تفاح ذهبي نادر، وكبسولات سرعة خارقة!'
                 : 'Portal walls, rare golden apples, and turbo speed boosters!'}
             </p>
-            <Button variant="primary" size="sm" onClick={() => setHasStarted(true)}>
+            <Button variant="primary" size="sm" onClick={restartGame}>
               {isRtl ? 'ابدأ اللعب الآن 🚀' : 'Start Snake DX 🚀'}
             </Button>
           </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { RotateCcw, Trophy, Sparkles, Flame, Zap, Shield, Skull, AlertCircle } from 'lucide-react'
+import { RotateCcw, Sparkles, Flame } from 'lucide-react'
 import { soundManager } from '@utils/soundManager'
+import { useEventCallback } from '@hooks/useEventCallback'
 
 export interface ChaosRouletteProps {
   onFinish: (score: number) => void
@@ -135,7 +136,6 @@ const SECTORS: Sector[] = [
 
 export const ChaosRouletteGame: React.FC<ChaosRouletteProps> = ({ onFinish, isRtl }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const [rotation, setRotation] = useState(0)
   const [isSpinning, setIsSpinning] = useState(false)
   const [selectedSector, setSelectedSector] = useState<Sector | null>(null)
   const [totalScore, setTotalScore] = useState(0)
@@ -146,7 +146,7 @@ export const ChaosRouletteGame: React.FC<ChaosRouletteProps> = ({ onFinish, isRt
   const animRef = useRef<number | null>(null)
 
   // Draw the wheel onto HTML5 Canvas
-  const drawWheel = (angle: number) => {
+  const drawWheel = useEventCallback((angle: number) => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
@@ -238,11 +238,11 @@ export const ChaosRouletteGame: React.FC<ChaosRouletteProps> = ({ onFinish, isRt
     ctx.textBaseline = 'middle'
     ctx.font = '20px sans-serif'
     ctx.fillText('🌀', cx, cy)
-  }
+  })
 
   useEffect(() => {
     drawWheel(0)
-  }, [isRtl])
+  }, [isRtl, drawWheel])
 
   // Spin Wheel Physics
   const spinWheel = () => {
@@ -255,7 +255,6 @@ export const ChaosRouletteGame: React.FC<ChaosRouletteProps> = ({ onFinish, isRt
     let currentAngle = rotRef.current
     const totalSpins = 4 + Math.random() * 3
     const targetDelta = totalSpins * Math.PI * 2 + Math.random() * Math.PI * 2
-    const targetAngle = currentAngle + targetDelta
     const duration = 4000 // 4 seconds
     const startTime = performance.now()
 
@@ -329,8 +328,14 @@ export const ChaosRouletteGame: React.FC<ChaosRouletteProps> = ({ onFinish, isRt
             {isRtl ? 'روليت الفوضى الكمومية' : 'QUANTUM CHAOS ROULETTE'}
           </span>
         </div>
-        <div className="text-sm font-black font-mono text-cyan-300">
-          {totalScore} <span className="text-xs text-gray-400">XP</span>
+        <div className="flex items-center gap-3 font-mono">
+          <span className="text-xs text-gray-400">
+            {isRtl ? 'اللفّات' : 'SPINS'}{' '}
+            <span className="text-sm font-black text-amber-300">{spinsCount}</span>
+          </span>
+          <span className="text-sm font-black text-cyan-300">
+            {totalScore} <span className="text-xs text-gray-400">XP</span>
+          </span>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Shield, Skull, Eye, EyeOff, CheckCircle, AlertTriangle, RotateCcw, Trophy, Users, Send } from 'lucide-react'
+import { Shield, Skull, CheckCircle, AlertTriangle, RotateCcw } from 'lucide-react'
 import { soundManager } from '@utils/soundManager'
+import { useEventCallback } from '@hooks/useEventCallback'
 
 export interface ImpostorGameProps {
   onFinish: (score: number) => void
@@ -100,7 +101,7 @@ export const ImpostorGame: React.FC<ImpostorGameProps> = ({ onFinish, isRtl }) =
   const [score, setScore] = useState(0)
 
   // Start new game
-  const initGame = () => {
+  const initGame = useEventCallback(() => {
     const randomLoc = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)]
     setLocation(randomLoc)
 
@@ -148,11 +149,11 @@ export const ImpostorGame: React.FC<ImpostorGameProps> = ({ onFinish, isRtl }) =
     setUserVotedId(null)
     setPhase('briefing')
     soundManager.playPowerUp()
-  }
+  })
 
   useEffect(() => {
     initGame()
-  }, [])
+  }, [initGame])
 
   // Options for player clues
   const playerClueOptions = isPlayerImpostor

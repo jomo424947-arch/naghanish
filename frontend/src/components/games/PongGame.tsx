@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { RotateCcw, Trophy, Zap, Shield, Flame } from 'lucide-react'
+import { RotateCcw, Trophy, Zap, Flame } from 'lucide-react'
 import { soundManager } from '@utils/soundManager'
+import { useEventCallback } from '@hooks/useEventCallback'
 
 export interface PongGameProps {
   onFinish: (score: number) => void
@@ -59,7 +60,7 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl, difficulty 
 
   const WIN_SCORE = 5
 
-  const resetBall = (scoredAgainstPlayer: boolean) => {
+  const resetBall = useEventCallback((scoredAgainstPlayer: boolean) => {
     const s = stateRef.current
     s.ballX = 240
     s.ballY = 160
@@ -71,7 +72,7 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl, difficulty 
     s.rally = 0
     s.isSuperSmash = false
     setRallyCount(0)
-  }
+  })
 
   const startGame = () => {
     const initialSpeed = difficulty === 'Easy' ? 4.0 : difficulty === 'Hard' ? 5.5 : 4.8
@@ -387,7 +388,7 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl, difficulty 
 
     animId = requestAnimationFrame(render)
     return () => cancelAnimationFrame(animId)
-  }, [difficulty, onFinish])
+  }, [difficulty, onFinish, resetBall])
 
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-lg mx-auto select-none">
@@ -460,8 +461,11 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl, difficulty 
                 ? (isRtl ? 'انتصار ساحق للبطل! 🏆' : 'VICTORY! CHAMPION 🏆')
                 : (isRtl ? 'تفوّق الذكاء الاصطناعي! 🤖' : 'AI DEFEAT! 🤖')}
             </h3>
-            <p className="text-xs text-gray-400 mb-6">
+            <p className="text-xs text-gray-400 mb-1">
               {isRtl ? `النتيجة النهائية: ${playerScore} - ${aiScore}` : `Final Match Score: ${playerScore} - ${aiScore}`}
+            </p>
+            <p className="text-xs text-amber-300 font-mono font-bold mb-6">
+              {isRtl ? `أطول تبادل: ${maxRally}x` : `Longest Rally: ${maxRally}x`}
             </p>
 
             <button

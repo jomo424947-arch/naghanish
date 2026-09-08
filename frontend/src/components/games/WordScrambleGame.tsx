@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { RotateCcw, Trophy, CheckCircle2, Sparkles, HelpCircle } from 'lucide-react'
+import { RotateCcw, Trophy, CheckCircle2, HelpCircle } from 'lucide-react'
 import { Button } from '@components/common/Button'
 
 interface WordScrambleProps {

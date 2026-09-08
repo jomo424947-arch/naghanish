@@ -12,7 +12,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { RotateCcw, Trophy, Heart, Zap, Sparkles, Layers } from 'lucide-react'
+import { RotateCcw, Trophy, Heart, Zap, Layers } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { sound } from '@/utils/soundManager'
 
@@ -330,6 +330,11 @@ export const BrickBreakerGame: React.FC<BrickBreakerProps> = ({
         expandTimerRef.current--
         if (expandTimerRef.current === 0) {
           paddleWRef.current = 76
+          paddleXRef.current = Math.max(0, Math.min(CANVAS_WIDTH - 76, paddleXRef.current))
+          paddleTargetXRef.current = Math.max(
+            0,
+            Math.min(CANVAS_WIDTH - 76, paddleTargetXRef.current)
+          )
           setActivePowerUp(null)
         }
       }
@@ -487,7 +492,6 @@ export const BrickBreakerGame: React.FC<BrickBreakerProps> = ({
         }
 
         // Brick Collisions
-        let hitBrick = false
         for (let i = 0; i < bricksRef.current.length; i++) {
           const b = bricksRef.current[i]
           if (!b.active) continue
@@ -498,7 +502,6 @@ export const BrickBreakerGame: React.FC<BrickBreakerProps> = ({
             ball.y + ball.radius >= b.y &&
             ball.y - ball.radius <= b.y + b.h
           ) {
-            hitBrick = true
             b.hp--
 
             // Determine collision side to reflect velocity
@@ -594,17 +597,18 @@ export const BrickBreakerGame: React.FC<BrickBreakerProps> = ({
       if (remainingBricks === 0) {
         sound.playWin()
         if (stageRef.current < 3) {
-          // Advance to next stage!
+          // Advance to next stage — keep RAF loop alive
           scoreRef.current += 250
           setScore(scoreRef.current)
           launchStage(stageRef.current + 1, true)
-          return
         } else {
           // Game Victory!
           isRunningRef.current = false
+          scoreRef.current += 500
+          setScore(scoreRef.current)
           sound.playWin()
           setGameState('VICTORY')
-          onFinish(scoreRef.current + 500)
+          onFinish(scoreRef.current)
           return
         }
       }

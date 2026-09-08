@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Calculator, Trophy, Zap, Flame, RotateCcw, Clock, Check, X } from 'lucide-react'
+import { Calculator, Trophy, Flame, RotateCcw, Clock } from 'lucide-react'
 import { soundManager } from '@utils/soundManager'
+import { useEventCallback } from '@hooks/useEventCallback'
 
 export interface SpeedMathProps {
   onFinish: (score: number) => void
@@ -26,6 +27,8 @@ export const SpeedMathGame: React.FC<SpeedMathProps> = ({ onFinish, isRtl, diffi
   const [stats, setStats] = useState({ totalSolved: 0, correct: 0, wrong: 0 })
 
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const scoreRef = useRef(0)
+  scoreRef.current = score
 
   // Generate math questions
   const generateQuestion = useCallback((): Question => {
@@ -86,7 +89,7 @@ export const SpeedMathGame: React.FC<SpeedMathProps> = ({ onFinish, isRtl, diffi
     soundManager.playPowerUp()
   }
 
-  // Handle countdown
+  // Handle countdown — score kept in a ref so the timer never resets mid-round
   useEffect(() => {
     if (gameState !== 'PLAYING') return
 
@@ -96,7 +99,7 @@ export const SpeedMathGame: React.FC<SpeedMathProps> = ({ onFinish, isRtl, diffi
           clearInterval(timerRef.current!)
           setGameState('GAMEOVER')
           soundManager.playBossAlert()
-          onFinish(score)
+          onFinish(scoreRef.current)
           return 0
         }
         if (prev <= 6) {
@@ -109,10 +112,10 @@ export const SpeedMathGame: React.FC<SpeedMathProps> = ({ onFinish, isRtl, diffi
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [gameState, score, onFinish])
+  }, [gameState, onFinish])
 
   // Answer handler
-  const handleAnswer = (val: number) => {
+  const handleAnswer = useEventCallback((val: number) => {
     if (feedback !== null || !question) return
     setSelectedOption(val)
 
@@ -145,7 +148,7 @@ export const SpeedMathGame: React.FC<SpeedMathProps> = ({ onFinish, isRtl, diffi
       setSelectedOption(null)
       setQuestion(generateQuestion())
     }, 350)
-  }
+  })
 
   // Keyboard controls (1, 2, 3, 4)
   useEffect(() => {

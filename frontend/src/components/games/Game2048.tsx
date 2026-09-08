@@ -10,10 +10,11 @@
  * - High score persistence, touch swipe gestures, and keyboard arrows.
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { RotateCcw, Trophy, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Undo2, Sparkles, Grid } from 'lucide-react'
+import React, { useState, useEffect, useRef } from 'react'
+import { RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Undo2 } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { sound } from '@/utils/soundManager'
+import { useEventCallback } from '@hooks/useEventCallback'
 
 export interface Game2048Props {
   onFinish: (score: number) => void
@@ -107,7 +108,7 @@ export const Game2048: React.FC<Game2048Props> = ({ onFinish, isRtl, difficulty 
     return true
   }
 
-  const handleUndo = () => {
+  const handleUndo = useEventCallback(() => {
     if (undoCount <= 0 || history.length === 0 || gameOver) return
     sound.playClick()
     const lastState = history[history.length - 1]
@@ -115,10 +116,9 @@ export const Game2048: React.FC<Game2048Props> = ({ onFinish, isRtl, difficulty 
     setScore(lastState.score)
     setHistory((prev) => prev.slice(0, prev.length - 1))
     setUndoCount((u) => u - 1)
-  }
+  })
 
-  const move = useCallback(
-    (dir: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT') => {
+  const move = useEventCallback((dir: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT') => {
       if (gameOver) return
 
       let gained = 0
@@ -126,7 +126,7 @@ export const Game2048: React.FC<Game2048Props> = ({ onFinish, isRtl, difficulty 
       let didMerge = false
       const newMerged = new Set<string>()
 
-      let newBoard: Board = board.map((r) => [...r])
+      const newBoard: Board = board.map((r) => [...r])
 
       if (dir === 'LEFT') {
         for (let r = 0; r < size; r++) {
@@ -212,9 +212,7 @@ export const Game2048: React.FC<Game2048Props> = ({ onFinish, isRtl, difficulty 
           onFinish(nextScore)
         }
       }
-    },
-    [board, score, bestScore, gameOver, hasWon, size, undoCount, history, onFinish]
-  )
+  })
 
   // Keyboard navigation
   useEffect(() => {

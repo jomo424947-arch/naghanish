@@ -13,7 +13,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { RotateCcw, Shield, Zap, Sparkles, Heart, Trophy } from 'lucide-react'
+import { RotateCcw, Shield, Zap, Heart, Trophy } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { sound } from '@utils/soundManager'
 
@@ -427,8 +427,14 @@ export const NeonInvadersGame: React.FC<NeonInvadersGameProps> = ({
           }
         }
 
-        // Alien Random Shooting
+        // Alien shooting — only the bottom-most alien in each column fires
+        const columns = new Map<number, typeof livingEnemies[0]>()
         livingEnemies.forEach((e) => {
+          const col = Math.round(e.x)
+          const existing = columns.get(col)
+          if (!existing || e.y > existing.y) columns.set(col, e)
+        })
+        columns.forEach((e) => {
           if (Math.random() < enemyBulletRate) {
             bulletsRef.current.push({
               x: e.x + ENEMY_WIDTH / 2,
@@ -877,7 +883,7 @@ export const NeonInvadersGame: React.FC<NeonInvadersGameProps> = ({
           {hasShield && (
             <div className="flex items-center gap-1 bg-cyan-500/20 border border-cyan-400/60 px-2 py-1 rounded-lg text-cyan-300 text-xs font-bold animate-pulse">
               <Shield className="w-3.5 h-3.5" />
-              <span>DRC</span>
+              <span>{isRtl ? 'درع' : 'SHIELD'}</span>
             </div>
           )}
           {activeWeapon !== 'normal' && (

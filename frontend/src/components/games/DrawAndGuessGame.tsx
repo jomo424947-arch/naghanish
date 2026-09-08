@@ -12,9 +12,10 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { RotateCcw, Trash2, CheckCircle2, Sparkles, Trophy, Clock, Send, Eraser } from 'lucide-react'
+import { RotateCcw, Trash2, CheckCircle2, Trophy, Clock, Send, Eraser } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { sound } from '@/utils/soundManager'
+import { useEventCallback } from '@hooks/useEventCallback'
 
 export interface DrawAndGuessProps {
   onFinish: (score: number) => void
@@ -57,6 +58,8 @@ const PALETTE = [
   '#818cf8', // Indigo
 ]
 
+const BRUSH_SIZES = [2, 4, 8, 14]
+
 export const DrawAndGuessGame: React.FC<DrawAndGuessProps> = ({
   onFinish,
   isRtl,
@@ -64,11 +67,14 @@ export const DrawAndGuessGame: React.FC<DrawAndGuessProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
+  // Seconds per drawing round, shortened on higher difficulties
+  const roundTime = difficulty === 'Easy' ? 60 : difficulty === 'Hard' ? 30 : 45
+
   // React States
   const [promptIdx, setPromptIdx] = useState(0)
   const [score, setScore] = useState(0)
   const [roundsCompleted, setRoundsCompleted] = useState(0)
-  const [timeLeft, setTimeLeft] = useState(45)
+  const [timeLeft, setTimeLeft] = useState(roundTime)
   const [color, setColor] = useState('#38bdf8')
   const [lineWidth, setLineWidth] = useState(4)
   const [isEraser, setIsEraser] = useState(false)
@@ -96,46 +102,11 @@ export const DrawAndGuessGame: React.FC<DrawAndGuessProps> = ({
     setScore(0)
     setRoundsCompleted(0)
     setPromptIdx(Math.floor(Math.random() * WORD_BANK.length))
-    setTimeLeft(45)
+    setTimeLeft(roundTime)
     setGameState('PLAYING')
     setChatMessages([])
     clearCanvas()
-  }, [clearCanvas])
-
-  // Timer & Simulated AI crew guessers
-  useEffect(() => {
-    if (gameState !== 'PLAYING') return
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          // Time expired for this word
-          sound.playMiss()
-          handleNextPrompt(false)
-          return 45
-        }
-        if (prev === 5) sound.playCountdown(true)
-        return prev - 1
-      })
-    }, 1000)
-
-    // Simulated virtual friends guessing
-    const aiGuessInterval = setInterval(() => {
-      if (Math.random() < 0.25) {
-        const names = ['سارة 🌸', 'أحمد ⚡', 'يوسف 🎮', 'ليلى ✨']
-        const randomName = names[Math.floor(Math.random() * names.length)]
-        const randomGuesses = ['شكلها نجمة؟', 'ممكن قطة؟', 'أكيد روبوت!', 'بيتزا؟', 'صعبة أوي']
-        const gText = randomGuesses[Math.floor(Math.random() * randomGuesses.length)]
-
-        setChatMessages((prev) => [...prev.slice(-4), { sender: randomName, text: gText }])
-      }
-    }, 4500)
-
-    return () => {
-      clearInterval(timer)
-      clearInterval(aiGuessInterval)
-    }
-  }, [gameState])
+  }, [clearCanvas, roundTime])
 
   // Canvas Drawing Handlers
   const startDraw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
@@ -177,7 +148,7 @@ export const DrawAndGuessGame: React.FC<DrawAndGuessProps> = ({
     ctx.moveTo(x, y)
   }
 
-  const handleNextPrompt = (wonRound: boolean) => {
+  const handleNextPrompt = useEventCallback((wonRound: boolean) => {
     const nextRound = roundsCompleted + 1
     setRoundsCompleted(nextRound)
 
@@ -188,10 +159,45 @@ export const DrawAndGuessGame: React.FC<DrawAndGuessProps> = ({
       onFinish(score + (wonRound ? 300 : 0))
     } else {
       setPromptIdx((p) => p + 1)
-      setTimeLeft(45)
+      setTimeLeft(roundTime)
       clearCanvas()
     }
-  }
+  })
+
+  // Timer & Simulated AI crew guessers
+  useEffect(() => {
+    if (gameState !== 'PLAYING') return
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          // Time expired for this word
+          sound.playMiss()
+          handleNextPrompt(false)
+          return roundTime
+        }
+        if (prev === 5) sound.playCountdown(true)
+        return prev - 1
+      })
+    }, 1000)
+
+    // Simulated virtual friends guessing
+    const aiGuessInterval = setInterval(() => {
+      if (Math.random() < 0.25) {
+        const names = ['سارة 🌸', 'أحمد ⚡', 'يوسف 🎮', 'ليلى ✨']
+        const randomName = names[Math.floor(Math.random() * names.length)]
+        const randomGuesses = ['شكلها نجمة؟', 'ممكن قطة؟', 'أكيد روبوت!', 'بيتزا؟', 'صعبة أوي']
+        const gText = randomGuesses[Math.floor(Math.random() * randomGuesses.length)]
+
+        setChatMessages((prev) => [...prev.slice(-4), { sender: randomName, text: gText }])
+      }
+    }, 4500)
+
+    return () => {
+      clearInterval(timer)
+      clearInterval(aiGuessInterval)
+    }
+  }, [gameState, roundTime, handleNextPrompt])
 
   // Handle Guess Submission
   const handleGuessSubmit = (e: React.FormEvent) => {
@@ -354,8 +360,28 @@ export const DrawAndGuessGame: React.FC<DrawAndGuessProps> = ({
           ))}
         </div>
 
-        {/* Eraser & Clear Tools */}
+        {/* Brush sizes, Eraser & Clear Tools */}
         <div className="flex items-center gap-1.5">
+          {BRUSH_SIZES.map((size) => (
+            <button
+              key={size}
+              onClick={() => {
+                setLineWidth(size)
+                setIsEraser(false)
+              }}
+              aria-label={isRtl ? `حجم الفرشاة ${size}` : `Brush size ${size}`}
+              className={`w-7 h-7 rounded-xl border flex items-center justify-center transition-all cursor-pointer ${
+                lineWidth === size && !isEraser
+                  ? 'bg-cyan-500/20 border-cyan-400'
+                  : 'bg-brand-darkBg/90 border-brand-purple/40 hover:border-cyan-400/60'
+              }`}
+            >
+              <span
+                className="rounded-full bg-current text-slate-300"
+                style={{ width: size + 2, height: size + 2 }}
+              />
+            </button>
+          ))}
           <button
             onClick={() => setIsEraser(!isEraser)}
             className={`p-2 rounded-xl border transition-all cursor-pointer ${

@@ -6,8 +6,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { RotateCcw, Trophy, CheckCircle, AlertTriangle, Eraser, Lightbulb } from 'lucide-react'
-import { Button } from '@components/common/Button'
+import { Eraser, Lightbulb } from 'lucide-react'
 import { sound } from '@/utils/soundManager'
 
 interface SudokuGameProps {

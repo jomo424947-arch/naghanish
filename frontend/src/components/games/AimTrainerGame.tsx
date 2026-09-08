@@ -12,7 +12,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { RotateCcw, Trophy, Target, Crosshair, Clock, Percent } from 'lucide-react'
+import { RotateCcw, Target, Clock, Percent, Crosshair } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { sound } from '@/utils/soundManager'
 
@@ -317,8 +317,7 @@ export const AimTrainerGame: React.FC<AimTrainerProps> = ({
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-sm mx-auto select-none">
       {/* Top Stats HUD */}
-      <div className="grid grid-cols-3 gap-2 w-full px-2">
-        {/* Targets Counter */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full px-2">
         <div className="flex items-center gap-2 bg-brand-darkBg/90 border border-brand-purple/40 px-3 py-1.5 rounded-xl shadow-inner">
           <Target className="w-4 h-4 text-cyan-400" />
           <div className="flex flex-col">
@@ -331,7 +330,20 @@ export const AimTrainerGame: React.FC<AimTrainerProps> = ({
           </div>
         </div>
 
-        {/* Avg Reaction Time */}
+        <div className="flex items-center gap-2 bg-brand-darkBg/90 border border-brand-purple/40 px-3 py-1.5 rounded-xl shadow-inner">
+          <Crosshair className="w-4 h-4 text-rose-400" />
+          <div className="flex flex-col">
+            <span className="text-[10px] text-slate-400 font-bold uppercase">
+              {isRtl ? 'إصابة/خطأ' : 'Hit/Miss'}
+            </span>
+            <span className="text-sm font-black leading-none">
+              <span className="text-emerald-400">{hits}</span>
+              <span className="text-slate-500">/</span>
+              <span className="text-rose-400">{misses}</span>
+            </span>
+          </div>
+        </div>
+
         <div className="flex items-center gap-2 bg-brand-darkBg/90 border border-brand-purple/40 px-3 py-1.5 rounded-xl shadow-inner">
           <Clock className="w-4 h-4 text-amber-400" />
           <div className="flex flex-col">
@@ -344,7 +356,6 @@ export const AimTrainerGame: React.FC<AimTrainerProps> = ({
           </div>
         </div>
 
-        {/* Accuracy */}
         <div className="flex items-center gap-2 bg-brand-darkBg/90 border border-brand-purple/40 px-3 py-1.5 rounded-xl shadow-inner">
           <Percent className="w-4 h-4 text-emerald-400" />
           <div className="flex flex-col">
@@ -404,6 +415,14 @@ export const AimTrainerGame: React.FC<AimTrainerProps> = ({
                 <div>
                   <span className="text-slate-400 block">{isRtl ? 'نسبة الدقة:' : 'Accuracy:'}</span>
                   <span className="text-emerald-400 text-base font-black">{accuracy}%</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block">{isRtl ? 'الإصابات:' : 'Hits:'}</span>
+                  <span className="text-emerald-400 text-base font-black">{hits}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block">{isRtl ? 'الأخطاء:' : 'Misses:'}</span>
+                  <span className="text-rose-400 text-base font-black">{misses}</span>
                 </div>
               </div>
             </div>

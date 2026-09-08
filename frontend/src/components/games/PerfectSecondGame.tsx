@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { RotateCcw, Trophy, Clock, Zap } from 'lucide-react'
+import { Clock } from 'lucide-react'
 import { Button } from '@components/common/Button'
 
 interface PerfectSecondProps {
