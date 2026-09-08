@@ -29,105 +29,152 @@ import { httpClient } from '@api/httpClient'
 import { sound } from '@utils/soundManager'
 
 // ── Import ALL dedicated game engine components ──
+import { HextrisGame } from '@components/games/HextrisGame'
+import { NeonInvadersGame } from '@components/games/NeonInvadersGame'
 import { SnakeGame } from '@components/games/SnakeGame'
 import { BrickBreakerGame } from '@components/games/BrickBreakerGame'
-import { PongGame } from '@components/games/PongGame'
-import { PixelRunnerGame } from '@components/games/PixelRunnerGame'
-import { SimonPatternGame } from '@components/games/SimonPatternGame'
-import { StackTowerGame } from '@components/games/StackTowerGame'
-import { SpaceShooterGame } from '@components/games/SpaceShooterGame'
-import { WordScrambleGame } from '@components/games/WordScrambleGame'
-import { PerfectSecondGame } from '@components/games/PerfectSecondGame'
-import { ChaosRouletteGame } from '@components/games/ChaosRouletteGame'
-import { DontPressButtonGame } from '@components/games/DontPressButtonGame'
-import { WouldYouRatherGame } from '@components/games/WouldYouRatherGame'
-import { DrawAndGuessGame } from '@components/games/DrawAndGuessGame'
-import { CrewTriviaGame } from '@components/games/CrewTriviaGame'
+import { RhythmRushGame } from '@components/games/RhythmRushGame'
+import { DodgeRunnerGame } from '@components/games/DodgeRunnerGame'
+import { AimTrainerGame } from '@components/games/AimTrainerGame'
 import { ReverseControlsGame } from '@components/games/ReverseControlsGame'
 import { Game2048 } from '@components/games/Game2048'
-import { SudokuGame } from '@components/games/SudokuGame'
+import { SokobanGame } from '@components/games/SokobanGame'
+import { LaserMirrorsGame } from '@components/games/LaserMirrorsGame'
 import { MinesweeperGame } from '@components/games/MinesweeperGame'
-import { FlappyHeroGame } from '@components/games/FlappyHeroGame'
+import { DrawAndGuessGame } from '@components/games/DrawAndGuessGame'
+import { CrewTriviaGame } from '@components/games/CrewTriviaGame'
+import { WouldYouRatherGame } from '@components/games/WouldYouRatherGame'
+import { ImpostorGame } from '@components/games/ImpostorGame'
+import { StackTowerGame } from '@components/games/StackTowerGame'
+import { SpeedMathGame } from '@components/games/SpeedMathGame'
+import { PongGame } from '@components/games/PongGame'
+import { MicroGamesEngine } from '@components/games/MicroGamesEngine'
+import { ChaosRouletteGame } from '@components/games/ChaosRouletteGame'
+import { GravityRunnerGame } from '@components/games/GravityRunnerGame'
+import { SudokuGame } from '@components/games/SudokuGame'
+import { SimonPatternGame } from '@components/games/SimonPatternGame'
+import { WordScrambleGame } from '@components/games/WordScrambleGame'
+import { PerfectSecondGame } from '@components/games/PerfectSecondGame'
+import { DontPressButtonGame } from '@components/games/DontPressButtonGame'
 
 // ── Engine type for each game ──
 type EngineType =
-  | '2048'
-  | 'sudoku'
-  | 'minesweeper'
-  | 'flappy'
+  | 'hextris'
+  | 'invaders'
   | 'snake'
   | 'brick'
+  | 'rhythm'
+  | 'dodge'
+  | 'aim'
+  | 'reverse'
+  | '2048'
+  | 'sokoban'
+  | 'laser'
+  | 'minesweeper'
+  | 'draw'
+  | 'trivia'
+  | 'rather'
+  | 'impostor'
+  | 'stack'
+  | 'math'
   | 'pong'
+  | 'micro'
+  | 'roulette'
+  | 'gravity'
+  | 'sudoku'
+  | 'flappy'
   | 'runner'
   | 'simon'
-  | 'stack'
   | 'shooter'
   | 'scramble'
   | 'second'
-  | 'roulette'
   | 'dontpress'
-  | 'rather'
-  | 'draw'
-  | 'trivia'
-  | 'reverse'
   | 'memory'
   | 'reflex'
   | 'cps'
-  | 'math'
   | 'color'
-  | 'aim'
 
 /**
  * Master map: game ID → engine type.
  * Every single game ID in the entire app is mapped here.
  */
 const GAME_ENGINE_MAP: Record<string, EngineType> = {
-  // ── Arcade World ──
+  // ── Official 22 Games Catalog ──
+  // Arcade World
+  'g-hextris': 'hextris',
+  'g-invaders': 'invaders',
+  'g-snake': 'snake',
+  'g-brick': 'brick',
+
+  // Reflex World
+  'g-rhythm': 'rhythm',
+  'g-dodge': 'dodge',
+  'g-aim': 'aim',
+  'g-reverse': 'reverse',
+
+  // IQ Lab World
+  'g-2048': '2048',
+  'g-sokoban': 'sokoban',
+  'g-laser': 'laser',
+  'g-mines': 'minesweeper',
+
+  // Shilla World
+  'g-draw': 'draw',
+  'g-trivia': 'trivia',
+  'g-wyr': 'rather',
+  'g-impostor': 'impostor',
+
+  // Champions World
+  'g-stack': 'stack',
+  'g-math': 'math',
+  'g-pong': 'pong',
+
+  // Chaos World
+  'g-micro': 'micro',
+  'g-roulette': 'roulette',
+  'g-gravity': 'gravity',
+
+  // ── Legacy Aliases & Fallbacks ──
   g1: '2048',
-  g4: 'flappy',
-  g7: 'runner',
+  g2: 'aim',
+  g3: 'sudoku',
+  g4: 'hextris',
+  g5: 'minesweeper',
+  g6: 'simon',
+  g7: 'dodge',
+  g8: 'aim',
+  g9: 'second',
+  g10: 'trivia',
+  g11: 'trivia',
+  g12: 'trivia',
+  g13: 'roulette',
   g14: 'brick',
   g15: 'snake',
-  g16: 'shooter',
+  g16: 'invaders',
   g17: 'stack',
   g18: 'simon',
   g19: 'snake',
   g20: 'pong',
-  // ── Reflex World ──
-  g2: 'reflex',
-  g8: 'aim',
-  g9: 'second',
   g21: 'cps',
   g22: 'aim',
-  g23: 'reflex',
-  g24: 'runner',
+  g23: 'rhythm',
+  g24: 'dodge',
   g25: 'reverse',
   g26: 'second',
   g27: 'pong',
-  // ── IQ Lab World ──
-  g3: 'sudoku',
-  g5: 'minesweeper',
-  g6: 'simon',
   g28: '2048',
-  g29: 'runner',
-  g30: 'simon',
+  g29: 'sokoban',
+  g30: 'laser',
   g31: 'sudoku',
   g32: 'minesweeper',
-  g59: 'math',
-  g60: 'simon',
-  // ── Shilla World ──
-  g10: 'trivia',
-  g11: 'trivia',
   g33: 'draw',
   g34: 'trivia',
   g35: 'rather',
-  g36: 'trivia',
+  g36: 'impostor',
   g37: 'trivia',
   g38: 'draw',
   g39: 'rather',
   g40: 'trivia',
-  // ── Champions World ──
-  g12: 'trivia',
   g41: 'trivia',
   g42: 'stack',
   g43: 'memory',
@@ -136,18 +183,18 @@ const GAME_ENGINE_MAP: Record<string, EngineType> = {
   g46: 'aim',
   g47: 'pong',
   g48: 'trivia',
-  g49: 'shooter',
-  // ── Chaos World ──
-  g13: 'roulette',
+  g49: 'invaders',
   g50: 'reverse',
   g51: 'trivia',
   g52: 'second',
   g53: 'color',
   g54: 'scramble',
-  g55: 'dontpress',
-  g56: 'reverse',
+  g55: 'micro',
+  g56: 'gravity',
   g57: 'roulette',
-  g58: 'runner',
+  g58: 'gravity',
+  g59: 'math',
+  g60: 'laser',
 }
 
 const MEMORY_EMOJIS = ['🧠', '⚡', '🏆', '🎯', '🎨', '🧮', '🎮', '🚀']
@@ -435,26 +482,34 @@ export function GameDetailsPage() {
   // ── Render the correct dedicated component ──
   const renderDedicatedEngine = () => {
     switch (engine) {
-      case '2048':       return <Game2048 onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'sudoku':     return <SudokuGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'minesweeper':return <MinesweeperGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'flappy':     return <FlappyHeroGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'snake':      return <SnakeGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'brick':      return <BrickBreakerGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'pong':       return <PongGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'runner':     return <PixelRunnerGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'simon':      return <SimonPatternGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'stack':      return <StackTowerGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'shooter':    return <SpaceShooterGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'scramble':   return <WordScrambleGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'second':     return <PerfectSecondGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'roulette':   return <ChaosRouletteGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'dontpress':  return <DontPressButtonGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'rather':     return <WouldYouRatherGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'draw':       return <DrawAndGuessGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'trivia':     return <CrewTriviaGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'reverse':    return <ReverseControlsGame onFinish={handleFinishGame} isRtl={isRtl} />
-      default:           return null
+      case 'hextris':     return <HextrisGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'invaders':    return <NeonInvadersGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'snake':       return <SnakeGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'brick':       return <BrickBreakerGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'rhythm':      return <RhythmRushGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'dodge':       return <DodgeRunnerGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'aim':         return <AimTrainerGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'reverse':     return <ReverseControlsGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case '2048':        return <Game2048 onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'sokoban':     return <SokobanGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'laser':       return <LaserMirrorsGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'minesweeper': return <MinesweeperGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'draw':        return <DrawAndGuessGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'trivia':      return <CrewTriviaGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'rather':      return <WouldYouRatherGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'impostor':    return <ImpostorGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'stack':       return <StackTowerGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'math':        return <SpeedMathGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'pong':        return <PongGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'micro':       return <MicroGamesEngine onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'roulette':    return <ChaosRouletteGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'gravity':     return <GravityRunnerGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'sudoku':      return <SudokuGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
+      case 'simon':       return <SimonPatternGame onFinish={handleFinishGame} isRtl={isRtl} />
+      case 'scramble':    return <WordScrambleGame onFinish={handleFinishGame} isRtl={isRtl} />
+      case 'second':      return <PerfectSecondGame onFinish={handleFinishGame} isRtl={isRtl} />
+      case 'dontpress':   return <DontPressButtonGame onFinish={handleFinishGame} isRtl={isRtl} />
+      default:            return null
     }
   }
 
@@ -606,7 +661,7 @@ export function GameDetailsPage() {
   }
 
   // Is it a dedicated component or inline?
-  const isDedicated = !['memory', 'reflex', 'cps', 'math', 'color', 'aim'].includes(engine)
+  const isDedicated = !['memory', 'reflex', 'cps', 'color'].includes(engine)
 
   return (
     <div className="flex flex-col gap-6 py-4 max-w-4xl mx-auto pb-24">

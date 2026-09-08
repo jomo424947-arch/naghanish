@@ -1,156 +1,370 @@
-import React, { useState, useEffect } from 'react'
-import { RotateCcw, Trophy, CheckCircle2, XCircle, Zap, Clock } from 'lucide-react'
-import { Button } from '@components/common/Button'
+/**
+ * CrewTriviaGame.tsx
+ *
+ * Arabic Trivia Showdown (مسابقة المعلومات الكبرى)
+ * Multi-category trivia engine with lifelines and streak scoring.
+ * Features:
+ * - Rich Arabic & English question bank across Sports, Science, History, Tech, Cinema, and Geography.
+ * - 3 Interactive Lifelines: 50:50 (حذف إجابتين), Freeze Time (+10s), Skip Question (تخطي).
+ * - Streak combo multiplier system (x1, x2, x3, x4).
+ * - Per-question timer with countdown audio ticks.
+ * - Procedural Web Audio API sounds for correct hits, misses, and lifelines.
+ */
 
-interface CrewTriviaProps {
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { RotateCcw, Trophy, CheckCircle2, XCircle, Zap, Clock, HelpCircle, Shield, FastForward } from 'lucide-react'
+import { Button } from '@components/common/Button'
+import { sound } from '@/utils/soundManager'
+
+export interface CrewTriviaProps {
   onFinish: (score: number) => void
   isRtl?: boolean
+  difficulty?: 'Easy' | 'Medium' | 'Hard'
 }
 
-const QUESTIONS = [
+interface Question {
+  categoryAr: string
+  categoryEn: string
+  q: string
+  qEn: string
+  options: string[]
+  optionsEn: string[]
+  correct: number
+}
+
+const TRIVIA_BANK: Question[] = [
   {
-    q: 'ما هو أسرع كائن حي على وجه الأرض في الانقضاض؟ 🦅',
-    qEn: 'What is the fastest living creature on Earth?',
-    options: ['الفهد الصياد 🐆', 'صقر الشاهين 🦅', 'سمكة التونة 🐟', 'النسر الذهبي 🦅'],
-    optionsEn: ['Cheetah', 'Peregrine Falcon', 'Tuna Fish', 'Golden Eagle'],
-    correct: 1,
-  },
-  {
-    q: 'ما هي عاصمة أقدم حضارة في التاريخ وعرفت بمدينة الألف مئذنة؟ 🕌',
-    qEn: 'What city is known as the City of a Thousand Minarets?',
-    options: ['بغداد 🏛️', 'دمشق 🏛️', 'القاهرة 🕌', 'إسطنبول 🕌'],
-    optionsEn: ['Baghdad', 'Damascus', 'Cairo', 'Istanbul'],
-    correct: 2,
-  },
-  {
-    q: 'ما هو العنصر الكيميائي الأكثر وفرة في الكون؟ 🌌',
-    qEn: 'What is the most abundant chemical element in the universe?',
-    options: ['الهيدروجين ⚛️', 'الأكسجين 🌬️', 'الكربون 💎', 'الهيليوم 🎈'],
-    optionsEn: ['Hydrogen', 'Oxygen', 'Carbon', 'Helium'],
+    categoryAr: 'رياضة ⚽',
+    categoryEn: 'Sports',
+    q: 'من هو المنتخب الأكثر تتويجاً بلقب كأس العالم في تاريخ كرة القدم؟ 🏆',
+    qEn: 'Which national team has won the most FIFA World Cups in history?',
+    options: ['البرازيل (5 ألقاب) 🇧🇷', 'ألمانيا (4 ألقاب) 🇩🇪', 'إيطاليا (4 ألقاب) 🇮🇹', 'الأرجنتين (3 ألقاب) 🇦🇷'],
+    optionsEn: ['Brazil (5 titles)', 'Germany (4 titles)', 'Italy (4 titles)', 'Argentina (3 titles)'],
     correct: 0,
   },
   {
-    q: 'في أي لعبة فيديو ظهرت شخصية ماريو لأول مرة عام 1981؟ 🕹️',
-    qEn: 'In which video game did Mario first appear in 1981?',
-    options: ['Super Mario Bros', 'Donkey Kong 🦍', 'Pac-Man', 'Zelda'],
-    optionsEn: ['Super Mario Bros', 'Donkey Kong', 'Pac-Man', 'Zelda'],
+    categoryAr: 'تكنولوجيا 💻',
+    categoryEn: 'Technology',
+    q: 'ما هو الاسم الرمزي لنظام التشغيل أندرويد الذي طورته شركة جوجل لأول مرة؟ 🤖',
+    qEn: 'What company originally created Android before Google acquired it?',
+    options: ['Android Inc. 🤖', 'Sun Microsystems ☀️', 'Nokia 📱', 'Bell Labs 🔬'],
+    optionsEn: ['Android Inc.', 'Sun Microsystems', 'Nokia', 'Bell Labs'],
+    correct: 0,
+  },
+  {
+    categoryAr: 'علوم 🔬',
+    categoryEn: 'Science',
+    q: 'ما هو الكوكب الأكثر سخونة في مجموعتنا الشمسية؟ ☀️',
+    qEn: 'What is the hottest planet in our solar system?',
+    options: ['عطارد (الأقرب للشمس) 🪐', 'الزهرة (الغلاف الكثيف) 🌋', 'المريخ 🔴', 'المشتري 🌀'],
+    optionsEn: ['Mercury', 'Venus (Dense atmosphere)', 'Mars', 'Jupiter'],
     correct: 1,
   },
   {
-    q: 'ما هو الشيء الذي كلما زاد نقص؟ ⏳',
-    qEn: 'What is the thing that decreases as it increases?',
-    options: ['الحفرة 🕳️', 'العمر 🎂', 'المال 💰', 'العلم 📚'],
-    optionsEn: ['The Hole', 'Age', 'Money', 'Knowledge'],
+    categoryAr: 'تاريخ 🏛️',
+    categoryEn: 'History',
+    q: 'أي من عجائب الدنيا السبع القديمة هي الوحيدة التي لا تزال قائمة حتى اليوم؟ 🏛️',
+    qEn: 'Which ancient Wonder of the World still stands today?',
+    options: ['حدائق بابل المعلقة 🌿', 'منارة الإسكندرية 🗼', 'هرم خوفو الأكبر ⛰️', 'تمثال رودس العملاق 🗿'],
+    optionsEn: ['Hanging Gardens of Babylon', 'Lighthouse of Alexandria', 'Great Pyramid of Giza', 'Colossus of Rhodes'],
+    correct: 2,
+  },
+  {
+    categoryAr: 'جغرافيا 🌍',
+    categoryEn: 'Geography',
+    q: 'ما هي الدولة العربية الوحيدة التي تطل على البحرين الأبيض والأحمر معاً؟ 🌊',
+    qEn: 'Which Arab nation borders both the Mediterranean Sea and Red Sea?',
+    options: ['مصر 🇪🇬', 'السعودية 🇸🇦', 'الأردن 🇯🇴', 'السودان 🇸🇩'],
+    optionsEn: ['Egypt', 'Saudi Arabia', 'Jordan', 'Sudan'],
+    correct: 0,
+  },
+  {
+    categoryAr: 'سينما 🎬',
+    categoryEn: 'Cinema',
+    q: 'ما هو أول فيلم سينمائي في التاريخ تجاوزت إيراداته 2 مليار دولار عالمياً؟ 🎥',
+    qEn: 'What was the first movie in history to gross over $2 billion worldwide?',
+    options: ['تيتانيك (Titanic) 🚢', 'أفاتار (Avatar) 🌌', 'أفنجرز: إند جيم 🦸', 'حرب النجوم ⚔️'],
+    optionsEn: ['Titanic', 'Avatar', 'Avengers: Endgame', 'Star Wars'],
+    correct: 0,
+  },
+  {
+    categoryAr: 'علوم 🧬',
+    categoryEn: 'Biology',
+    q: 'ما هو العضو الأكبر حجماً ووزناً في جسم الإنسان؟ 🫀',
+    qEn: 'What is the largest organ in the human body?',
+    options: ['الكبد 🧪', 'الجلد 🛡️', 'الرئتان 🫁', 'الدماغ 🧠'],
+    optionsEn: ['Liver', 'Skin', 'Lungs', 'Brain'],
+    correct: 1,
+  },
+  {
+    categoryAr: 'رياضة 🎾',
+    categoryEn: 'Sports',
+    q: 'كم عدد لاعبي فريق كرة السلة داخل أرض الملعب أثناء المباراة؟ 🏀',
+    qEn: 'How many players per team are on court in a basketball match?',
+    options: ['4 لاعبين', '5 لاعبين', '6 لاعبين', '7 لاعبين'],
+    optionsEn: ['4 players', '5 players', '6 players', '7 players'],
+    correct: 1,
+  },
+  {
+    categoryAr: 'تاريخ 📜',
+    categoryEn: 'History',
+    q: 'من هو القائد المسلم الذي فتح بلاد الأندلس عام 711 ميلادي؟ ⚔️',
+    qEn: 'Who was the Muslim military commander that conquered Hispania in 711 AD?',
+    options: ['طارق بن زياد ⚔️', 'صلاح الدين الأيوبي 🛡️', 'خالد بن الوليد 🗡️', 'عمرو بن العاص 🏹'],
+    optionsEn: ['Tariq ibn Ziyad', 'Saladin', 'Khalid ibn al-Walid', 'Amr ibn al-Aas'],
+    correct: 0,
+  },
+  {
+    categoryAr: 'تكنولوجيا 🚀',
+    categoryEn: 'Technology',
+    q: 'ما اسم أول قمر صناعي أطلقه البشر إلى الفضاء الخارجي عام 1957؟ 🛰️',
+    qEn: 'What was the first artificial satellite launched into orbit in 1957?',
+    options: ['أبولو 11 🌕', 'سبوتنيك 1 🛰️', 'فوستوك 1 🚀', 'إكسبلورر 1 🔭'],
+    optionsEn: ['Apollo 11', 'Sputnik 1', 'Vostok 1', 'Explorer 1'],
     correct: 1,
   },
 ]
 
-export const CrewTriviaGame: React.FC<CrewTriviaProps> = ({ onFinish, isRtl }) => {
+export const CrewTriviaGame: React.FC<CrewTriviaProps> = ({
+  onFinish,
+  isRtl,
+  difficulty = 'Medium',
+}) => {
   const [currentIdx, setCurrentIdx] = useState(0)
   const [selectedOpt, setSelectedOpt] = useState<number | null>(null)
   const [score, setScore] = useState(0)
-  const [timeLeft, setTimeLeft] = useState(12)
+  const [streak, setStreak] = useState(0)
+  const [multiplier, setMultiplier] = useState(1)
+  const [timeLeft, setTimeLeft] = useState(15)
+  const [hiddenOptions, setHiddenOptions] = useState<number[]>([])
+  const [used5050, setUsed5050] = useState(false)
+  const [usedFreeze, setUsedFreeze] = useState(false)
+  const [usedSkip, setUsedSkip] = useState(false)
   const [isFinished, setIsFinished] = useState(false)
 
-  const currentQ = QUESTIONS[currentIdx]
+  const currentQ = TRIVIA_BANK[currentIdx % TRIVIA_BANK.length]
+  const timerRef = useRef<number | null>(null)
 
+  // Timer per question
   useEffect(() => {
     if (isFinished || selectedOpt !== null) return
 
-    const timer = setInterval(() => {
+    timerRef.current = window.setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 1) {
-          clearInterval(timer)
-          handleAnswer(-1) // Time out
+          if (timerRef.current) clearInterval(timerRef.current)
+          handleAnswer(-1) // Timeout
           return 0
         }
+        if (t === 4) sound.playCountdown(true)
         return t - 1
       })
     }, 1000)
 
-    return () => clearInterval(timer)
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
   }, [currentIdx, selectedOpt, isFinished])
 
+  // Answer handler
   const handleAnswer = (index: number) => {
     if (selectedOpt !== null) return
     setSelectedOpt(index)
+    if (timerRef.current) clearInterval(timerRef.current)
 
-    let roundScore = 0
+    let gained = 0
     if (index === currentQ.correct) {
-      roundScore = 200 + timeLeft * 10
-      setScore((s) => s + roundScore)
+      sound.playCoin()
+      const newStreak = streak + 1
+      setStreak(newStreak)
+
+      let mult = 1
+      if (newStreak >= 8) mult = 4
+      else if (newStreak >= 5) mult = 3
+      else if (newStreak >= 3) mult = 2
+      setMultiplier(mult)
+
+      gained = (200 + timeLeft * 10) * mult
+      setScore((s) => s + gained)
+    } else {
+      sound.playMiss()
+      setStreak(0)
+      setMultiplier(1)
     }
 
     setTimeout(() => {
-      if (currentIdx + 1 < QUESTIONS.length) {
+      if (currentIdx + 1 < TRIVIA_BANK.length) {
         setCurrentIdx((i) => i + 1)
         setSelectedOpt(null)
-        setTimeLeft(12)
+        setHiddenOptions([])
+        setTimeLeft(15)
       } else {
         setIsFinished(true)
-        onFinish(score + roundScore + 250)
+        sound.playWin()
+        onFinish(score + gained + 300)
       }
-    }, 1500)
+    }, 1300)
+  }
+
+  // ── Lifelines ──
+  const handle5050 = () => {
+    if (used5050 || selectedOpt !== null) return
+    sound.playPowerUp()
+    setUsed5050(true)
+
+    // Eliminate 2 wrong answers
+    const wrongIndices = [0, 1, 2, 3].filter((idx) => idx !== currentQ.correct)
+    const toRemove = wrongIndices.sort(() => Math.random() - 0.5).slice(0, 2)
+    setHiddenOptions(toRemove)
+  }
+
+  const handleFreeze = () => {
+    if (usedFreeze || selectedOpt !== null) return
+    sound.playShieldUp()
+    setUsedFreeze(true)
+    setTimeLeft((t) => t + 10)
+  }
+
+  const handleSkip = () => {
+    if (usedSkip || selectedOpt !== null) return
+    sound.playSwoosh()
+    setUsedSkip(true)
+    if (currentIdx + 1 < TRIVIA_BANK.length) {
+      setCurrentIdx((i) => i + 1)
+      setSelectedOpt(null)
+      setHiddenOptions([])
+      setTimeLeft(15)
+    }
   }
 
   const restart = () => {
     setCurrentIdx(0)
     setSelectedOpt(null)
+    setHiddenOptions([])
     setScore(0)
-    setTimeLeft(12)
+    setStreak(0)
+    setMultiplier(1)
+    setUsed5050(false)
+    setUsedFreeze(false)
+    setUsedSkip(false)
+    setTimeLeft(15)
     setIsFinished(false)
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-sm mx-auto text-center">
-      {/* Top Status */}
-      <div className="w-full flex items-center justify-between px-4 py-2 rounded-2xl bg-black/50 border border-brand-cardBorder text-xs font-mono">
-        <span className="text-amber-300 font-black">
-          {isRtl ? 'السؤال:' : 'Q:'} {currentIdx + 1} / {QUESTIONS.length}
-        </span>
-        <div className="flex items-center gap-1 text-cyan-300 font-black">
-          <Clock className="w-3.5 h-3.5 text-cyan-400" />
-          <span>{timeLeft}s</span>
+    <div className="flex flex-col items-center gap-4 w-full max-w-sm mx-auto select-none">
+      {/* Top Status Bar */}
+      <div className="flex items-center justify-between w-full px-2">
+        {/* Score & Streak */}
+        <div className="flex items-center gap-2 bg-brand-darkBg/90 border border-brand-purple/40 px-3 py-1.5 rounded-xl shadow-inner">
+          <Trophy className="w-4 h-4 text-amber-400" />
+          <div className="flex flex-col">
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+              {isRtl ? 'النقاط' : 'Score'}
+            </span>
+            <span className="text-sm font-black text-cyan-400 leading-none">{score}</span>
+          </div>
         </div>
-        <span className="text-purple-300 font-black">{score} XP</span>
+
+        {/* Streak indicator */}
+        {streak >= 3 && (
+          <div className="flex items-center gap-1 bg-amber-500/20 border border-amber-400/60 px-2.5 py-1 rounded-xl text-amber-300 text-xs font-black animate-pulse">
+            <Zap className="w-3.5 h-3.5 fill-amber-400" />
+            <span>x{multiplier} STREAK</span>
+          </div>
+        )}
+
+        {/* Timer */}
+        <div className="flex items-center gap-1.5 bg-brand-darkBg/90 border border-brand-purple/40 px-2.5 py-1.5 rounded-xl">
+          <Clock className={`w-3.5 h-3.5 ${timeLeft <= 4 ? 'text-rose-500 animate-pulse' : 'text-slate-400'}`} />
+          <span className={`text-xs font-mono font-black ${timeLeft <= 4 ? 'text-rose-400' : 'text-slate-300'}`}>
+            {timeLeft}s
+          </span>
+        </div>
+      </div>
+
+      {/* Lifelines Toolbar */}
+      <div className="grid grid-cols-3 gap-2 w-full px-2">
+        <button
+          onClick={handle5050}
+          disabled={used5050 || selectedOpt !== null}
+          className="py-1.5 px-2 rounded-xl bg-purple-950/40 border border-purple-500/40 hover:border-purple-400 active:scale-95 text-purple-300 text-[11px] font-bold transition-all disabled:opacity-30 flex items-center justify-center gap-1 cursor-pointer"
+        >
+          <HelpCircle className="w-3.5 h-3.5" />
+          <span>50 : 50</span>
+        </button>
+
+        <button
+          onClick={handleFreeze}
+          disabled={usedFreeze || selectedOpt !== null}
+          className="py-1.5 px-2 rounded-xl bg-cyan-950/40 border border-cyan-500/40 hover:border-cyan-400 active:scale-95 text-cyan-300 text-[11px] font-bold transition-all disabled:opacity-30 flex items-center justify-center gap-1 cursor-pointer"
+        >
+          <Shield className="w-3.5 h-3.5" />
+          <span>+10s {isRtl ? 'تمديد' : 'Time'}</span>
+        </button>
+
+        <button
+          onClick={handleSkip}
+          disabled={usedSkip || selectedOpt !== null}
+          className="py-1.5 px-2 rounded-xl bg-amber-950/40 border border-amber-500/40 hover:border-amber-400 active:scale-95 text-amber-300 text-[11px] font-bold transition-all disabled:opacity-30 flex items-center justify-center gap-1 cursor-pointer"
+        >
+          <FastForward className="w-3.5 h-3.5" />
+          <span>{isRtl ? 'تخطي' : 'Skip'}</span>
+        </button>
       </div>
 
       {!isFinished ? (
-        <div className="flex flex-col gap-4 w-full">
+        <div className="flex flex-col gap-3 w-full px-2">
           {/* Question Card */}
-          <div className="p-6 rounded-3xl bg-brand-card border-2 border-brand-purple/50 shadow-glow min-h-24 flex items-center justify-center">
-            <h3 className="text-base font-black text-white leading-relaxed">
+          <div className="p-5 rounded-3xl bg-[#060714] border-2 border-purple-500/40 shadow-[0_0_25px_rgba(168,85,247,0.2)] flex flex-col items-center justify-center text-center gap-2">
+            <span className="text-[10px] text-purple-400 font-bold uppercase tracking-wider bg-purple-500/10 px-2.5 py-0.5 rounded-full border border-purple-500/30">
+              {isRtl ? currentQ.categoryAr : currentQ.categoryEn} • {currentIdx + 1}/{TRIVIA_BANK.length}
+            </span>
+            <h3 className="text-sm sm:text-base font-black text-white leading-relaxed">
               {isRtl ? currentQ.q : currentQ.qEn}
             </h3>
           </div>
 
           {/* Options Grid */}
-          <div className="grid grid-cols-1 gap-2.5">
+          <div className="grid grid-cols-1 gap-2">
             {currentQ.options.map((opt, i) => {
-              let btnStyle = 'bg-brand-card/90 border-brand-cardBorder hover:border-cyan-400'
+              const isHidden = hiddenOptions.includes(i)
+              let btnStyle = 'bg-brand-darkBg/90 border-brand-purple/40 text-slate-200 hover:border-cyan-400'
+
               if (selectedOpt !== null) {
                 if (i === currentQ.correct) {
-                  btnStyle = 'bg-emerald-950/80 border-emerald-400 text-emerald-200 shadow-glow-green'
+                  btnStyle = 'bg-emerald-950/80 border-emerald-400 text-emerald-200 shadow-[0_0_15px_#10b981]'
                 } else if (i === selectedOpt) {
-                  btnStyle = 'bg-rose-950/80 border-rose-500 text-rose-200'
+                  btnStyle = 'bg-rose-950/80 border-rose-500 text-rose-200 shadow-[0_0_15px_#f43f5e]'
                 } else {
-                  btnStyle = 'opacity-40 bg-brand-card border-transparent'
+                  btnStyle = 'opacity-30 bg-brand-darkBg border-transparent text-slate-500'
                 }
+              }
+
+              if (isHidden) {
+                return (
+                  <div
+                    key={i}
+                    className="p-3 rounded-2xl border border-white/5 bg-black/20 opacity-20 text-center text-xs"
+                  >
+                    —
+                  </div>
+                )
               }
 
               return (
                 <button
                   key={i}
-                  disabled={selectedOpt !== null}
                   onClick={() => handleAnswer(i)}
-                  className={`p-4 rounded-2xl border-2 transition-all flex items-center justify-between cursor-pointer font-bold text-xs ${btnStyle}`}
+                  disabled={selectedOpt !== null}
+                  className={`p-3.5 rounded-2xl border-2 text-xs font-bold transition-all flex items-center justify-between active:scale-98 shadow-md cursor-pointer ${btnStyle}`}
                 >
-                  <span className="text-white">{isRtl ? opt : currentQ.optionsEn[i]}</span>
+                  <span className="text-right flex-1">{isRtl ? opt : currentQ.optionsEn[i]}</span>
                   {selectedOpt !== null && i === currentQ.correct && (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                   )}
-                  {selectedOpt === i && i !== currentQ.correct && (
-                    <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                  {selectedOpt !== null && i === selectedOpt && i !== currentQ.correct && (
+                    <XCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
                   )}
                 </button>
               )
@@ -158,12 +372,21 @@ export const CrewTriviaGame: React.FC<CrewTriviaProps> = ({ onFinish, isRtl }) =
           </div>
         </div>
       ) : (
-        <div className="p-6 rounded-3xl bg-brand-card border-2 border-amber-400 shadow-glow-gold flex flex-col items-center gap-3 w-full animate-bounce-short">
-          <Trophy className="w-12 h-12 text-amber-400" />
-          <h4 className="text-lg font-black text-white">{isRtl ? 'أنهيت جولة الأسئلة بنجاح! 🎤' : 'Trivia Complete! 🎤'}</h4>
-          <p className="text-xs text-slate-300">{score + 250} XP</p>
-          <Button variant="gold" size="sm" onClick={restart} leftIcon={<RotateCcw className="w-3.5 h-3.5" />}>
-            {isRtl ? 'جولة جديدة ⚡' : 'Play Again ⚡'}
+        /* Finished Victory Screen */
+        <div className="w-full p-6 rounded-3xl bg-[#060714] border-2 border-emerald-500/40 shadow-[0_0_30px_rgba(16,185,129,0.25)] flex flex-col items-center justify-center gap-4 text-center">
+          <div className="text-4xl animate-bounce">🧠🏆</div>
+          <div>
+            <h3 className="text-2xl font-black text-emerald-400">
+              {isRtl ? 'اكتمل التحدي المعرفي!' : 'TRIVIA CHAMPION!'}
+            </h3>
+            <p className="text-sm font-bold text-slate-200 mt-1">
+              {isRtl ? 'النقاط النهائية:' : 'Final Score:'}{' '}
+              <span className="text-cyan-400 text-lg font-black">{score}</span>
+            </p>
+          </div>
+          <Button variant="glow" onClick={restart} className="flex items-center gap-2 px-6 py-2.5">
+            <RotateCcw className="w-4 h-4" />
+            <span>{isRtl ? 'مسابقة جديدة' : 'Play Again'}</span>
           </Button>
         </div>
       )}

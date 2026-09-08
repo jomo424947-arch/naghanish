@@ -1,16 +1,21 @@
 /**
  * MinesweeperGame.tsx
  *
- * Modern Neon Minesweeper game.
- * Features customizable grid, flag placement mode, reveal cascade, and sound effects.
+ * Minesweeper Cyber Hack (كاسحة الألغام السيبرانية)
+ * Advanced cyber deduction engine featuring:
+ * - Guaranteed First-Click Safety (no instant death on initial probe).
+ * - Pro Chord-Clicking: Clicking an already-revealed number cell automatically reveals adjacent unflagged cells if flags match!
+ * - Cyber Circuit Board UI with node frequencies, virus markers, and neon traces.
+ * - Procedural Web Audio API sound effects for probes, flags, explosions, and hack success.
+ * - Desktop right-click / touch long-press & mode toggle for fast flagging.
  */
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { RotateCcw, Flag, Bomb, Trophy, ShieldAlert } from 'lucide-react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { RotateCcw, Flag, Trophy, ShieldAlert, Cpu, CheckCircle2 } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { sound } from '@/utils/soundManager'
 
-interface MinesweeperProps {
+export interface MinesweeperProps {
   onFinish: (score: number) => void
   isRtl?: boolean
   difficulty?: 'Easy' | 'Medium' | 'Hard'
@@ -26,9 +31,9 @@ interface Cell {
 }
 
 const CONFIGS = {
-  Easy: { rows: 8, cols: 8, mines: 8 },
-  Medium: { rows: 9, cols: 9, mines: 14 },
-  Hard: { rows: 10, cols: 10, mines: 22 },
+  Easy: { rows: 8, cols: 8, mines: 9 },
+  Medium: { rows: 9, cols: 9, mines: 15 },
+  Hard: { rows: 10, cols: 10, mines: 24 },
 }
 
 const NUMBER_COLORS: Record<number, string> = {
@@ -42,7 +47,11 @@ const NUMBER_COLORS: Record<number, string> = {
   8: 'text-white',
 }
 
-export const MinesweeperGame: React.FC<MinesweeperProps> = ({ onFinish, isRtl, difficulty = 'Medium' }) => {
+export const MinesweeperGame: React.FC<MinesweeperProps> = ({
+  onFinish,
+  isRtl,
+  difficulty = 'Medium',
+}) => {
   const config = CONFIGS[difficulty] || CONFIGS.Medium
   const { rows, cols, mines: totalMines } = config
 
@@ -51,10 +60,14 @@ export const MinesweeperGame: React.FC<MinesweeperProps> = ({ onFinish, isRtl, d
   const [isWon, setIsWon] = useState(false)
   const [flagMode, setFlagMode] = useState(false)
   const [flagsPlaced, setFlagsPlaced] = useState(0)
+  const [firstClickDone, setFirstClickDone] = useState(false)
+
+  const isGameOverRef = useRef(false)
+  const isWonRef = useRef(false)
 
   // Initialize board
   const initBoard = useCallback(() => {
-    let newGrid: Cell[][] = []
+    const newGrid: Cell[][] = []
     for (let r = 0; r < rows; r++) {
       const row: Cell[] = []
       for (let c = 0; c < cols; c++) {
@@ -104,6 +117,9 @@ export const MinesweeperGame: React.FC<MinesweeperProps> = ({ onFinish, isRtl, d
     setIsGameOver(false)
     setIsWon(false)
     setFlagsPlaced(0)
+    setFirstClickDone(false)
+    isGameOverRef.current = false
+    isWonRef.current = false
   }, [rows, cols, totalMines])
 
   useEffect(() => {
@@ -133,137 +149,272 @@ export const MinesweeperGame: React.FC<MinesweeperProps> = ({ onFinish, isRtl, d
     }
   }
 
-  // Handle cell click
-  const handleCellClick = (r: number, c: number) => {
+  // Check victory condition
+  const checkVictory = (board: Cell[][]) => {
+    let unrevealedSafe = 0
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const cell = board[r][c]
+        if (!cell.isMine && !cell.isRevealed) {
+          unrevealedSafe++
+        }
+      }
+    }
+
+    if (unrevealedSafe === 0) {
+      setIsWon(true)
+      isWonRef.current = true
+      sound.playWin()
+      const score = Math.round(totalMines * 150 * (difficulty === 'Hard' ? 2.5 : difficulty === 'Medium' ? 1.5 : 1.0))
+      onFinish(score)
+    }
+  }
+
+  // Pro Chord Click on already revealed cell
+  const handleChordClick = (r: number, c: number) => {
+    const cell = grid[r][c]
+    if (!cell.isRevealed || cell.neighborMines === 0) return
+
+    // Count adjacent flags
+    let adjacentFlags = 0
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        const nr = r + dr
+        const nc = c + dc
+        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc].isFlagged) {
+          adjacentFlags++
+        }
+      }
+    }
+
+    // If flags match neighbor mines count, reveal remaining unflagged neighbors!
+    if (adjacentFlags === cell.neighborMines) {
+      sound.playClick()
+      const newGrid = grid.map((row) => row.map((item) => ({ ...item })))
+      let hitMine = false
+
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          const nr = r + dr
+          const nc = c + dc
+          if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+            const adj = newGrid[nr][nc]
+            if (!adj.isRevealed && !adj.isFlagged) {
+              adj.isRevealed = true
+              if (adj.isMine) {
+                hitMine = true
+              } else if (adj.neighborMines === 0) {
+                revealEmptyNeighbors(newGrid, nr, nc)
+              }
+            }
+          }
+        }
+      }
+
+      if (hitMine) {
+        sound.playExplosion()
+        sound.playGameOver()
+        setIsGameOver(true)
+        isGameOverRef.current = true
+        // Reveal all mines
+        newGrid.forEach((row) =>
+          row.forEach((item) => {
+            if (item.isMine) item.isRevealed = true
+          })
+        )
+      } else {
+        checkVictory(newGrid)
+      }
+      setGrid(newGrid)
+    }
+  }
+
+  // Flag toggle
+  const toggleFlag = (r: number, c: number, e?: React.MouseEvent) => {
+    if (e) e.preventDefault()
     if (isGameOver || isWon) return
+
     const cell = grid[r][c]
     if (cell.isRevealed) return
 
+    sound.playShieldUp()
+    const newGrid = grid.map((row) => row.map((item) => ({ ...item })))
+    const target = newGrid[r][c]
+
+    target.isFlagged = !target.isFlagged
+    setGrid(newGrid)
+    setFlagsPlaced((prev) => (target.isFlagged ? prev + 1 : prev - 1))
+  }
+
+  // Handle cell click (Reveal or Flag)
+  const handleCellClick = (r: number, c: number) => {
+    if (isGameOver || isWon) return
+
+    const cell = grid[r][c]
+
+    // If already revealed, perform Chord Click
+    if (cell.isRevealed) {
+      handleChordClick(r, c)
+      return
+    }
+
+    // If in Flag mode, toggle flag
     if (flagMode) {
-      // Toggle flag
-      sound.playTick()
-      const next = grid.map((row) => row.map((cl) => ({ ...cl })))
-      const willFlag = !cell.isFlagged
-      next[r][c].isFlagged = willFlag
-      setGrid(next)
-      setFlagsPlaced((p) => (willFlag ? p + 1 : p - 1))
+      toggleFlag(r, c)
       return
     }
 
     if (cell.isFlagged) return
 
-    if (cell.isMine) {
-      // Boom!
-      sound.playGameOver()
-      const next = grid.map((row) =>
-        row.map((cl) => ({
-          ...cl,
-          isRevealed: cl.isMine ? true : cl.isRevealed,
-        }))
-      )
-      setGrid(next)
-      setIsGameOver(true)
-      onFinish(150)
-      return
-    }
+    const newGrid = grid.map((row) => row.map((item) => ({ ...item })))
+    const target = newGrid[r][c]
 
-    // Safe click
-    sound.playBounce()
-    const next = grid.map((row) => row.map((cl) => ({ ...cl })))
-    next[r][c].isRevealed = true
-
-    if (cell.neighborMines === 0) {
-      revealEmptyNeighbors(next, r, c)
-    }
-
-    // Check Win condition (all non-mine cells revealed)
-    let nonMinesUnrevealed = 0
-    for (let i = 0; i < rows; i++) {
-      for (let j = 0; j < cols; j++) {
-        if (!next[i][j].isMine && !next[i][j].isRevealed) {
-          nonMinesUnrevealed++
+    // First-Click Safety Guarantee
+    if (!firstClickDone && target.isMine) {
+      target.isMine = false
+      // Move mine to another unplanted cell
+      for (let rr = 0; rr < rows; rr++) {
+        for (let cc = 0; cc < cols; cc++) {
+          if (!newGrid[rr][cc].isMine && (rr !== r || cc !== c)) {
+            newGrid[rr][cc].isMine = true
+            break
+          }
+        }
+      }
+      // Recalculate numbers
+      for (let rr = 0; rr < rows; rr++) {
+        for (let cc = 0; cc < cols; cc++) {
+          if (!newGrid[rr][cc].isMine) {
+            let count = 0
+            for (let dr = -1; dr <= 1; dr++) {
+              for (let dc = -1; dc <= 1; dc++) {
+                const nr = rr + dr
+                const nc = cc + dc
+                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && newGrid[nr][nc].isMine) {
+                  count++
+                }
+              }
+            }
+            newGrid[rr][cc].neighborMines = count
+          }
         }
       }
     }
+    setFirstClickDone(true)
 
-    setGrid(next)
+    // Detonate Mine
+    if (target.isMine) {
+      target.isRevealed = true
+      sound.playExplosion()
+      sound.playGameOver()
+      setIsGameOver(true)
+      isGameOverRef.current = true
 
-    if (nonMinesUnrevealed === 0) {
-      sound.playWin()
-      setIsWon(true)
-      const baseScore = difficulty === 'Hard' ? 1200 : difficulty === 'Medium' ? 800 : 500
-      onFinish(baseScore)
+      // Reveal all mines
+      newGrid.forEach((row) =>
+        row.forEach((item) => {
+          if (item.isMine) item.isRevealed = true
+        })
+      )
+      setGrid(newGrid)
+      return
     }
+
+    // Safe cell reveal
+    sound.playClick()
+    target.isRevealed = true
+    if (target.neighborMines === 0) {
+      revealEmptyNeighbors(newGrid, r, c)
+    }
+
+    checkVictory(newGrid)
+    setGrid(newGrid)
   }
 
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-sm mx-auto select-none">
-      {/* Status Bar */}
-      <div className="w-full flex items-center justify-between px-3 py-2 rounded-2xl bg-black/60 border border-brand-cardBorder">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-rose-400 font-mono font-black text-sm">
-            <Bomb className="w-4 h-4" />
-            <span>{Math.max(0, totalMines - flagsPlaced)}</span>
+      {/* Top HUD */}
+      <div className="flex items-center justify-between w-full px-2">
+        {/* Mines Counter */}
+        <div className="flex items-center gap-2 bg-brand-darkBg/90 border border-brand-purple/40 px-3 py-1.5 rounded-xl shadow-inner">
+          <ShieldAlert className="w-4 h-4 text-rose-400" />
+          <div className="flex flex-col">
+            <span className="text-[10px] text-slate-400 font-bold uppercase">
+              {isRtl ? 'الفيروسات' : 'Threats'}
+            </span>
+            <span className="text-sm font-black text-rose-400 leading-none">
+              {Math.max(0, totalMines - flagsPlaced)}
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Flag Mode Toggle */}
-          <button
-            onClick={() => {
-              sound.playClick()
-              setFlagMode(!flagMode)
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer border ${
-              flagMode
-                ? 'bg-rose-500 text-white border-rose-400 shadow-[0_0_15px_#f43f5e]'
-                : 'bg-white/5 text-slate-300 border-white/10 hover:bg-white/10'
-            }`}
-          >
-            <Flag className="w-3.5 h-3.5 fill-current" />
-            <span>{flagMode ? (isRtl ? 'وضع الأعلام 🚩' : 'Flag Mode 🚩') : (isRtl ? 'وضع الكشف ⛏️' : 'Dig Mode ⛏️')}</span>
-          </button>
+        {/* Mode Toggle (Flag / Probe) */}
+        <button
+          onClick={() => {
+            sound.playClick()
+            setFlagMode(!flagMode)
+          }}
+          className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all cursor-pointer ${
+            flagMode
+              ? 'bg-rose-500/20 border-rose-500 text-rose-300 shadow-[0_0_15px_#f43f5e]'
+              : 'bg-brand-darkBg/90 border-brand-purple/40 text-cyan-300'
+          }`}
+        >
+          <Flag className="w-4 h-4" />
+          <span className="text-xs font-black">
+            {flagMode ? (isRtl ? 'وضع الأعلام 🚩' : 'FLAG MODE') : (isRtl ? 'وضع الكشف ⚡' : 'PROBE MODE')}
+          </span>
+        </button>
 
-          <button
-            onClick={() => {
-              sound.playClick()
-              initBoard()
-            }}
-            className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
-            title={isRtl ? 'إعادة' : 'Reset'}
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-        </div>
+        {/* Reset */}
+        <button
+          onClick={initBoard}
+          className="p-2 rounded-xl bg-brand-darkBg/90 border border-brand-purple/40 text-slate-300 hover:text-white active:scale-95 transition-all cursor-pointer"
+        >
+          <RotateCcw className="w-4 h-4" />
+        </button>
       </div>
 
-      {/* The Minesweeper Grid */}
-      <div className="p-2 rounded-3xl bg-slate-950/90 border-2 border-brand-cardBorder shadow-2xl">
+      {/* Cyber Grid Board */}
+      <div
+        className="relative p-3 rounded-3xl bg-[#060714] border-2 border-cyan-500/40 shadow-[0_0_30px_rgba(6,182,212,0.25)] flex items-center justify-center overflow-hidden"
+        style={{ width: 340, height: 340 }}
+      >
         <div
-          className="grid gap-1 bg-black/60 p-1 rounded-2xl"
-          style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+          className="grid gap-1"
+          style={{
+            gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+            width: '100%',
+            height: '100%',
+          }}
         >
           {grid.map((row, r) =>
             row.map((cell, c) => {
+              const numColor = NUMBER_COLORS[cell.neighborMines] || 'text-white'
+
               return (
                 <button
                   key={`${r}-${c}`}
                   onClick={() => handleCellClick(r, c)}
-                  className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center font-black text-sm transition-all cursor-pointer ${
+                  onContextMenu={(e) => toggleFlag(r, c, e)}
+                  className={`rounded-lg flex items-center justify-center font-black transition-all duration-100 cursor-pointer ${
                     cell.isRevealed
                       ? cell.isMine
-                        ? 'bg-rose-600 text-white shadow-[0_0_15px_#f43f5e]'
-                        : 'bg-slate-900 border border-white/5 shadow-inner'
-                      : 'bg-gradient-to-b from-slate-800 to-slate-900 border border-white/10 hover:border-cyan-400/40 shadow-sm active:scale-95'
+                        ? 'bg-rose-600 border border-rose-400 text-white shadow-[0_0_12px_#f43f5e]'
+                        : 'bg-slate-900/90 border border-slate-800/80 shadow-inner'
+                      : cell.isFlagged
+                      ? 'bg-rose-950/40 border border-rose-500/60 shadow-[0_0_8px_#f43f5e]'
+                      : 'bg-cyan-950/30 border border-cyan-500/30 hover:border-cyan-400 hover:bg-cyan-900/40'
                   }`}
+                  style={{
+                    fontSize: cols >= 10 ? 12 : 14,
+                  }}
                 >
                   {cell.isRevealed ? (
                     cell.isMine ? (
                       '💣'
                     ) : cell.neighborMines > 0 ? (
-                      <span className={NUMBER_COLORS[cell.neighborMines] || 'text-white'}>
-                        {cell.neighborMines}
-                      </span>
+                      <span className={numColor}>{cell.neighborMines}</span>
                     ) : (
                       ''
                     )
@@ -277,19 +428,47 @@ export const MinesweeperGame: React.FC<MinesweeperProps> = ({ onFinish, isRtl, d
             })
           )}
         </div>
+
+        {/* Victory Screen */}
+        {isWon && (
+          <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center gap-3 p-6 text-center z-20 animate-in fade-in zoom-in duration-200">
+            <div className="text-4xl animate-bounce">🛡️⚡</div>
+            <h3 className="text-2xl font-black text-emerald-400">
+              {isRtl ? 'تم اختراق وتأمين الشبكة!' : 'CYBER GRID SECURED!'}
+            </h3>
+            <p className="text-sm font-bold text-slate-200">
+              {isRtl ? 'تم اكتشاف جميع التهديدات بنجاح' : 'All malicious threat nodes neutralized'}
+            </p>
+            <Button variant="glow" onClick={initBoard} className="flex items-center gap-2 px-6 py-2.5">
+              <RotateCcw className="w-4 h-4" />
+              <span>{isRtl ? 'تأمين شبكة أخرى' : 'Play Again'}</span>
+            </Button>
+          </div>
+        )}
+
+        {/* Game Over Screen */}
+        {isGameOver && (
+          <div className="absolute inset-0 bg-red-950/85 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center gap-3 p-6 text-center z-20 animate-in fade-in zoom-in duration-200">
+            <div className="text-4xl">💥💣</div>
+            <h3 className="text-2xl font-black text-rose-400">
+              {isRtl ? 'انفجر الفيروس!' : 'SECURITY BREACH!'}
+            </h3>
+            <p className="text-sm font-bold text-slate-200">
+              {isRtl ? 'تم تفجير خلية لغم مفخخة' : 'Detonated a corrupted data node'}
+            </p>
+            <Button variant="glow" onClick={initBoard} className="flex items-center gap-2 px-6 py-2.5">
+              <RotateCcw className="w-4 h-4" />
+              <span>{isRtl ? 'إعادة المحاولة' : 'Try Again'}</span>
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* Result message */}
-      {(isGameOver || isWon) && (
-        <div className="p-3 rounded-2xl bg-black/80 border border-white/15 text-center flex flex-col items-center gap-2">
-          <span className="text-3xl">{isWon ? '🏆' : '💥'}</span>
-          <h4 className="text-white font-black text-sm">
-            {isWon
-              ? (isRtl ? 'كفووو! تم تطهير جميع الألغام بنجاح!' : 'Victory! All Mines Cleared!')
-              : (isRtl ? 'انفجر اللغم! حظ أوفر في المرة القادمة' : 'Boom! Better luck next time')}
-          </h4>
-        </div>
-      )}
+      <div className="text-[11px] text-slate-500 text-center">
+        {isRtl
+          ? 'المس المربع لكشفه أو انقر زراً مكشوفاً (Chord) لكشف مجاوراته تلقائياً فور وضع أعلامه'
+          : 'Tap to reveal, toggle Flag mode to mark, or tap a revealed number to chord-clear neighbors'}
+      </div>
     </div>
   )
 }

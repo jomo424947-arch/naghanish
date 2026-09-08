@@ -424,6 +424,283 @@ class SoundManager {
     osc.start()
     osc.stop(this.ctx.currentTime + 0.05)
   }
+
+  public playLineClear() {
+    if (!this.sfxEnabled) return
+    this.initContext()
+    if (!this.ctx) return
+
+    const notes = [523.25, 659.25, 783.99, 987.77, 1046.5]
+    notes.forEach((freq, idx) => {
+      if (!this.ctx) return
+      const osc = this.ctx.createOscillator()
+      const gain = this.ctx.createGain()
+      const startTime = this.ctx.currentTime + idx * 0.04
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(freq, startTime)
+      gain.gain.setValueAtTime(0.2 * this.sfxVolume, startTime)
+      gain.gain.exponentialRampToValueAtTime(0.005, startTime + 0.15)
+      osc.connect(gain)
+      gain.connect(this.ctx.destination)
+      osc.start(startTime)
+      osc.stop(startTime + 0.15)
+    })
+  }
+
+  public playExplosion() {
+    if (!this.sfxEnabled) return
+    this.initContext()
+    if (!this.ctx) return
+
+    const now = this.ctx.currentTime
+    const bufferSize = Math.floor(this.ctx.sampleRate * 0.35)
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate)
+    const data = buffer.getChannelData(0)
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1
+    }
+
+    const noise = this.ctx.createBufferSource()
+    noise.buffer = buffer
+
+    const filter = this.ctx.createBiquadFilter()
+    filter.type = 'lowpass'
+    filter.frequency.setValueAtTime(600, now)
+    filter.frequency.exponentialRampToValueAtTime(80, now + 0.35)
+
+    const gain = this.ctx.createGain()
+    gain.gain.setValueAtTime(0.35 * this.sfxVolume, now)
+    gain.gain.exponentialRampToValueAtTime(0.005, now + 0.35)
+
+    noise.connect(filter)
+    filter.connect(gain)
+    gain.connect(this.ctx.destination)
+    noise.start(now)
+
+    const osc = this.ctx.createOscillator()
+    const oscGain = this.ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(140, now)
+    osc.frequency.exponentialRampToValueAtTime(30, now + 0.3)
+    oscGain.gain.setValueAtTime(0.4 * this.sfxVolume, now)
+    oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3)
+    osc.connect(oscGain)
+    oscGain.connect(this.ctx.destination)
+    osc.start(now)
+    osc.stop(now + 0.3)
+  }
+
+  public playShieldUp() {
+    if (!this.sfxEnabled) return
+    this.initContext()
+    if (!this.ctx) return
+
+    const now = this.ctx.currentTime
+    const osc = this.ctx.createOscillator()
+    const gain = this.ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(350, now)
+    osc.frequency.exponentialRampToValueAtTime(1200, now + 0.25)
+    gain.gain.setValueAtTime(0.2 * this.sfxVolume, now)
+    gain.gain.exponentialRampToValueAtTime(0.005, now + 0.25)
+    osc.connect(gain)
+    gain.connect(this.ctx.destination)
+    osc.start(now)
+    osc.stop(now + 0.25)
+  }
+
+  public playBossAlert() {
+    if (!this.sfxEnabled) return
+    this.initContext()
+    if (!this.ctx) return
+
+    const pulses = [0, 0.12, 0.24]
+    pulses.forEach((timeOffset) => {
+      if (!this.ctx) return
+      const now = this.ctx.currentTime + timeOffset
+      const osc = this.ctx.createOscillator()
+      const gain = this.ctx.createGain()
+      osc.type = 'sawtooth'
+      osc.frequency.setValueAtTime(180, now)
+      osc.frequency.exponentialRampToValueAtTime(120, now + 0.09)
+      gain.gain.setValueAtTime(0.25 * this.sfxVolume, now)
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.09)
+      osc.connect(gain)
+      gain.connect(this.ctx.destination)
+      osc.start(now)
+      osc.stop(now + 0.09)
+    })
+  }
+
+  public playPowerUp() {
+    if (!this.sfxEnabled) return
+    this.initContext()
+    if (!this.ctx) return
+
+    const notes = [523.25, 659.25, 783.99]
+    notes.forEach((freq, idx) => {
+      if (!this.ctx) return
+      const osc = this.ctx.createOscillator()
+      const gain = this.ctx.createGain()
+      const startTime = this.ctx.currentTime + idx * 0.08
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(freq, startTime)
+      gain.gain.setValueAtTime(0.22 * this.sfxVolume, startTime)
+      gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2)
+      osc.connect(gain)
+      gain.connect(this.ctx.destination)
+      osc.start(startTime)
+      osc.stop(startTime + 0.2)
+    })
+  }
+
+  public playPerfectHit() {
+    if (!this.sfxEnabled) return
+    this.initContext()
+    if (!this.ctx) return
+
+    const now = this.ctx.currentTime
+    const osc1 = this.ctx.createOscillator()
+    const osc2 = this.ctx.createOscillator()
+    const gain = this.ctx.createGain()
+    osc1.type = 'sine'
+    osc2.type = 'triangle'
+    osc1.frequency.setValueAtTime(1567.98, now)
+    osc2.frequency.setValueAtTime(2093.0, now)
+    gain.gain.setValueAtTime(0.2 * this.sfxVolume, now)
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2)
+    osc1.connect(gain)
+    osc2.connect(gain)
+    gain.connect(this.ctx.destination)
+    osc1.start(now)
+    osc2.start(now)
+    osc1.stop(now + 0.2)
+    osc2.stop(now + 0.2)
+  }
+
+  public playMiss() {
+    if (!this.sfxEnabled) return
+    this.initContext()
+    if (!this.ctx) return
+
+    const now = this.ctx.currentTime
+    const osc = this.ctx.createOscillator()
+    const gain = this.ctx.createGain()
+    osc.type = 'sawtooth'
+    osc.frequency.setValueAtTime(90, now)
+    osc.frequency.exponentialRampToValueAtTime(60, now + 0.12)
+    gain.gain.setValueAtTime(0.18 * this.sfxVolume, now)
+    gain.gain.exponentialRampToValueAtTime(0.005, now + 0.12)
+    osc.connect(gain)
+    gain.connect(this.ctx.destination)
+    osc.start(now)
+    osc.stop(now + 0.12)
+  }
+
+  public playComboX2() {
+    if (!this.sfxEnabled) return
+    this.initContext()
+    if (!this.ctx) return
+
+    const notes = [523.25, 659.25]
+    notes.forEach((freq, idx) => {
+      if (!this.ctx) return
+      const osc = this.ctx.createOscillator()
+      const gain = this.ctx.createGain()
+      const startTime = this.ctx.currentTime + idx * 0.07
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(freq, startTime)
+      gain.gain.setValueAtTime(0.2 * this.sfxVolume, startTime)
+      gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.14)
+      osc.connect(gain)
+      gain.connect(this.ctx.destination)
+      osc.start(startTime)
+      osc.stop(startTime + 0.14)
+    })
+  }
+
+  public playComboX4() {
+    if (!this.sfxEnabled) return
+    this.initContext()
+    if (!this.ctx) return
+
+    const notes = [523.25, 659.25, 783.99, 1046.5]
+    notes.forEach((freq, idx) => {
+      if (!this.ctx) return
+      const osc = this.ctx.createOscillator()
+      const gain = this.ctx.createGain()
+      const startTime = this.ctx.currentTime + idx * 0.05
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(freq, startTime)
+      gain.gain.setValueAtTime(0.22 * this.sfxVolume, startTime)
+      gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.16)
+      osc.connect(gain)
+      gain.connect(this.ctx.destination)
+      osc.start(startTime)
+      osc.stop(startTime + 0.16)
+    })
+  }
+
+  public playComboX8() {
+    if (!this.sfxEnabled) return
+    this.initContext()
+    if (!this.ctx) return
+
+    const notes = [523.25, 587.33, 659.25, 698.46, 783.99, 880.0, 987.77, 1046.5]
+    notes.forEach((freq, idx) => {
+      if (!this.ctx) return
+      const osc = this.ctx.createOscillator()
+      const gain = this.ctx.createGain()
+      const startTime = this.ctx.currentTime + idx * 0.04
+      osc.type = 'sawtooth'
+      osc.frequency.setValueAtTime(freq, startTime)
+      gain.gain.setValueAtTime(0.2 * this.sfxVolume, startTime)
+      gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.15)
+      osc.connect(gain)
+      gain.connect(this.ctx.destination)
+      osc.start(startTime)
+      osc.stop(startTime + 0.15)
+    })
+  }
+
+  public playPortal() {
+    if (!this.sfxEnabled) return
+    this.initContext()
+    if (!this.ctx) return
+
+    const now = this.ctx.currentTime
+    const osc = this.ctx.createOscillator()
+    const gain = this.ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(220, now)
+    osc.frequency.exponentialRampToValueAtTime(880, now + 0.08)
+    osc.frequency.exponentialRampToValueAtTime(330, now + 0.22)
+    gain.gain.setValueAtTime(0.2 * this.sfxVolume, now)
+    gain.gain.exponentialRampToValueAtTime(0.005, now + 0.22)
+    osc.connect(gain)
+    gain.connect(this.ctx.destination)
+    osc.start(now)
+    osc.stop(now + 0.22)
+  }
+
+  public playCountdown(finalBeat = false) {
+    if (!this.sfxEnabled) return
+    this.initContext()
+    if (!this.ctx) return
+
+    const now = this.ctx.currentTime
+    const osc = this.ctx.createOscillator()
+    const gain = this.ctx.createGain()
+    osc.type = finalBeat ? 'triangle' : 'sine'
+    osc.frequency.setValueAtTime(finalBeat ? 1760 : 880, now)
+    gain.gain.setValueAtTime((finalBeat ? 0.28 : 0.18) * this.sfxVolume, now)
+    gain.gain.exponentialRampToValueAtTime(0.005, now + (finalBeat ? 0.35 : 0.12))
+    osc.connect(gain)
+    gain.connect(this.ctx.destination)
+    osc.start(now)
+    osc.stop(now + (finalBeat ? 0.35 : 0.12))
+  }
 }
 
 export const sound = new SoundManager()
+export const soundManager = sound
