@@ -38,3 +38,18 @@ class UserResponse(UserBase):
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
+
+class PublicUserResponse(BaseModel):
+    """Safe subset for public search / profiles — no email."""
+
+    id: str
+    username: str
+    name: str
+    avatar: str = "/avatars/mascot-1.svg"
+    level: int = 1
+    xp: int = 0
+    max_xp: int = Field(1000, alias="maxXp")
+    rank: str = "مبتدئ"
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+

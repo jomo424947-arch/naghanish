@@ -8,6 +8,7 @@ Tag:    Authentication
 """
 
 import uuid
+from datetime import datetime
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -131,25 +132,61 @@ async def get_me(current_user: User = Depends(get_current_active_user)):
 
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh_token(
-    payload: Optional[RefreshTokenRequest] = None,
-    current_user: Optional[User] = Depends(get_current_active_user),
+    payload: RefreshTokenRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    """Refresh JWT access token using DB-backed validation."""
-    target_user = current_user
-    if payload and payload.refresh_token:
-        decoded = decode_token(payload.refresh_token)
-        if decoded and "sub" in decoded:
-            u_res = await db.execute(select(User).where(User.id == decoded["sub"]))
-            found_user = u_res.scalars().first()
-            if found_user:
-                target_user = found_user
-
-    if not target_user:
+    """Issue a new access token from a valid refresh token (no access token required)."""
+    raw = (payload.refresh_token or "").strip()
+    if not raw:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="رمز التحديث غير صالح أو منتهي الصلاحية",
         )
+
+    decoded = decode_token(raw)
+    if not decoded or decoded.get("type") != "refresh" or "sub" not in decoded:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="رمز التحديث غير صالح أو منتهي الصلاحية",
+        )
+
+    # Prefer DB-backed lookup (signature suffix stored at issue time)
+    token_suffix = raw[-32:]
+    rt_res = await db.execute(
+        select(RefreshToken).where(
+            RefreshToken.token_hash == token_suffix,
+            RefreshToken.user_id == decoded["sub"],
+            RefreshToken.is_revoked.is_(False),
+        )
+    )
+    stored = rt_res.scalars().first()
+    if not stored:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="رمز التحديث غير صالح أو منتهي الصلاحية",
+        )
+
+    if stored.expires_at and stored.expires_at.replace(tzinfo=None) < datetime.utcnow():
+        stored.is_revoked = True
+        db.add(stored)
+        await db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="رمز التحديث غير صالح أو منتهي الصلاحية",
+        )
+
+    u_res = await db.execute(select(User).where(User.id == decoded["sub"]))
+    target_user = u_res.scalars().first()
+    if not target_user or not target_user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="رمز التحديث غير صالح أو منتهي الصلاحية",
+        )
+
+    # Rotate: revoke old refresh token
+    stored.is_revoked = True
+    db.add(stored)
+    await db.commit()
 
     return await _issue_token_response(target_user, db)
 
@@ -203,9 +240,8 @@ async def create_guest_session(db: AsyncSession = Depends(get_db)):
 @router.post("/name-login", response_model=TokenResponse)
 async def name_login(payload: NameLoginRequest, db: AsyncSession = Depends(get_db)):
     """
-    Login or register instantly by Name only.
-    If a user with this name exists, logs them in.
-    If not, creates a fresh user with this name and returns a full JWT token.
+    Create a new casual session by display name only.
+    Existing names cannot be claimed (prevents account takeover).
     """
     clean_name = payload.name.strip()
     if not clean_name or len(clean_name) < 2:
@@ -214,32 +250,35 @@ async def name_login(payload: NameLoginRequest, db: AsyncSession = Depends(get_d
             detail="يرجى إدخال اسم صحيح يحتوي على حرفين على الأقل",
         )
 
-    # Check if a user with this name already exists
     query = select(User).where(or_(User.name == clean_name, User.username == clean_name))
     result = await db.execute(query)
-    user = result.scalars().first()
-
-    if not user:
-        user_uuid = uuid.uuid4().hex[:6]
-        base_username = clean_name.replace(" ", "_")
-        safe_username = f"{base_username}_{user_uuid}"
-
-        user = User(
-            id=f"usr_{uuid.uuid4().hex[:10]}",
-            email=f"{user_uuid}@naghanish.internal",
-            username=safe_username,
-            name=clean_name,
-            avatar=payload.avatar or "/avatars/mascot-1.svg",
-            provider="name",
-            level=1,
-            xp=0,
-            max_xp=1000,
-            coins=100,
-            rank="مبتدئ 🎮",
-            is_active=True,
+    existing = result.scalars().first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="الاسم مستخدم بالفعل — اختر اسماً آخر أو سجّل الدخول بالبريد",
         )
-        db.add(user)
-        await db.commit()
-        await db.refresh(user)
 
-    return await _issue_token_response(user, db)
+    user_uuid = uuid.uuid4().hex[:6]
+    base_username = clean_name.replace(" ", "_")
+    safe_username = f"{base_username}_{user_uuid}"
+
+    user = User(
+        id=f"usr_{uuid.uuid4().hex[:10]}",
+        email=f"{user_uuid}@naghanish.internal",
+        username=safe_username,
+        name=clean_name,
+        avatar=payload.avatar or "/avatars/mascot-1.svg",
+        provider="name",
+        level=1,
+        xp=0,
+        max_xp=1000,
+        coins=100,
+        rank="مبتدئ 🎮",
+        is_active=True,
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+
+    return await _issue_token_response(user, db)

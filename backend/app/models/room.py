@@ -12,7 +12,7 @@ class PartyRoom(Base):
     code: Mapped[str] = mapped_column(String(10), unique=True, index=True, nullable=False)
     name: Mapped[str] = mapped_column(String(255), default="غرفة الشلة الممتعة 🎉")
     host_id: Mapped[str] = mapped_column(String(50), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    game_id: Mapped[str] = mapped_column(String(50), default="g10")  # Default crew trivia
+    game_id: Mapped[str] = mapped_column(String(50), default="g-trivia")  # Arabic Trivia Showdown
     game_mode: Mapped[str] = mapped_column(String(50), default="party")
     max_players: Mapped[int] = mapped_column(Integer, default=8)
     status: Mapped[str] = mapped_column(String(50), default="waiting")  # waiting, playing, finished

@@ -14,7 +14,7 @@ from typing import List
 
 from app.database.session import get_db
 from app.models.user import User
-from app.schemas.user import UserResponse, UserUpdate
+from app.schemas.user import UserResponse, UserUpdate, PublicUserResponse
 from app.dependencies.auth import get_current_active_user
 
 router = APIRouter()
@@ -24,10 +24,12 @@ router = APIRouter()
 async def list_users(
     limit: int = 50,
     offset: int = 0,
+    current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """List all registered users for monitoring and administration."""
-    result = await db.execute(select(User).order_by(User.created_at.desc()).offset(offset).limit(limit))
+    """List registered users (authenticated). Email remains in schema for self/admin use only."""
+    _ = current_user  # auth gate — tighten to admin role when roles ship
+    result = await db.execute(select(User).order_by(User.created_at.desc()).offset(offset).limit(min(limit, 100)))
     users = result.scalars().all()
     return [UserResponse.model_validate(u) for u in users]
 
@@ -62,12 +64,12 @@ async def update_user_me(
     return UserResponse.model_validate(current_user)
 
 
-@router.get("/{user_id}", response_model=UserResponse)
+@router.get("/{user_id}", response_model=PublicUserResponse)
 async def get_user_by_id(user_id: str, db: AsyncSession = Depends(get_db)):
-    """Get public user profile by ID."""
+    """Get public user profile by ID (no email)."""
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalars().first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="المستخدم غير موجود")
-    return UserResponse.model_validate(user)
+    return PublicUserResponse.model_validate(user)
 

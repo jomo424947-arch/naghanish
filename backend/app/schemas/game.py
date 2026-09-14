@@ -38,6 +38,7 @@ class GameSubmitRequest(BaseModel):
     score: int
     moves: Optional[int] = None
     elapsed_seconds: Optional[int] = None
+    difficulty: Optional[str] = None  # Easy | Medium | Hard
 
 
 class GameSessionResponse(BaseModel):

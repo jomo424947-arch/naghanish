@@ -19,7 +19,7 @@ router = APIRouter()
 
 class CreateRoomRequest(BaseModel):
     name: str = "سهرة الشلة 🥳"
-    game_id: str = "g10"
+    game_id: str = "g-trivia"
     max_players: int = 8
     is_private: bool = False
 

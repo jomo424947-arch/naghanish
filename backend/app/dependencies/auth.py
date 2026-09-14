@@ -37,6 +37,14 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    # Refresh tokens must not authenticate API requests
+    if payload.get("type") == "refresh":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="رمز التحديث غير صالح كرمز دخول",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     user_id = payload["sub"]
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalars().first()

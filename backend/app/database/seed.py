@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from datetime import datetime
 
 from app.models.game import Game
@@ -10,114 +10,434 @@ from app.models.leaderboard import Tournament
 from app.models.economy import StoreItem
 from app.models.ai import AIQuestion
 
+# Legacy IDs from the old 6-game catalog — removed on every seed sync.
+LEGACY_GAME_IDS = ("g1", "g2", "g3", "g10", "g12", "g13")
+
+# Official 22-game catalog (must stay in sync with frontend/src/data/games.data.ts).
 INITIAL_GAMES = [
+    # Arcade
     {
-        "id": "g1",
-        "title_ar": "بطاقات الذاكرة الخارقة 🃏",
-        "title_en": "Memory Cards Master",
+        "id": "g-hextris",
+        "title_ar": "هيكستريس النيون 🔷",
+        "title_en": "Cyber Hextris",
         "world": "arcade",
-        "category": "Memory",
-        "category_ar": "ذاكرة نيون",
-        "icon": "🃏",
-        "color": "from-purple-600 via-indigo-600 to-blue-700",
-        "plays": "45.2k",
+        "category": "Hexagon Puzzle",
+        "category_ar": "أحاجي السداسي",
+        "icon": "🔷",
+        "color": "from-cyan-500 via-blue-600 to-purple-700",
+        "plays": "48.2k",
         "stars": 4.9,
         "is_featured": True,
-        "xp_reward": 250,
-        "difficulty": "Medium",
-        "desc_ar": "طابق بطاقات الأشكال والرموز المتماثلة في أقل عدد من الحركات والوقت.",
-        "desc_en": "Match all neon card pairs in record time with minimal moves.",
-        "route": "/games/g1",
-    },
-    {
-        "id": "g2",
-        "title_ar": "اختبار سرعة ردة الفعل ⚡",
-        "title_en": "Reaction Speed Test",
-        "world": "reflex",
-        "category": "Reflex",
-        "category_ar": "سرعة البرق",
-        "icon": "⚡",
-        "color": "from-red-600 via-orange-600 to-amber-500",
-        "plays": "52.1k",
-        "stars": 4.9,
-        "is_featured": True,
-        "xp_reward": 300,
-        "difficulty": "Hard",
-        "desc_ar": "اضغط فور تحول الإشارة الخاطفة للأخضر واكتشف سرعة استجابتك بالمللي ثانية.",
-        "desc_en": "Click as fast as humanly possible upon green flash.",
-        "route": "/games/g2",
-    },
-    {
-        "id": "g3",
-        "title_ar": "تحدي الحساب الذهني الخارق 🧮",
-        "title_en": "Rapid Math Challenge",
-        "world": "iqlab",
-        "category": "Brain",
-        "category_ar": "حساب ذهني",
-        "icon": "🧮",
-        "color": "from-emerald-600 via-teal-600 to-cyan-700",
-        "plays": "28.4k",
-        "stars": 4.8,
-        "is_featured": True,
-        "xp_reward": 200,
-        "difficulty": "Easy",
-        "desc_ar": "حل المعادلات الحسابية بأسرع وقت واكتشف قدرة المعالجة السريعة لعقلك.",
-        "desc_en": "Solve rapid arithmetic equations and test mental math throughput.",
-        "route": "/games/g3",
-    },
-    {
-        "id": "g10",
-        "title_ar": "مبارزة أسئلة الشلة 🎤",
-        "title_en": "Crew Trivia Showdown",
-        "world": "shilla",
-        "category": "Party",
-        "category_ar": "تحدي جماعي",
-        "icon": "🎤",
-        "color": "from-orange-500 via-amber-500 to-yellow-500",
-        "plays": "61.4k",
-        "stars": 4.9,
-        "is_featured": True,
-        "xp_reward": 350,
-        "difficulty": "Easy",
-        "desc_ar": "ادخل غرفة لايف وتنافس مع أصحابك في أسئلة سريعة ومضحكة.",
-        "desc_en": "Real-time live multiplayer quiz faceoff with friends.",
-        "route": "/party",
-    },
-    {
-        "id": "g12",
-        "title_ar": "بطولة كأس الأسبوع الكبرى 🏆",
-        "title_en": "Weekly Cup Tournament",
-        "world": "champions",
-        "category": "Tournament",
-        "category_ar": "بطولة كبرى",
-        "icon": "🏆",
-        "color": "from-amber-400 via-yellow-500 to-amber-700",
-        "plays": "18.2k",
-        "stars": 5.0,
-        "is_featured": True,
-        "xp_reward": 1000,
-        "difficulty": "Hard",
-        "desc_ar": "نافس نخبة لاعبي نغنِش في جولات إقصائية أسبوعية للتربع على المنصة الذهبية.",
-        "desc_en": "Compete in weekly knockout brackets for leaderboard glory.",
-        "route": "/leaderboard",
-    },
-    {
-        "id": "g13",
-        "title_ar": "روليت الفوضى والتحديات المجنونة 🎲",
-        "title_en": "Chaos Roulette & Dares",
-        "world": "chaos",
-        "category": "Chaos",
-        "category_ar": "فوضى عشوائية",
-        "icon": "🎲",
-        "color": "from-lime-500 via-emerald-600 to-yellow-500",
-        "plays": "39.5k",
-        "stars": 4.9,
-        "is_featured": True,
+        "is_new": False,
         "xp_reward": 400,
         "difficulty": "Medium",
-        "desc_ar": "اضغط الزر ولا تسأل عما سيحدث! تحديات وقواعد مجنونة تتغير كل 10 ثوانٍ.",
-        "desc_en": "Randomized game twists, funny conditions and chaotic micro-challenges.",
-        "route": "/challenges",
+        "desc_ar": "دور السداسي النيوني وجمّع 3 قوالب أو أكثر من نفس اللون لتفجير الخطوط والوصول لأعلى كومبو!",
+        "desc_en": "Rotate the central hexagon and match falling color blocks to trigger mega line clears and combos!",
+        "route": "/games/g-hextris",
+    },
+    {
+        "id": "g-invaders",
+        "title_ar": "صائد الفضاء النيوني 👾",
+        "title_en": "Neon Space Invaders",
+        "world": "arcade",
+        "category": "Space Shooter",
+        "category_ar": "إطلاق نار فضائي",
+        "icon": "👾",
+        "color": "from-violet-600 via-indigo-600 to-rose-600",
+        "plays": "62.4k",
+        "stars": 4.9,
+        "is_featured": False,
+        "is_new": True,
+        "xp_reward": 450,
+        "difficulty": "Medium",
+        "desc_ar": "دمّر أسراب الغزاة الفضائيين، التقط كبسولات الدروع والليزر المتعدد، واقضِ على الزعيم العملاق!",
+        "desc_en": "Defend the galaxy against alien swarms, collect power-ups and shields, and defeat the cyber boss!",
+        "route": "/games/g-invaders",
+    },
+    {
+        "id": "g-snake",
+        "title_ar": "ثعبان النيون المتطور 🐍",
+        "title_en": "Neon Snake DX",
+        "world": "arcade",
+        "category": "Classic Arcade",
+        "category_ar": "أركيد كلاسيكي",
+        "icon": "🐍",
+        "color": "from-emerald-500 via-teal-600 to-cyan-700",
+        "plays": "81.9k",
+        "stars": 5.0,
+        "is_featured": False,
+        "is_new": False,
+        "xp_reward": 350,
+        "difficulty": "Medium",
+        "desc_ar": "ثعبان النيون الكلاسيكي المطور ببوابات أبعاد، وتفاح ذهبي نادر يمنحك سرعة خارقة ومضاعفة نقاط!",
+        "desc_en": "Upgraded neon snake with dimensional portal wrap walls, rare golden apples, and speed multipliers!",
+        "route": "/games/g-snake",
+    },
+    {
+        "id": "g-brick",
+        "title_ar": "كسار الطوب النيوني 🧱",
+        "title_en": "Arkanoid Brick Smasher",
+        "world": "arcade",
+        "category": "Brick Breaker",
+        "category_ar": "تكسير القوالب",
+        "icon": "🧱",
+        "color": "from-amber-500 via-rose-600 to-red-600",
+        "plays": "55.1k",
+        "stars": 4.8,
+        "is_featured": False,
+        "is_new": False,
+        "xp_reward": 380,
+        "difficulty": "Medium",
+        "desc_ar": "سدد الكرة وحطم القوالب الصلبة والمتفجرة، التقط كبسولات تكبير المضرب والكرات المتعددة لإنهاء المراحل!",
+        "desc_en": "Smash through armored and explosive bricks with laser paddles, multiballs, and dynamic bounce physics!",
+        "route": "/games/g-brick",
+    },
+    # Reflex
+    {
+        "id": "g-rhythm",
+        "title_ar": "نبض النيون الموسيقي 🎵",
+        "title_en": "Cyber Rhythm Rush",
+        "world": "reflex",
+        "category": "Rhythm",
+        "category_ar": "إيقاع ونغمات",
+        "icon": "🎵",
+        "color": "from-pink-500 via-rose-600 to-purple-700",
+        "plays": "43.7k",
+        "stars": 4.9,
+        "is_featured": True,
+        "is_new": False,
+        "xp_reward": 420,
+        "difficulty": "Medium",
+        "desc_ar": "اضغط النوتات الساقطة على المسارات الأربعة بتوقيت مثالي (Perfect) وحافظ على الكومبو حتى نهاية التحدي!",
+        "desc_en": "Hit falling rhythm notes on 4 neon lanes with split-second timing to stack massive combo streaks!",
+        "route": "/games/g-rhythm",
+    },
+    {
+        "id": "g-dodge",
+        "title_ar": "تفادي العقبات النفاثة ⚡",
+        "title_en": "Cyber Dodge Runner",
+        "world": "reflex",
+        "category": "Speed Dodge",
+        "category_ar": "تفادي سريع",
+        "icon": "⚡",
+        "color": "from-amber-400 via-orange-600 to-red-600",
+        "plays": "51.3k",
+        "stars": 4.8,
+        "is_featured": False,
+        "is_new": False,
+        "xp_reward": 390,
+        "difficulty": "Hard",
+        "desc_ar": "بدّل بين 3 مسارات لتفادي حواجز الليزر المتسارعة، اجمع دروع الحماية وكبسولات إبطاء الوقت Slow-Mo!",
+        "desc_en": "Switch between 3 neon lanes at hypersonic speeds, dodge deadly lasers, and trigger bullet-time Slow-Mo!",
+        "route": "/games/g-dodge",
+    },
+    {
+        "id": "g-aim",
+        "title_ar": "قناص الأهداف السريع 🎯",
+        "title_en": "CQB Target Reflex",
+        "world": "reflex",
+        "category": "Aim & Precision",
+        "category_ar": "تصويب ودقة",
+        "icon": "🎯",
+        "color": "from-emerald-500 via-cyan-600 to-blue-700",
+        "plays": "67.0k",
+        "stars": 4.9,
+        "is_featured": False,
+        "is_new": False,
+        "xp_reward": 360,
+        "difficulty": "Medium",
+        "desc_ar": "أصب 30 هدفاً خاطفاً بأسرع وقت وأعلى دقة. يقيس زمن استجابتك بالمللي ثانية ونسبة إصابتك بدقة متناهية!",
+        "desc_en": "Eliminate 30 pop-up targets with clinical precision. Measures millisecond reaction time and accuracy!",
+        "route": "/games/g-aim",
+    },
+    {
+        "id": "g-reverse",
+        "title_ar": "عكس الاتجاهات اللحظي 🔄",
+        "title_en": "Reverse Brain Reflex",
+        "world": "reflex",
+        "category": "Mind Reflex",
+        "category_ar": "رد فعل ذهني",
+        "icon": "🔄",
+        "color": "from-purple-600 via-violet-700 to-indigo-800",
+        "plays": "39.8k",
+        "stars": 4.7,
+        "is_featured": False,
+        "is_new": False,
+        "xp_reward": 380,
+        "difficulty": "Hard",
+        "desc_ar": "عندما يُطلب اليمين اضغط اليسار! تحديات عكس اتجاهات وألوان وأوامر لحظية مع مؤقت يتسارع بدون رحمة.",
+        "desc_en": "Reverse your instincts: swipe opposite, pick contrary colors, and defy muscle memory under pressure.",
+        "route": "/games/g-reverse",
+    },
+    # IQ Lab
+    {
+        "id": "g-2048",
+        "title_ar": "نيون 2048 ديلوكس 🔢",
+        "title_en": "2048 Cyber Deluxe",
+        "world": "iqlab",
+        "category": "Grid Puzzle",
+        "category_ar": "أرقام واستراتيجية",
+        "icon": "🔢",
+        "color": "from-amber-500 via-orange-600 to-purple-700",
+        "plays": "78.5k",
+        "stars": 5.0,
+        "is_featured": True,
+        "is_new": False,
+        "xp_reward": 400,
+        "difficulty": "Medium",
+        "desc_ar": "ادمج المربعات النيونية حتى تصل لـ 2048 وما بعدها! مزودة بخاصية التراجع (Undo) وأوضاع شبكة 4×4 و 5×5.",
+        "desc_en": "Slide and combine neon tiles to reach 2048 and beyond! Features tactical Undo moves and 5x5 grid mode.",
+        "route": "/games/g-2048",
+    },
+    {
+        "id": "g-sokoban",
+        "title_ar": "دافع صناديق الطاقة 📦",
+        "title_en": "Cyber Sokoban",
+        "world": "iqlab",
+        "category": "Warehouse Puzzle",
+        "category_ar": "تخطيط ومسارات",
+        "icon": "📦",
+        "color": "from-cyan-600 via-blue-700 to-indigo-800",
+        "plays": "32.1k",
+        "stars": 4.8,
+        "is_featured": False,
+        "is_new": True,
+        "xp_reward": 450,
+        "difficulty": "Hard",
+        "desc_ar": "ادفع بطاريات الطاقة النيونية إلى محطات التفريغ الصحيحة بأقل عدد حركات ممكن في 15 لغزاً ذكياً!",
+        "desc_en": "Push glowing power cells into energy docks with optimal paths across 15 handcrafted puzzle levels!",
+        "route": "/games/g-sokoban",
+    },
+    {
+        "id": "g-laser",
+        "title_ar": "توجيه أشعة الليزر 🪞",
+        "title_en": "Laser & Mirrors Matrix",
+        "world": "iqlab",
+        "category": "Optics Puzzle",
+        "category_ar": "فيزياء وبصريات",
+        "icon": "🪞",
+        "color": "from-rose-500 via-red-600 to-amber-600",
+        "plays": "29.4k",
+        "stars": 4.9,
+        "is_featured": False,
+        "is_new": True,
+        "xp_reward": 460,
+        "difficulty": "Hard",
+        "desc_ar": "قم بتدوير المرايا بزوايا 45° لتوجيه شعاع الليزر المتوهج وتفادي الحواجز وإضاءة جميع المستشعرات!",
+        "desc_en": "Rotate mirrors at 45° angles to redirect laser beams through obstacles and activate all targets!",
+        "route": "/games/g-laser",
+    },
+    {
+        "id": "g-mines",
+        "title_ar": "كاسحة الألغام السيبرانية 💣",
+        "title_en": "Minesweeper Cyber Hack",
+        "world": "iqlab",
+        "category": "Grid Deduction",
+        "category_ar": "استنتاج وشفرات",
+        "icon": "💣",
+        "color": "from-teal-600 via-emerald-700 to-slate-900",
+        "plays": "41.2k",
+        "stars": 4.8,
+        "is_featured": False,
+        "is_new": False,
+        "xp_reward": 390,
+        "difficulty": "Medium",
+        "desc_ar": "حلل إشارات الدارات الإلكترونية واكتشف الفيروسات المخفية مع ميزة النقر المزدوج السريع (Chord Click)!",
+        "desc_en": "Hack cybersecurity nodes and deduce hidden data-bombs using classic chord clicks and flags!",
+        "route": "/games/g-mines",
+    },
+    # Shilla
+    {
+        "id": "g-draw",
+        "title_ar": "ارسم وخمّن أونلاين 🎨",
+        "title_en": "Draw & Guess Live",
+        "world": "shilla",
+        "category": "Party Drawing",
+        "category_ar": "رسم وتخمين",
+        "icon": "🎨",
+        "color": "from-yellow-400 via-amber-500 to-orange-600",
+        "plays": "94.6k",
+        "stars": 5.0,
+        "is_featured": True,
+        "is_new": False,
+        "xp_reward": 420,
+        "difficulty": "Easy",
+        "desc_ar": "لوحة رسم بألوان متعددة وأحجام فرشاة متنوعة. ارسم الكلمة وخمّن رسومات الآخرين بأسرع وقت!",
+        "desc_en": "Full canvas drawing tool with color palettes and brush sizes. Draw and guess words against time!",
+        "route": "/games/g-draw",
+    },
+    {
+        "id": "g-trivia",
+        "title_ar": "مسابقة المعلومات الكبرى 🧠",
+        "title_en": "Arabic Trivia Showdown",
+        "world": "shilla",
+        "category": "Live Trivia",
+        "category_ar": "معلومات عامة",
+        "icon": "🧠",
+        "color": "from-blue-500 via-indigo-600 to-violet-700",
+        "plays": "88.1k",
+        "stars": 4.9,
+        "is_featured": False,
+        "is_new": False,
+        "xp_reward": 400,
+        "difficulty": "Medium",
+        "desc_ar": "بنك أسئلة عربي ضخم في الرياضة، التاريخ، العلوم، والجغرافيا مع وسائل مساعدة (حذف إجابتين، تمديد الوقت)!",
+        "desc_en": "Massive Arabic trivia battle across sports, history, sciences, with 50:50 and time extension lifelines!",
+        "route": "/games/g-trivia",
+    },
+    {
+        "id": "g-wyr",
+        "title_ar": "لو خيروك الأسطورية 🤔",
+        "title_en": "Would You Rather Extreme",
+        "world": "shilla",
+        "category": "Party Dilemma",
+        "category_ar": "اختيارات محرجة",
+        "icon": "🤔",
+        "color": "from-pink-500 via-rose-600 to-purple-600",
+        "plays": "73.2k",
+        "stars": 4.8,
+        "is_featured": False,
+        "is_new": False,
+        "xp_reward": 300,
+        "difficulty": "Easy",
+        "desc_ar": "خيارات مستحيلة ومواقف طريفة محرجة! صوّت واكتشف نسب اختيارات بقية لاعبي الشلة بشكل فوري.",
+        "desc_en": "Hilarious and tough dilemmas! Choose your destiny and see live consensus percentages from players.",
+        "route": "/games/g-wyr",
+    },
+    {
+        "id": "g-impostor",
+        "title_ar": "بروتوكول الجاسوس المخفي 🕵️",
+        "title_en": "Cyber Impostor Protocol",
+        "world": "shilla",
+        "category": "Social Deduction",
+        "category_ar": "كشف الجواسيس",
+        "icon": "🕵️",
+        "color": "from-emerald-600 via-teal-700 to-cyan-800",
+        "plays": "56.8k",
+        "stars": 4.9,
+        "is_featured": False,
+        "is_new": True,
+        "xp_reward": 480,
+        "difficulty": "Hard",
+        "desc_ar": "أنت في جلسة استجواب مع 5 روبوتات ذكية. الجميع يعرف كلمة السر إلا الجاسوس! اطرح الأسئلة واكشفه قبل فوات الأوان.",
+        "desc_en": "Interrogate AI crew members where one is an undercover spy without the secret keyword. Find the imposter!",
+        "route": "/games/g-impostor",
+    },
+    # Champions
+    {
+        "id": "g-stack",
+        "title_ar": "برج التوازن الدقيق 🏗️",
+        "title_en": "Tower Stack Deluxe",
+        "world": "champions",
+        "category": "Stacking",
+        "category_ar": "بناء وتوازن",
+        "icon": "🏗️",
+        "color": "from-cyan-500 via-teal-600 to-emerald-600",
+        "plays": "64.9k",
+        "stars": 4.9,
+        "is_featured": True,
+        "is_new": False,
+        "xp_reward": 400,
+        "difficulty": "Medium",
+        "desc_ar": "ابنِ أطول ناطحة سحاب نيونية بدقة مليمترية. كل طابق متطابق تماماً يمنحك بونص ونغمة تصاعدية مذهلة!",
+        "desc_en": "Stack moving neon blocks with surgical precision. Perfect alignment triggers bonus points and harmonic tones!",
+        "route": "/games/g-stack",
+    },
+    {
+        "id": "g-math",
+        "title_ar": "مبارزة الحساب السريع ⚡",
+        "title_en": "Speed Math Duel",
+        "world": "champions",
+        "category": "Mental Math",
+        "category_ar": "حساب ذهني",
+        "icon": "⚡",
+        "color": "from-blue-600 via-indigo-600 to-purple-700",
+        "plays": "49.1k",
+        "stars": 4.8,
+        "is_featured": False,
+        "is_new": True,
+        "xp_reward": 420,
+        "difficulty": "Hard",
+        "desc_ar": "حل المسائل الحسابية في ثانيتين فقط! معادلات جمع، طرح، وضرب تتسارع وتتحدى سرعة بديهتك.",
+        "desc_en": "Rapid-fire mental arithmetic duels with 2-second timers. Solve equations before the clock expires!",
+        "route": "/games/g-math",
+    },
+    {
+        "id": "g-pong",
+        "title_ar": "بونغ النيون السيبراني 🏓",
+        "title_en": "Cyber Pong 1v1",
+        "world": "champions",
+        "category": "Retro Sports",
+        "category_ar": "رياضة سيبرانية",
+        "icon": "🏓",
+        "color": "from-violet-600 via-purple-700 to-pink-600",
+        "plays": "58.3k",
+        "stars": 4.8,
+        "is_featured": False,
+        "is_new": False,
+        "xp_reward": 380,
+        "difficulty": "Medium",
+        "desc_ar": "مباراة بونغ سريعة ضد ذكاء اصطناعي متكيف مع ضربات Smash القوية وذيول كرات نيونية متوهجة!",
+        "desc_en": "Fast-paced cyber pong versus adaptive AI with power smash mechanics and glowing particle trails!",
+        "route": "/games/g-pong",
+    },
+    # Chaos
+    {
+        "id": "g-micro",
+        "title_ar": "ألعاب الخمس ثوانٍ الفوضوية ⏱️",
+        "title_en": "Chaos Micro-Games",
+        "world": "chaos",
+        "category": "Wario Micro",
+        "category_ar": "تحديات خاطفة",
+        "icon": "⏱️",
+        "color": "from-yellow-400 via-amber-500 to-rose-600",
+        "plays": "76.4k",
+        "stars": 5.0,
+        "is_featured": True,
+        "is_new": False,
+        "xp_reward": 450,
+        "difficulty": "Hard",
+        "desc_ar": "12 تحدياً صغيراً بأسلوب WarioWare: اضغط، تجنب، وازن، التقط في 5 ثوانٍ فقط لكل لعبة برتم فوضوي متسارع!",
+        "desc_en": "Rapid-fire 5-second micro-challenges inspired by WarioWare: tap, dodge, balance, and react before the fuse runs out!",
+        "route": "/games/g-micro",
+    },
+    {
+        "id": "g-roulette",
+        "title_ar": "عجلة الحظ والأحكام الفوضوية 🌀",
+        "title_en": "Glitch Roulette 2.0",
+        "world": "chaos",
+        "category": "Glitch Chance",
+        "category_ar": "حظ وأحكام",
+        "icon": "🌀",
+        "color": "from-purple-600 via-fuchsia-600 to-rose-600",
+        "plays": "52.0k",
+        "stars": 4.8,
+        "is_featured": False,
+        "is_new": False,
+        "xp_reward": 400,
+        "difficulty": "Medium",
+        "desc_ar": "عجلة فيزيائية تدور مع مؤثرات غليتش وفوضى. احصل على مضاعفات كبرى أو نفذ أحكاماً وتحديات غريبة!",
+        "desc_en": "Physics-based glitch roulette wheel packed with wild multipliers, surprise dares, and chaos traps!",
+        "route": "/games/g-roulette",
+    },
+    {
+        "id": "g-gravity",
+        "title_ar": "عداء الجاذبية المعكوسة 🌌",
+        "title_en": "Gravity Invert Runner",
+        "world": "chaos",
+        "category": "Gravity Flip",
+        "category_ar": "فيزياء مقلوبة",
+        "icon": "🌌",
+        "color": "from-emerald-500 via-teal-700 to-cyan-900",
+        "plays": "47.6k",
+        "stars": 4.9,
+        "is_featured": False,
+        "is_new": True,
+        "xp_reward": 440,
+        "difficulty": "Hard",
+        "desc_ar": "اركض واعكس الجاذبية بين الأرض والسقف بلمسة واحدة لتفادي الحواجز المتوهجة في عالم فوضوي مشوش!",
+        "desc_en": "Flip gravity between floor and ceiling instantly to navigate razor-sharp obstacles in a glitched world!",
+        "route": "/games/g-gravity",
     },
 ]
 
@@ -211,39 +531,39 @@ INITIAL_ACHIEVEMENTS = [
         "required_count": 1,
     },
     {
-        "id": "ach_speed_demon",
-        "title_ar": "شيطان السرعة ⚡",
-        "title_en": "Speed Demon ⚡",
-        "desc_ar": "حقق وقت استجابة أقل من 250ms في عالم ردة الفعل.",
-        "desc_en": "Score under 250ms reaction time in Reflex World.",
-        "icon": "⚡",
-        "category": "reflex",
+        "id": "ach_arcade_master",
+        "title_ar": "سيد الأركيد 🕹️",
+        "title_en": "Arcade Master 🕹️",
+        "desc_ar": "أكمل 5 جلسات لعب في أي عالم.",
+        "desc_en": "Complete 5 game sessions in any world.",
+        "icon": "🕹️",
+        "category": "arcade",
         "tier": "silver",
         "xp_reward": 500,
         "coins_reward": 100,
-        "required_count": 1,
+        "required_count": 5,
     },
     {
-        "id": "ach_brain_power",
-        "title_ar": "العقل المدبر 🧠",
-        "title_en": "Mastermind 🧠",
-        "desc_ar": "أجب على 10 معادلات رياضية متتالية بدون أي خطأ.",
-        "desc_en": "Solve 10 consecutive math problems with 0 mistakes.",
-        "icon": "🧠",
-        "category": "iqlab",
+        "id": "ach_streak_hero",
+        "title_ar": "بطل الاستمرارية 🔥",
+        "title_en": "Streak Hero 🔥",
+        "desc_ar": "أكمل 10 جلسات لعب على المنصة.",
+        "desc_en": "Complete 10 game sessions on the platform.",
+        "icon": "🔥",
+        "category": "games",
         "tier": "gold",
         "xp_reward": 750,
         "coins_reward": 150,
         "required_count": 10,
     },
     {
-        "id": "ach_memory_titan",
-        "title_ar": "عملاق الذاكرة 🃏",
-        "title_en": "Memory Titan 🃏",
-        "desc_ar": "أكمل لعبة بطاقات الذاكرة في أقل من 15 حركة.",
-        "desc_en": "Finish the Memory Cards game in fewer than 15 moves.",
-        "icon": "🃏",
-        "category": "arcade",
+        "id": "ach_high_score",
+        "title_ar": "رقم قياسي 💯",
+        "title_en": "High Score 💯",
+        "desc_ar": "حقق سكور 1000 نقطة أو أكثر في أي لعبة.",
+        "desc_en": "Score 1000 or more points in any single game.",
+        "icon": "💯",
+        "category": "games",
         "tier": "gold",
         "xp_reward": 800,
         "coins_reward": 200,
@@ -450,52 +770,61 @@ INITIAL_AI_QUESTIONS = [
 ]
 
 
-async def seed_initial_data(db: AsyncSession):
-    """Seed initial data into database tables if they are empty."""
-    # 1. Games
-    res_g = await db.execute(select(Game))
-    if not res_g.scalars().first():
-        for item in INITIAL_GAMES:
-            db.add(Game(**item))
+async def _upsert_games_catalog(db: AsyncSession) -> None:
+    """Replace legacy games and upsert the official 22-game catalog."""
+    await db.execute(delete(Game).where(Game.id.in_(LEGACY_GAME_IDS)))
 
-    # 2. Quizzes
-    res_q = await db.execute(select(Quiz))
+    for item in INITIAL_GAMES:
+        existing = await db.get(Game, item["id"])
+        if existing is None:
+            db.add(Game(**item))
+            continue
+        for key, value in item.items():
+            if key != "id":
+                setattr(existing, key, value)
+
+
+async def _upsert_by_id(db: AsyncSession, model, items: list[dict]) -> None:
+    """Insert missing rows or refresh fields for existing primary keys."""
+    for item in items:
+        existing = await db.get(model, item["id"])
+        if existing is None:
+            db.add(model(**item))
+            continue
+        for key, value in item.items():
+            if key != "id":
+                setattr(existing, key, value)
+
+
+async def seed_initial_data(db: AsyncSession):
+    """Seed / sync catalog data so existing DBs pick up the official games."""
+    await _upsert_games_catalog(db)
+
+    # Quizzes & questions: insert only when empty (preserve custom content)
+    res_q = await db.execute(select(Quiz).limit(1))
     if not res_q.scalars().first():
         for item in INITIAL_QUIZZES:
             db.add(Quiz(**item))
 
-    # 3. Quiz Questions
-    res_qq = await db.execute(select(QuizQuestion))
+    res_qq = await db.execute(select(QuizQuestion).limit(1))
     if not res_qq.scalars().first():
         for item in INITIAL_QUIZ_QUESTIONS:
             db.add(QuizQuestion(**item))
 
-    # 4. Achievements
-    res_ach = await db.execute(select(Achievement))
-    if not res_ach.scalars().first():
-        for item in INITIAL_ACHIEVEMENTS:
-            db.add(Achievement(**item))
+    await _upsert_by_id(db, Achievement, INITIAL_ACHIEVEMENTS)
+    await _upsert_by_id(db, DailyMission, INITIAL_DAILY_MISSIONS)
 
-    # 5. Daily Missions
-    res_m = await db.execute(select(DailyMission))
-    if not res_m.scalars().first():
-        for item in INITIAL_DAILY_MISSIONS:
-            db.add(DailyMission(**item))
-
-    # 6. Tournaments
-    res_t = await db.execute(select(Tournament))
+    res_t = await db.execute(select(Tournament).limit(1))
     if not res_t.scalars().first():
         for item in INITIAL_TOURNAMENTS:
             db.add(Tournament(**item))
 
-    # 7. Store Items
-    res_s = await db.execute(select(StoreItem))
+    res_s = await db.execute(select(StoreItem).limit(1))
     if not res_s.scalars().first():
         for item in INITIAL_STORE_ITEMS:
             db.add(StoreItem(**item))
 
-    # 8. AI Questions Bank
-    res_ai = await db.execute(select(AIQuestion))
+    res_ai = await db.execute(select(AIQuestion).limit(1))
     if not res_ai.scalars().first():
         for item in INITIAL_AI_QUESTIONS:
             db.add(AIQuestion(**item))

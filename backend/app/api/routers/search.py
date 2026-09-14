@@ -7,14 +7,15 @@ from typing import List
 from app.database.session import get_db
 from app.models.user import User
 from app.models.game import Game
-from app.schemas.user import UserResponse
+from app.schemas.user import PublicUserResponse
 from app.schemas.game import GameResponse
+from app.dependencies.auth import get_current_active_user
 
 router = APIRouter()
 
 
 class SearchResultsResponse(BaseModel):
-    users: List[UserResponse]
+    users: List[PublicUserResponse]
     games: List[GameResponse]
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
@@ -23,9 +24,11 @@ class SearchResultsResponse(BaseModel):
 @router.get("", response_model=SearchResultsResponse)
 async def global_search(
     q: str = Query(..., min_length=1, description="Search query keyword"),
+    current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Search for players and games across the entire platform in database."""
+    """Search for players and games (authenticated). User results omit email."""
+    _ = current_user
     keyword = f"%{q.strip()}%"
 
     # Search users
@@ -57,6 +60,6 @@ async def global_search(
     games = games_res.scalars().all()
 
     return SearchResultsResponse(
-        users=[UserResponse.model_validate(u) for u in users],
+        users=[PublicUserResponse.model_validate(u) for u in users],
         games=[GameResponse.model_validate(g) for g in games],
     )

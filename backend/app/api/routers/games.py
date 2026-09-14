@@ -13,7 +13,7 @@ from datetime import datetime, date
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 
 from app.database.session import get_db
 from app.models.game import Game, GameSession
@@ -25,6 +25,28 @@ from app.schemas.game import GameResponse, GameSubmitRequest, GameSessionRespons
 from app.dependencies.auth import get_current_user
 
 router = APIRouter()
+
+DIFFICULTY_AR = {
+    "Easy": "سهل",
+    "Medium": "متوسط",
+    "Hard": "صعب",
+}
+
+WORLD_MISSION_ACTIONS = {
+    "arcade": "play_arcade_game",
+    "reflex": "play_reflex_game",
+    "iqlab": "play_iqlab_game",
+    "shilla": "play_shilla_game",
+    "champions": "play_champions_game",
+    "chaos": "play_chaos_game",
+}
+
+
+def _to_game_response(game: Game) -> GameResponse:
+    payload = GameResponse.model_validate(game)
+    if not payload.difficulty_ar:
+        payload.difficulty_ar = DIFFICULTY_AR.get(game.difficulty)
+    return payload
 
 
 @router.get("", response_model=List[GameResponse])
@@ -39,10 +61,10 @@ async def list_games(
         query = query.where(Game.world == world.lower())
     if category:
         query = query.where(Game.category == category)
-    
+
     result = await db.execute(query)
     games = result.scalars().all()
-    return [GameResponse.model_validate(g) for g in games]
+    return [_to_game_response(g) for g in games]
 
 
 @router.get("/{game_id}", response_model=GameResponse)
@@ -52,7 +74,7 @@ async def get_game_details(game_id: str, db: AsyncSession = Depends(get_db)):
     game = result.scalars().first()
     if not game:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="اللعبة غير موجودة")
-    return GameResponse.model_validate(game)
+    return _to_game_response(game)
 
 
 @router.post("/{game_id}/submit", response_model=GameSessionResponse)
@@ -71,22 +93,26 @@ async def submit_game_session(
     5. Checks and unlocks milestones in User Achievements.
     6. Returns complete real-time player progression state for web & mobile apps.
     """
-    # 1. Fetch game details or compute dynamic defaults
     result = await db.execute(select(Game).where(Game.id == game_id))
     game = result.scalars().first()
-    
-    base_xp = game.xp_reward if game else 250
-    world_id = game.world if game else "arcade"
+    if not game:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="اللعبة غير موجودة")
 
-    # Score-based XP bonus calculation
-    score_val = max(0, payload.score)
+    base_xp = game.xp_reward
+    world_id = game.world
+
+    score_val = max(0, min(payload.score, 1_000_000))
     performance_bonus_xp = min(200, int(score_val * 0.1))
     total_xp_earned = base_xp + performance_bonus_xp
 
-    # Coins reward: 20% of earned XP + performance bonus (min 20 coins)
+    # Difficulty multiplier (single source of truth — client must not remultiply)
+    diff = (payload.difficulty or "Medium").capitalize()
+    diff_multiplier = 2.5 if diff == "Hard" else 1.5 if diff == "Medium" else 1.0
+    total_xp_earned = int(total_xp_earned * diff_multiplier)
+
+    # Coins ≈ 25% of earned XP (minimum 20)
     coins_earned = max(20, int(total_xp_earned * 0.25))
 
-    # 2. Record GameSession
     session_record = GameSession(
         id=f"gs_{uuid.uuid4().hex[:12]}",
         user_id=current_user.id,
@@ -98,7 +124,6 @@ async def submit_game_session(
     )
     db.add(session_record)
 
-    # 3. User Progression (XP, Level, Coins)
     current_user.xp += total_xp_earned
     current_user.coins += coins_earned
 
@@ -109,14 +134,11 @@ async def submit_game_session(
         leveled_up = True
         current_user.level += 1
         current_user.xp -= current_user.max_xp
-        # Progression curve: +25% XP requirement per level
         current_user.max_xp = int(current_user.max_xp * 1.25)
-        # Level up gift: 50 coins per new level
         bonus = current_user.level * 50
         level_up_reward_coins += bonus
         current_user.coins += bonus
 
-    # Dynamic rank title based on level
     if current_user.level >= 30:
         current_user.rank = "أسطورة نغنش 👑"
     elif current_user.level >= 20:
@@ -128,8 +150,7 @@ async def submit_game_session(
 
     db.add(current_user)
 
-    # 4. Update Leaderboard Ranks (Global & World-specific)
-    # Global rank entry
+    # Global leaderboard
     global_rank_res = await db.execute(
         select(LeaderboardRank).where(
             and_(LeaderboardRank.user_id == current_user.id, LeaderboardRank.world == "global")
@@ -153,7 +174,7 @@ async def submit_game_session(
             global_rank.wins += 1
         db.add(global_rank)
 
-    # World-specific rank entry
+    # World-specific leaderboard
     if world_id != "global":
         world_rank_res = await db.execute(
             select(LeaderboardRank).where(
@@ -178,14 +199,21 @@ async def submit_game_session(
                 world_rank.wins += 1
             db.add(world_rank)
 
-    # 5. Update Daily Missions Progress
+    # Daily missions — match by target_action, not fragile id substring
     missions_updated_list: list[str] = []
     today = date.today()
+    world_action = WORLD_MISSION_ACTIONS.get(world_id)
 
     missions_res = await db.execute(select(DailyMission))
     available_missions = missions_res.scalars().all()
 
     for m in available_missions:
+        should_progress = m.target_action == "play_any_game" or (
+            world_action is not None and m.target_action == world_action
+        )
+        if not should_progress:
+            continue
+
         ump_res = await db.execute(
             select(UserMissionProgress).where(
                 and_(
@@ -197,38 +225,31 @@ async def submit_game_session(
         )
         ump = ump_res.scalars().first()
 
-        should_progress = False
-        if m.target_action == "play_any_game":
-            should_progress = True
-        elif world_id in m.id:
-            should_progress = True
+        if not ump:
+            ump = UserMissionProgress(
+                id=f"ump_{uuid.uuid4().hex[:10]}",
+                user_id=current_user.id,
+                mission_id=m.id,
+                current_progress=1,
+                is_completed=(1 >= m.target_count),
+                mission_date=today,
+            )
+            db.add(ump)
+            missions_updated_list.append(m.title_ar)
+        elif not ump.is_completed:
+            ump.current_progress += 1
+            if ump.current_progress >= m.target_count:
+                ump.is_completed = True
+            db.add(ump)
+            missions_updated_list.append(m.title_ar)
 
-        if should_progress:
-            if not ump:
-                ump = UserMissionProgress(
-                    id=f"ump_{uuid.uuid4().hex[:10]}",
-                    user_id=current_user.id,
-                    mission_id=m.id,
-                    current_progress=1,
-                    is_completed=(1 >= m.target_count),
-                    mission_date=today,
-                )
-                db.add(ump)
-                missions_updated_list.append(m.title_ar)
-            elif not ump.is_completed:
-                ump.current_progress += 1
-                if ump.current_progress >= m.target_count:
-                    ump.is_completed = True
-                db.add(ump)
-                missions_updated_list.append(m.title_ar)
-
-    # 6. Check and Unlock User Achievements
+    # Achievements
     achievements_unlocked_list: list[str] = []
-    # Count total games played by user
-    sessions_count_res = await db.execute(
-        select(GameSession).where(GameSession.user_id == current_user.id)
+    total_games_res = await db.execute(
+        select(func.count()).select_from(GameSession).where(GameSession.user_id == current_user.id)
     )
-    total_games = len(sessions_count_res.scalars().all()) + 1
+    # +1 because the current session is not committed yet
+    total_games = int(total_games_res.scalar_one() or 0) + 1
 
     achievements_res = await db.execute(select(Achievement))
     all_achievements = achievements_res.scalars().all()
@@ -253,25 +274,28 @@ async def submit_game_session(
             )
             db.add(ua)
 
-        if not ua.is_unlocked:
-            unlocked = False
-            if ach.id == "ach_first_win" and total_games >= 1:
-                unlocked = True
-            elif ach.id == "ach_arcade_master" and total_games >= 5:
-                unlocked = True
-            elif ach.id == "ach_streak_hero" and total_games >= 10:
-                unlocked = True
-            elif score_val >= 1000 and "score" in ach.id:
-                unlocked = True
+        if ua.is_unlocked:
+            continue
 
-            if unlocked:
-                ua.is_unlocked = True
-                ua.unlocked_at = datetime.utcnow()
-                ua.current_progress = ach.required_count
-                db.add(ua)
-                achievements_unlocked_list.append(ach.title_ar)
+        unlocked = False
+        if ach.id == "ach_first_game" and total_games >= 1:
+            unlocked = True
+        elif ach.id == "ach_arcade_master" and total_games >= ach.required_count:
+            unlocked = True
+        elif ach.id == "ach_streak_hero" and total_games >= ach.required_count:
+            unlocked = True
+        elif ach.id == "ach_high_score" and score_val >= 1000:
+            unlocked = True
 
-    # 7. Commit all state changes atomically
+        if unlocked:
+            ua.is_unlocked = True
+            ua.unlocked_at = datetime.utcnow()
+            ua.current_progress = ach.required_count
+            db.add(ua)
+            achievements_unlocked_list.append(ach.title_ar)
+            current_user.xp += ach.xp_reward
+            current_user.coins += ach.coins_reward
+
     await db.commit()
     await db.refresh(current_user)
 
