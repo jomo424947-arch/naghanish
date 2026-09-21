@@ -189,7 +189,7 @@ export const SpeedMathGame: React.FC<SpeedMathProps> = ({ onFinish, isRtl, diffi
       </div>
 
       {/* Main Game Screen */}
-      <div className="relative w-full rounded-3xl p-6 bg-gradient-to-b from-brand-cardBg via-black/90 to-black border-2 border-brand-cardBorder shadow-2xl flex flex-col items-center justify-between min-h-[420px]">
+      <div className="relative w-full rounded-3xl p-6 bg-slate-950 border-2 border-cyan-500/40 shadow-2xl flex flex-col items-center justify-between min-h-[420px]">
         {gameState === 'IDLE' && (
           <div className="flex flex-col items-center justify-center text-center my-auto">
             <div className="w-16 h-16 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 mb-4 animate-bounce">
@@ -198,14 +198,14 @@ export const SpeedMathGame: React.FC<SpeedMathProps> = ({ onFinish, isRtl, diffi
             <h3 className="text-2xl font-black text-white mb-2">
               {isRtl ? 'صراع الحساب السريع ⚡' : 'CYBER SPEED MATH ⚡'}
             </h3>
-            <p className="text-xs text-gray-300 max-w-xs mb-6 leading-relaxed">
+            <p className="text-xs text-slate-300 max-w-xs mb-6 leading-relaxed">
               {isRtl
                 ? 'أجب عن أكبر عدد ممكن من المعادلات الرياضية في 45 ثانية! كل إجابة صحيحة متتالية تزيد الكومبو والنقاط.'
                 : 'Solve equations as fast as possible in 45 seconds! Build combos for massive score multipliers.'}
             </p>
             <button
               onClick={startGame}
-              className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black hover:opacity-90 shadow-lg shadow-cyan-500/25 active:scale-95"
+              className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black hover:opacity-90 shadow-lg shadow-cyan-500/25 active:scale-95 cursor-pointer"
             >
               {isRtl ? 'بدء التحدي' : 'Start Challenge'}
             </button>
@@ -216,7 +216,7 @@ export const SpeedMathGame: React.FC<SpeedMathProps> = ({ onFinish, isRtl, diffi
           <div className="flex flex-col items-center justify-between w-full h-full flex-1 gap-6">
             {/* Equation Display */}
             <div className="my-auto flex flex-col items-center">
-              <span className="text-xs font-mono text-gray-400 mb-2 uppercase tracking-widest">
+              <span className="text-xs font-mono text-cyan-400 mb-2 uppercase tracking-widest font-bold">
                 {isRtl ? 'حل المعادلة التالية:' : 'Solve The Equation:'}
               </span>
               <div
@@ -238,7 +238,7 @@ export const SpeedMathGame: React.FC<SpeedMathProps> = ({ onFinish, isRtl, diffi
                 const isSelected = selectedOption === opt
                 const isRightAnswer = opt === question.answer
 
-                let btnStyle = 'border-white/10 bg-white/5 hover:bg-cyan-500/10 hover:border-cyan-400/50 text-white'
+                let btnStyle = 'border-slate-700/80 bg-slate-900 hover:bg-cyan-950/40 hover:border-cyan-400 text-white shadow-md'
                 if (feedback && isSelected) {
                   btnStyle = isRightAnswer ? 'border-green-400 bg-green-500/30 text-green-300' : 'border-red-400 bg-red-500/30 text-red-300'
                 }
@@ -247,9 +247,9 @@ export const SpeedMathGame: React.FC<SpeedMathProps> = ({ onFinish, isRtl, diffi
                   <button
                     key={i}
                     onClick={() => handleAnswer(opt)}
-                    className={`relative py-5 px-4 rounded-2xl border text-2xl font-black font-mono transition-all duration-150 transform active:scale-95 ${btnStyle}`}
+                    className={`relative py-5 px-4 rounded-2xl border text-2xl font-black font-mono transition-all duration-150 transform active:scale-95 cursor-pointer ${btnStyle}`}
                   >
-                    <span className="absolute top-2 left-2 text-[10px] font-mono text-gray-500">[{i + 1}]</span>
+                    <span className="absolute top-2 left-2 text-[10px] font-mono text-slate-500">[{i + 1}]</span>
                     {opt}
                   </button>
                 )
@@ -266,30 +266,30 @@ export const SpeedMathGame: React.FC<SpeedMathProps> = ({ onFinish, isRtl, diffi
             <h3 className="text-2xl font-black text-white mb-1">
               {isRtl ? 'انتهى الوقت! 🏁' : 'Time Up! 🏁'}
             </h3>
-            <p className="text-xs text-gray-400 mb-6">
+            <p className="text-xs text-slate-300 mb-6">
               {isRtl ? 'أداء رياضي ذهني فائق السرعة!' : 'Lightning mental speed test completed!'}
             </p>
 
             <div className="grid grid-cols-3 gap-3 w-full mb-6">
-              <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex flex-col items-center">
-                <span className="text-[10px] text-gray-400">{isRtl ? 'النقاط' : 'Score'}</span>
+              <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center">
+                <span className="text-[10px] text-slate-400">{isRtl ? 'النقاط' : 'Score'}</span>
                 <span className="text-lg font-black text-cyan-400 font-mono">{score}</span>
               </div>
-              <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex flex-col items-center">
-                <span className="text-[10px] text-gray-400">{isRtl ? 'الدقة' : 'Accuracy'}</span>
+              <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center">
+                <span className="text-[10px] text-slate-400">{isRtl ? 'الدقة' : 'Accuracy'}</span>
                 <span className="text-lg font-black text-green-400 font-mono">
                   {stats.totalSolved > 0 ? Math.round((stats.correct / stats.totalSolved) * 100) : 0}%
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex flex-col items-center">
-                <span className="text-[10px] text-gray-400">{isRtl ? 'أعلى كومبو' : 'Max Streak'}</span>
+              <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center">
+                <span className="text-[10px] text-slate-400">{isRtl ? 'أعلى كومبو' : 'Max Streak'}</span>
                 <span className="text-lg font-black text-amber-400 font-mono">{maxStreak}x</span>
               </div>
             </div>
 
             <button
               onClick={startGame}
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black hover:opacity-90 shadow-lg shadow-cyan-500/25 active:scale-95"
+              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black hover:opacity-90 shadow-lg shadow-cyan-500/25 active:scale-95 cursor-pointer"
             >
               <RotateCcw className="w-5 h-5" />
               <span>{isRtl ? 'إعادة المحاولة' : 'Play Again'}</span>
@@ -298,7 +298,7 @@ export const SpeedMathGame: React.FC<SpeedMathProps> = ({ onFinish, isRtl, diffi
         )}
       </div>
 
-      <span className="text-[11px] text-gray-500 font-mono">
+      <span className="text-[11px] text-slate-400 font-mono">
         {isRtl ? 'يمكنك استخدام المفاتيح 1-4 على لوحة المفاتيح' : 'Keyboard shortcuts [1, 2, 3, 4] supported'}
       </span>
     </div>

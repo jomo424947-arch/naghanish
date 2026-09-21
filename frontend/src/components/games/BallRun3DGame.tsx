@@ -384,7 +384,7 @@ export const BallRun3DGame: React.FC<GameEngineProps> = ({
                 gem.geometry.dispose()
                 seg.gems.splice(g, 1)
                 stateRef.current.gems += 1
-                stateRef.current.score += 60
+                stateRef.current.score += 100
                 setGems(stateRef.current.gems)
                 setScore(stateRef.current.score)
                 if (stateRef.current.gems >= target) {
@@ -396,9 +396,7 @@ export const BallRun3DGame: React.FC<GameEngineProps> = ({
           }
         }
 
-        // Distance points
-        stateRef.current.score += Math.floor(forwardSpeed * dt * 2)
-        if (Math.random() < 0.05) setScore(stateRef.current.score)
+        // Score is only awarded for active gameplay achievements (gems and obstacle passes)
 
         // Camera follow
         camera.position.x = ball.position.x * 0.35

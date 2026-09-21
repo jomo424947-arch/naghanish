@@ -270,22 +270,22 @@ export const ImpostorGame: React.FC<ImpostorGameProps> = ({ onFinish, isRtl }) =
   return (
     <div className="flex flex-col items-center gap-5 w-full max-w-2xl mx-auto select-none">
       {/* Header */}
-      <div className="flex items-center justify-between w-full px-5 py-3 rounded-2xl bg-black/60 border border-brand-cardBorder backdrop-blur-md shadow-xl">
+      <div className="flex items-center justify-between w-full px-5 py-3 rounded-2xl bg-slate-950 border border-cyan-500/40 shadow-xl">
         <div className="flex items-center gap-2">
           <Shield className="w-5 h-5 text-cyan-400" />
           <span className="text-sm font-black text-white">
             {isRtl ? 'بروتوكول الجاسوس السيبراني' : 'CYBER IMPOSTOR PROTOCOL'}
           </span>
         </div>
-        <div className="text-xs font-mono px-3 py-1 rounded-full bg-white/10 text-gray-300">
+        <div className="text-xs font-mono px-3 py-1 rounded-full bg-slate-800 text-cyan-300 border border-slate-700">
           {isRtl ? `التصنيف: ${location.categoryAr}` : `Category: ${location.categoryEn}`}
         </div>
       </div>
 
       {/* PHASE 1: BRIEFING */}
       {phase === 'briefing' && (
-        <div className="flex flex-col items-center gap-6 p-6 rounded-3xl bg-gradient-to-b from-brand-cardBg to-black border border-brand-cardBorder w-full shadow-2xl">
-          <div className={`p-4 rounded-3xl border ${isPlayerImpostor ? 'border-red-500 bg-red-950/30' : 'border-cyan-500 bg-cyan-950/30'} flex flex-col items-center text-center gap-3 w-full`}>
+        <div className="flex flex-col items-center gap-6 p-6 rounded-3xl bg-slate-950 border-2 border-cyan-500/40 w-full shadow-2xl">
+          <div className={`p-5 rounded-3xl border ${isPlayerImpostor ? 'border-red-500/80 bg-red-950/50' : 'border-cyan-500/80 bg-cyan-950/50'} flex flex-col items-center text-center gap-3 w-full`}>
             {isPlayerImpostor ? (
               <>
                 <Skull className="w-12 h-12 text-red-400 animate-pulse" />
@@ -321,7 +321,7 @@ export const ImpostorGame: React.FC<ImpostorGameProps> = ({ onFinish, isRtl }) =
 
           {/* Clue selection */}
           <div className="flex flex-col gap-3 w-full">
-            <h4 className="text-sm font-bold text-gray-300 text-left">
+            <h4 className="text-sm font-bold text-slate-200 text-left">
               {isRtl ? 'اختر تلميحك الذي ستقوله للمجموعة:' : 'Select your clue for the group:'}
             </h4>
             <div className="grid grid-cols-1 gap-2.5">
@@ -329,7 +329,7 @@ export const ImpostorGame: React.FC<ImpostorGameProps> = ({ onFinish, isRtl }) =
                 <button
                   key={i}
                   onClick={() => handleSelectClue(c)}
-                  className="p-3.5 rounded-2xl text-left text-sm font-medium bg-white/5 hover:bg-cyan-500/20 hover:border-cyan-400 border border-white/10 text-white transition-all active:scale-98"
+                  className="p-3.5 rounded-2xl text-left text-sm font-medium bg-slate-900/90 hover:bg-cyan-950/40 hover:border-cyan-400 border border-slate-700/80 text-white transition-all active:scale-98 cursor-pointer"
                 >
                   💬 "{c}"
                 </button>
@@ -341,7 +341,7 @@ export const ImpostorGame: React.FC<ImpostorGameProps> = ({ onFinish, isRtl }) =
 
       {/* PHASE 2: CLUES REVEALED */}
       {phase === 'clues' && (
-        <div className="flex flex-col items-center gap-5 w-full p-6 rounded-3xl bg-gradient-to-b from-brand-cardBg to-black border border-brand-cardBorder shadow-2xl">
+        <div className="flex flex-col items-center gap-5 w-full p-6 rounded-3xl bg-slate-950 border-2 border-cyan-500/40 shadow-2xl">
           <div className="flex items-center justify-between w-full">
             <h3 className="text-lg font-black text-white">
               {isRtl ? 'تلميحات اللاعبين في الجلسة 🎙️' : 'Player Clues Discussion 🎙️'}
@@ -353,25 +353,25 @@ export const ImpostorGame: React.FC<ImpostorGameProps> = ({ onFinish, isRtl }) =
 
           <div className="flex flex-col gap-3 w-full">
             {/* Player's own clue */}
-            <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-cyan-950/30 border border-cyan-500/40">
+            <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-cyan-950/50 border border-cyan-500/50">
               <div className="w-10 h-10 rounded-xl bg-cyan-500/30 flex items-center justify-center text-lg font-black text-cyan-300 shrink-0">
                 👤
               </div>
               <div className="flex flex-col text-left">
-                <span className="text-xs font-bold text-cyan-300">{isRtl ? 'أنت (أنت)' : 'You (Player)'}</span>
-                <p className="text-sm text-white mt-1">"{playerClue}"</p>
+                <span className="text-xs font-bold text-cyan-300">{isRtl ? 'أنت (اللاعب)' : 'You (Player)'}</span>
+                <p className="text-sm font-semibold text-white mt-1">"{playerClue}"</p>
               </div>
             </div>
 
             {/* Bots' clues */}
             {bots.map((bot) => (
-              <div key={bot.id} className="flex items-start gap-3 p-3.5 rounded-2xl bg-white/5 border border-white/10">
+              <div key={bot.id} className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-900 border border-slate-800">
                 <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${bot.color} flex items-center justify-center text-lg shrink-0 shadow-md`}>
                   {bot.avatar}
                 </div>
                 <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold text-gray-300">{bot.name}</span>
-                  <p className="text-sm text-gray-200 mt-1">"{bot.clue}"</p>
+                  <span className="text-xs font-bold text-slate-300">{bot.name}</span>
+                  <p className="text-sm text-slate-100 mt-1">"{bot.clue}"</p>
                 </div>
               </div>
             ))}
@@ -379,7 +379,7 @@ export const ImpostorGame: React.FC<ImpostorGameProps> = ({ onFinish, isRtl }) =
 
           <button
             onClick={handleProceedToVoting}
-            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-red-600 to-pink-600 text-white font-black text-base hover:opacity-90 transition-all shadow-lg shadow-red-500/30 active:scale-98 flex items-center justify-center gap-2"
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-red-600 to-pink-600 text-white font-black text-base hover:opacity-90 transition-all shadow-lg shadow-red-500/30 active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
           >
             <AlertTriangle className="w-5 h-5" />
             <span>{isRtl ? 'بدء التصويت الطارئ لإسقاط المشتبه به!' : 'Call Emergency Vote!'}</span>
@@ -389,12 +389,12 @@ export const ImpostorGame: React.FC<ImpostorGameProps> = ({ onFinish, isRtl }) =
 
       {/* PHASE 3: VOTING */}
       {phase === 'voting' && (
-        <div className="flex flex-col items-center gap-5 w-full p-6 rounded-3xl bg-gradient-to-b from-brand-cardBg to-black border border-brand-cardBorder shadow-2xl">
+        <div className="flex flex-col items-center gap-5 w-full p-6 rounded-3xl bg-slate-950 border-2 border-cyan-500/40 shadow-2xl">
           <div className="text-center">
             <h3 className="text-xl font-black text-red-400 mb-1">
               {isRtl ? 'مجلس الطوارئ: من هو الجاسوس؟ 🚨' : 'Emergency Council: Who is the Impostor? 🚨'}
             </h3>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-slate-300">
               {isRtl ? 'صوّت للشخص الذي تشك في كلامه لإخراجه من المحطة' : 'Vote for the suspicious player to eject them'}
             </p>
           </div>
@@ -405,17 +405,17 @@ export const ImpostorGame: React.FC<ImpostorGameProps> = ({ onFinish, isRtl }) =
                 key={bot.id}
                 disabled={userVotedId !== null}
                 onClick={() => handleCastVote(bot.id)}
-                className={`p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                className={`p-4 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                   userVotedId === bot.id
-                    ? 'border-red-500 bg-red-950/40 scale-102 shadow-xl shadow-red-500/20'
-                    : 'border-white/10 bg-white/5 hover:bg-red-500/10 hover:border-red-500/50 active:scale-98'
+                    ? 'border-red-500 bg-red-950/60 scale-102 shadow-xl shadow-red-500/30'
+                    : 'border-slate-800 bg-slate-900 hover:bg-red-950/30 hover:border-red-500/60 active:scale-98'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{bot.avatar}</span>
                   <div>
                     <div className="text-sm font-black text-white">{bot.name}</div>
-                    <div className="text-xs text-gray-400 line-clamp-1">"{bot.clue}"</div>
+                    <div className="text-xs text-slate-300 line-clamp-1">"{bot.clue}"</div>
                   </div>
                 </div>
                 {userVotedId === bot.id && (
@@ -435,7 +435,7 @@ export const ImpostorGame: React.FC<ImpostorGameProps> = ({ onFinish, isRtl }) =
 
       {/* PHASE 4: VERDICT */}
       {phase === 'verdict' && (
-        <div className="flex flex-col items-center gap-6 p-8 rounded-3xl bg-gradient-to-b from-brand-cardBg to-black border border-brand-cardBorder shadow-2xl w-full text-center">
+        <div className="flex flex-col items-center gap-6 p-8 rounded-3xl bg-slate-950 border-2 border-cyan-500/40 shadow-2xl w-full text-center">
           <div className={`w-20 h-20 rounded-3xl flex items-center justify-center text-4xl shadow-xl ${
             verdictResult === 'crew_win' || verdictResult === 'player_survived'
               ? 'bg-green-500/20 border border-green-500/40 text-green-400'
@@ -451,7 +451,7 @@ export const ImpostorGame: React.FC<ImpostorGameProps> = ({ onFinish, isRtl }) =
               {verdictResult === 'player_survived' && (isRtl ? 'عبقري! نجوت كجاسوس وخدعت الجميع! 👑' : 'Mastermind! You fooled everyone as Impostor! 👑')}
               {verdictResult === 'player_caught' && (isRtl ? 'تم كشفك وطردك من المحطة! 🚀' : 'You were caught & ejected! 🚀')}
             </h3>
-            <p className="text-sm text-gray-300">
+            <p className="text-sm font-bold text-slate-200">
               {isRtl
                 ? `الكلمة السرية كانت: ${location.wordAr}`
                 : `The secret word was: ${location.wordEn}`}
@@ -460,21 +460,21 @@ export const ImpostorGame: React.FC<ImpostorGameProps> = ({ onFinish, isRtl }) =
 
           {/* Player stats */}
           <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center">
-              <span className="text-xs text-gray-400">{isRtl ? 'الجاسوس الحقيقي' : 'Real Impostor'}</span>
+            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col items-center">
+              <span className="text-xs text-slate-400">{isRtl ? 'الجاسوس الحقيقي' : 'Real Impostor'}</span>
               <span className="text-sm font-black text-red-400 font-mono mt-1">
                 {isPlayerImpostor ? (isRtl ? 'أنت 🕶️' : 'You 🕶️') : bots.find((b) => b.isImpostor)?.name}
               </span>
             </div>
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center">
-              <span className="text-xs text-gray-400">{isRtl ? 'النقاط المكتسبة' : 'Score Earned'}</span>
+            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col items-center">
+              <span className="text-xs text-slate-400">{isRtl ? 'النقاط المكتسبة' : 'Score Earned'}</span>
               <span className="text-xl font-black text-cyan-400 font-mono">+{score} XP</span>
             </div>
           </div>
 
           <button
             onClick={initGame}
-            className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black hover:opacity-90 transition-all shadow-lg shadow-cyan-500/25 active:scale-95"
+            className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black hover:opacity-90 transition-all shadow-lg shadow-cyan-500/25 active:scale-95 cursor-pointer"
           >
             <RotateCcw className="w-5 h-5" />
             <span>{isRtl ? 'جولة جديدة بكلمة مختلفة' : 'Play Another Round'}</span>

@@ -96,7 +96,7 @@ const SAMPLE_BOARDS = {
 export const SudokuGame: React.FC<SudokuGameProps> = ({ onFinish, isRtl, difficulty = 'Medium' }) => {
   const dataset = SAMPLE_BOARDS[difficulty] || SAMPLE_BOARDS.Medium
 
-  const [initialGrid] = useState<Grid>(() => dataset.initial.map((r) => [...r]))
+  const [initialGrid, setInitialGrid] = useState<Grid>(() => dataset.initial.map((r) => [...r]))
   const [grid, setGrid] = useState<Grid>(() => dataset.initial.map((r) => [...r]))
   const [selectedCell, setSelectedCell] = useState<{ r: number; c: number } | null>(null)
   const [mistakes, setMistakes] = useState(0)
@@ -106,6 +106,17 @@ export const SudokuGame: React.FC<SudokuGameProps> = ({ onFinish, isRtl, difficu
   const [hintsLeft, setHintsLeft] = useState(3)
 
   const solution = dataset.solution
+
+  useEffect(() => {
+    const nextDataset = SAMPLE_BOARDS[difficulty] || SAMPLE_BOARDS.Medium
+    setInitialGrid(nextDataset.initial.map((r) => [...r]))
+    setGrid(nextDataset.initial.map((r) => [...r]))
+    setSelectedCell(null)
+    setMistakes(0)
+    setIsCompleted(false)
+    setIsGameOver(false)
+    setHintsLeft(3)
+  }, [difficulty])
 
   // Handle number input
   const handleInputNumber = useCallback(

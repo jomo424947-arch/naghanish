@@ -152,6 +152,53 @@
     color: #1E293B;
   }
 
+  /* Scoped Light Mode card text contrast */
+  .light [class*="bg-brand-card"] .text-white,
+  .light [class*="bg-brand-surface"] .text-white,
+  .light [class*="bg-brand-darkBg"] .text-white {
+    color: #0F172A;
+  }
+
+  .light [class*="bg-brand-card"] .text-gray-100,
+  .light [class*="bg-brand-card"] .text-gray-200,
+  .light [class*="bg-brand-card"] .text-gray-300,
+  .light [class*="bg-brand-surface"] .text-gray-100,
+  .light [class*="bg-brand-surface"] .text-gray-200,
+  .light [class*="bg-brand-surface"] .text-gray-300,
+  .light [class*="bg-brand-darkBg"] .text-gray-100,
+  .light [class*="bg-brand-darkBg"] .text-gray-200,
+  .light [class*="bg-brand-darkBg"] .text-gray-300 {
+    color: #1E293B;
+  }
+
+  .light [class*="bg-brand-card"] .text-gray-400,
+  .light [class*="bg-brand-card"] .text-gray-500,
+  .light [class*="bg-brand-surface"] .text-gray-400,
+  .light [class*="bg-brand-surface"] .text-gray-500,
+  .light [class*="bg-brand-darkBg"] .text-gray-400,
+  .light [class*="bg-brand-darkBg"] .text-gray-500 {
+    color: #475569;
+  }
+
+  /* Preserve crisp text inside dedicated dark game consoles & HUDs in Light Mode */
+  .light [class*="bg-slate-950"] .text-white,
+  .light [class*="bg-slate-900"] .text-white,
+  .light [class*="bg-black"] .text-white {
+    color: #FFFFFF !important;
+  }
+
+  .light [class*="bg-slate-950"] .text-slate-100,
+  .light [class*="bg-slate-950"] .text-slate-200,
+  .light [class*="bg-slate-950"] .text-slate-300,
+  .light [class*="bg-slate-900"] .text-slate-100,
+  .light [class*="bg-slate-900"] .text-slate-200,
+  .light [class*="bg-slate-900"] .text-slate-300,
+  .light [class*="bg-black"] .text-slate-100,
+  .light [class*="bg-black"] .text-slate-200,
+  .light [class*="bg-black"] .text-slate-300 {
+    color: #E2E8F0 !important;
+  }
+
   /* Light mode container and card polish */
   .light [class*="bg-brand-card"],
   .light .bg-brand-card {
