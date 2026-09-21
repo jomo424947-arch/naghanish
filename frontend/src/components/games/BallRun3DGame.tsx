@@ -1,9 +1,10 @@
 /**
  * BallRun3DGame.tsx
  *
- * Medium-complexity three.js endless ball run: steer a neon sphere along a
- * segmented track, collect gems, and avoid gaps. three is imported dynamically
- * so other games never pay for the dependency.
+ * High-performance three.js endless ball runner:
+ * Steer a neon sphere across a 3-lane suspended track, collect floating gems,
+ * dodge neon hazard barriers, and avoid falling off the edge.
+ * dynamic import of three ensures only this game loads three.js.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -14,20 +15,25 @@ import { sound } from '@/utils/soundManager'
 
 type ThreeModule = typeof import('three')
 
+const LANES = [-1.4, 0, 1.4]
+const SEGMENT_LEN = 7
+const TOTAL_SEGMENTS = 14
+const TRACK_WIDTH = 4.6
+
 interface TrackSegment {
   mesh: InstanceType<ThreeModule['Mesh']>
   z: number
-  hasGap: boolean
-  gem?: InstanceType<ThreeModule['Mesh']>
+  obstacles: Array<InstanceType<ThreeModule['Mesh']>>
+  gems: Array<InstanceType<ThreeModule['Mesh']>>
 }
 
 function speedForLevel(level: number, difficulty: string): number {
-  const base = difficulty === 'Easy' ? 8 : difficulty === 'Hard' ? 14 : 11
-  return base + (level - 1) * 1.2
+  const base = difficulty === 'Easy' ? 9 : difficulty === 'Hard' ? 16 : 12
+  return base + (level - 1) * 1.3
 }
 
 function gemsNeeded(level: number): number {
-  return 6 + level * 3
+  return 5 + level * 2
 }
 
 export const BallRun3DGame: React.FC<GameEngineProps> = ({
@@ -46,6 +52,8 @@ export const BallRun3DGame: React.FC<GameEngineProps> = ({
   const [gems, setGems] = useState(0)
   const [loadError, setLoadError] = useState<string | null>(null)
 
+  const resetSceneRef = useRef<(() => void) | null>(null)
+
   const stateRef = useRef({
     hasStarted: false,
     isPaused: false,
@@ -55,6 +63,7 @@ export const BallRun3DGame: React.FC<GameEngineProps> = ({
     score: 0,
     gems: 0,
     finished: false,
+    falling: false,
   })
 
   stateRef.current.isPaused = isPaused
@@ -117,12 +126,12 @@ export const BallRun3DGame: React.FC<GameEngineProps> = ({
       const height = mount.clientHeight || 420
 
       const scene = new THREE.Scene()
-      scene.fog = new THREE.Fog(0x050711, 12, 55)
+      scene.fog = new THREE.Fog(0x050711, 15, 65)
       scene.background = new THREE.Color(0x050711)
 
       const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100)
-      camera.position.set(0, 4.5, 8)
-      camera.lookAt(0, 0, -6)
+      camera.position.set(0, 4.2, 7.5)
+      camera.lookAt(0, 0.8, -6)
 
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false })
       const dpr = Math.min(2, window.devicePixelRatio || 1)
@@ -130,73 +139,158 @@ export const BallRun3DGame: React.FC<GameEngineProps> = ({
       renderer.setSize(width, height)
       mount.appendChild(renderer.domElement)
 
-      const ambient = new THREE.AmbientLight(0x6688ff, 0.55)
+      // Lighting
+      const ambient = new THREE.AmbientLight(0x6688ff, 0.6)
       scene.add(ambient)
-      const sun = new THREE.DirectionalLight(0x88ffff, 1.1)
-      sun.position.set(4, 10, 6)
+      const sun = new THREE.DirectionalLight(0x88ffff, 1.2)
+      sun.position.set(5, 12, 6)
       scene.add(sun)
 
+      // Player Ball
       const ballGeo = new THREE.SphereGeometry(0.45, 24, 24)
       const ballMat = new THREE.MeshStandardMaterial({
-        color: 0x22d3ee,
+        color: 0x00d2ff,
         emissive: 0x0891b2,
-        emissiveIntensity: 0.7,
-        metalness: 0.35,
-        roughness: 0.25,
+        emissiveIntensity: 0.8,
+        metalness: 0.4,
+        roughness: 0.2,
       })
       const ball = new THREE.Mesh(ballGeo, ballMat)
       ball.position.set(0, 0.55, 0)
       scene.add(ball)
 
-      const segmentLen = 6
-      const segments: TrackSegment[] = []
+      // Materials
       const trackMat = new THREE.MeshStandardMaterial({
-        color: 0x1e293b,
-        emissive: 0x0ea5e9,
-        emissiveIntensity: 0.15,
-        metalness: 0.4,
-        roughness: 0.55,
+        color: 0x1e1b4b,
+        emissive: 0x4338ca,
+        emissiveIntensity: 0.2,
+        metalness: 0.5,
+        roughness: 0.4,
       })
-      const gapMat = new THREE.MeshStandardMaterial({
-        color: 0x0f172a,
-        transparent: true,
-        opacity: 0.15,
+
+      const railMat = new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        emissive: 0x0284c7,
+        emissiveIntensity: 0.8,
       })
+
+      const obstacleGeo = new THREE.BoxGeometry(1.15, 0.75, 0.45)
+      const obstacleMat = new THREE.MeshStandardMaterial({
+        color: 0xf43f5e,
+        emissive: 0xe11d48,
+        emissiveIntensity: 1.2,
+        roughness: 0.2,
+      })
+
+      const gemGeo = new THREE.OctahedronGeometry(0.28)
       const gemMat = new THREE.MeshStandardMaterial({
         color: 0xfbbf24,
         emissive: 0xf59e0b,
-        emissiveIntensity: 0.9,
+        emissiveIntensity: 1.0,
       })
 
-      const makeSegment = (z: number, index: number) => {
-        const hasGap = index > 2 && index % 4 === 0
-        const geo = new THREE.BoxGeometry(4.2, 0.35, segmentLen - 0.15)
-        const mesh = new THREE.Mesh(geo, hasGap ? gapMat : trackMat)
-        mesh.position.set(0, 0, z)
-        scene.add(mesh)
+      const segments: TrackSegment[] = []
+      let nextIndex = TOTAL_SEGMENTS
 
-        let gem: InstanceType<ThreeModule['Mesh']> | undefined
-        if (!hasGap && index % 2 === 1) {
-          const gemGeo = new THREE.OctahedronGeometry(0.28)
-          gem = new THREE.Mesh(gemGeo, gemMat)
-          gem.position.set((Math.random() - 0.5) * 2.4, 0.9, z)
-          scene.add(gem)
+      const populateSegmentObjects = (seg: TrackSegment, index: number) => {
+        // Clear previous
+        for (const obs of seg.obstacles) {
+          scene.remove(obs)
+          obs.geometry.dispose()
+        }
+        seg.obstacles = []
+        for (const g of seg.gems) {
+          scene.remove(g)
+          g.geometry.dispose()
+        }
+        seg.gems = []
+
+        if (index <= 2) return // Keep first segments clear
+
+        // Obstacles on some segments
+        const hasObstacle = index % 2 === 0
+        const freeLanes = [...LANES]
+
+        if (hasObstacle) {
+          // Choose 1 or 2 lanes for obstacles (ensure at least 1 lane is free!)
+          const numObstacles = difficulty === 'Hard' && Math.random() < 0.4 ? 2 : 1
+          for (let o = 0; o < numObstacles; o++) {
+            if (freeLanes.length <= 1) break
+            const laneIdx = Math.floor(Math.random() * freeLanes.length)
+            const obsX = freeLanes.splice(laneIdx, 1)[0]
+            const obs = new THREE.Mesh(obstacleGeo, obstacleMat)
+            obs.position.set(obsX, 0.45 + 0.375, seg.z)
+            scene.add(obs)
+            seg.obstacles.push(obs)
+          }
         }
 
-        const seg: TrackSegment = { mesh, z, hasGap, gem }
+        // Place a gem on one of the free lanes
+        if (Math.random() < 0.7 && freeLanes.length > 0) {
+          const gemX = freeLanes[Math.floor(Math.random() * freeLanes.length)]
+          const gem = new THREE.Mesh(gemGeo, gemMat)
+          gem.position.set(gemX, 0.9, seg.z)
+          scene.add(gem)
+          seg.gems.push(gem)
+        }
+      }
+
+      const makeSegment = (z: number, index: number) => {
+        const segGroup = new THREE.Group()
+
+        // Main floor
+        const floorGeo = new THREE.BoxGeometry(TRACK_WIDTH, 0.35, SEGMENT_LEN - 0.1)
+        const floorMesh = new THREE.Mesh(floorGeo, trackMat)
+        segGroup.add(floorMesh)
+
+        // Side glowing rails
+        const railGeo = new THREE.BoxGeometry(0.12, 0.25, SEGMENT_LEN - 0.1)
+        const leftRail = new THREE.Mesh(railGeo, railMat)
+        leftRail.position.set(-TRACK_WIDTH / 2, 0.2, 0)
+        segGroup.add(leftRail)
+
+        const rightRail = new THREE.Mesh(railGeo, railMat)
+        rightRail.position.set(TRACK_WIDTH / 2, 0.2, 0)
+        segGroup.add(rightRail)
+
+        segGroup.position.set(0, 0, z)
+        scene.add(segGroup)
+
+        const seg: TrackSegment = {
+          mesh: segGroup as unknown as InstanceType<ThreeModule['Mesh']>,
+          z,
+          obstacles: [],
+          gems: [],
+        }
+
+        populateSegmentObjects(seg, index)
         segments.push(seg)
         return seg
       }
 
-      for (let i = 0; i < 12; i++) makeSegment(-i * segmentLen, i)
+      for (let i = 0; i < TOTAL_SEGMENTS; i++) {
+        makeSegment(-i * SEGMENT_LEN, i)
+      }
+
+      const resetScene = () => {
+        ball.position.set(0, 0.55, 0)
+        ball.rotation.set(0, 0, 0)
+        nextIndex = TOTAL_SEGMENTS
+        for (let i = 0; i < segments.length; i++) {
+          const seg = segments[i]
+          seg.z = -i * SEGMENT_LEN
+          seg.mesh.position.z = seg.z
+          populateSegmentObjects(seg, i)
+        }
+      }
+      resetSceneRef.current = resetScene
 
       let last = performance.now()
-      let nextIndex = 12
       const forwardSpeed = speedForLevel(level, difficulty)
-      const laneLimit = 1.6
+      const laneLimit = 1.85
 
       const onPointer = (e: PointerEvent) => {
-        if (!stateRef.current.hasStarted) return
+        if (!stateRef.current.hasStarted || stateRef.current.falling) return
         const bounds = mount.getBoundingClientRect()
         const x = (e.clientX - bounds.left) / bounds.width
         stateRef.current.laneX = (x - 0.5) * laneLimit * 2
@@ -220,72 +314,95 @@ export const BallRun3DGame: React.FC<GameEngineProps> = ({
           return
         }
 
-        // Steer
-        if (keys.left) stateRef.current.laneX -= 6 * dt
-        if (keys.right) stateRef.current.laneX += 6 * dt
-        stateRef.current.laneX = Math.max(-laneLimit, Math.min(laneLimit, stateRef.current.laneX))
-        ball.position.x += (stateRef.current.laneX - ball.position.x) * Math.min(1, dt * 10)
-        ball.rotation.x -= forwardSpeed * dt * 0.6
+        // Falling off edge
+        if (stateRef.current.falling) {
+          ball.position.y -= 14 * dt
+          ball.rotation.x -= 8 * dt
+          ball.rotation.z += (ball.position.x > 0 ? 6 : -6) * dt
+          if (ball.position.y < -5) {
+            endRun(false, stateRef.current.score)
+          }
+          renderer?.render(scene, camera)
+          return
+        }
 
-        // Move world toward camera
+        // Steer
+        if (keys.left) stateRef.current.laneX -= 6.5 * dt
+        if (keys.right) stateRef.current.laneX += 6.5 * dt
+        stateRef.current.laneX = Math.max(-laneLimit * 1.3, Math.min(laneLimit * 1.3, stateRef.current.laneX))
+        ball.position.x += (stateRef.current.laneX - ball.position.x) * Math.min(1, dt * 12)
+        ball.rotation.x -= forwardSpeed * dt * 0.7
+
+        // Check if steered off the track edge
+        if (Math.abs(ball.position.x) > TRACK_WIDTH / 2 + 0.15) {
+          stateRef.current.falling = true
+          sound.playGameOver()
+          return
+        }
+
+        // Move track toward camera
         for (const seg of segments) {
           seg.z += forwardSpeed * dt
           seg.mesh.position.z = seg.z
-          if (seg.gem) {
-            seg.gem.position.z = seg.z
-            seg.gem.rotation.y += dt * 2
+
+          for (const obs of seg.obstacles) {
+            obs.position.z = seg.z
           }
 
-          // Recycle far segments
-          if (seg.z > 10) {
+          for (const gem of seg.gems) {
+            gem.position.z = seg.z
+            gem.rotation.y += dt * 2.5
+          }
+
+          // Recycle far segment
+          if (seg.z > 12) {
             const minZ = Math.min(...segments.map((s) => s.z))
-            seg.z = minZ - segmentLen
-            seg.hasGap = nextIndex > 2 && nextIndex % 4 === 0
-            seg.mesh.material = seg.hasGap ? gapMat : trackMat
+            seg.z = minZ - SEGMENT_LEN
             seg.mesh.position.z = seg.z
-            if (seg.gem) {
-              scene.remove(seg.gem)
-              seg.gem.geometry.dispose()
-              seg.gem = undefined
-            }
-            if (!seg.hasGap && nextIndex % 2 === 1) {
-              const gemGeo = new THREE.OctahedronGeometry(0.28)
-              seg.gem = new THREE.Mesh(gemGeo, gemMat)
-              seg.gem.position.set((Math.random() - 0.5) * 2.4, 0.9, seg.z)
-              scene.add(seg.gem)
-            }
+            populateSegmentObjects(seg, nextIndex)
             nextIndex++
           }
 
-          // Collision / collect near ball (z ~ 0)
-          if (Math.abs(seg.z) < 0.9) {
-            if (seg.hasGap) {
-              endRun(false, stateRef.current.score)
-            } else if (seg.gem) {
-              const dx = seg.gem.position.x - ball.position.x
-              if (Math.abs(dx) < 0.7) {
+          // Collision check near ball (z ~ 0)
+          if (Math.abs(seg.z - ball.position.z) < 0.75) {
+            // Check obstacle collision
+            for (const obs of seg.obstacles) {
+              const dx = Math.abs(ball.position.x - obs.position.x)
+              if (dx < 0.72) {
+                endRun(false, stateRef.current.score)
+                return
+              }
+            }
+
+            // Check gem collection
+            for (let g = seg.gems.length - 1; g >= 0; g--) {
+              const gem = seg.gems[g]
+              const dx = Math.abs(ball.position.x - gem.position.x)
+              if (dx < 0.65) {
                 sound.playCoin()
-                scene.remove(seg.gem)
-                seg.gem.geometry.dispose()
-                seg.gem = undefined
+                scene.remove(gem)
+                gem.geometry.dispose()
+                seg.gems.splice(g, 1)
                 stateRef.current.gems += 1
-                stateRef.current.score += 50
+                stateRef.current.score += 60
                 setGems(stateRef.current.gems)
                 setScore(stateRef.current.score)
                 if (stateRef.current.gems >= target) {
                   endRun(true, stateRef.current.score)
+                  return
                 }
               }
             }
           }
         }
 
-        // Passive score for distance
+        // Distance points
         stateRef.current.score += Math.floor(forwardSpeed * dt * 2)
         if (Math.random() < 0.05) setScore(stateRef.current.score)
 
+        // Camera follow
         camera.position.x = ball.position.x * 0.35
-        camera.lookAt(ball.position.x * 0.2, 0.5, -8)
+        camera.lookAt(ball.position.x * 0.2, 0.6, -8)
         renderer?.render(scene, camera)
       }
 
@@ -301,22 +418,28 @@ export const BallRun3DGame: React.FC<GameEngineProps> = ({
       })
       resizeObserver.observe(mount)
 
-      // Cleanup extras on unmount via closed-over refs
+      // Cleanup
       ;(mount as HTMLDivElement & { __ballCleanup?: () => void }).__ballCleanup = () => {
         mount.removeEventListener('pointermove', onPointer)
         mount.removeEventListener('pointerdown', onPointer)
         segments.forEach((seg) => {
           scene.remove(seg.mesh)
-          seg.mesh.geometry.dispose()
-          if (seg.gem) {
-            scene.remove(seg.gem)
-            seg.gem.geometry.dispose()
-          }
+          seg.obstacles.forEach((o) => {
+            scene.remove(o)
+            o.geometry.dispose()
+          })
+          seg.gems.forEach((g) => {
+            scene.remove(g)
+            g.geometry.dispose()
+          })
         })
         ballGeo.dispose()
         ballMat.dispose()
         trackMat.dispose()
-        gapMat.dispose()
+        railMat.dispose()
+        obstacleGeo.dispose()
+        obstacleMat.dispose()
+        gemGeo.dispose()
         gemMat.dispose()
       }
     })()
@@ -347,7 +470,9 @@ export const BallRun3DGame: React.FC<GameEngineProps> = ({
       score: 0,
       gems: 0,
       finished: false,
+      falling: false,
     }
+    resetSceneRef.current?.()
     setHasStarted(true)
     setIsOver(false)
     setIsCleared(false)
@@ -381,8 +506,8 @@ export const BallRun3DGame: React.FC<GameEngineProps> = ({
             <p className="text-base font-black text-white">{isRtl ? 'كرة الجري 3D' : 'Ball Run 3D'}</p>
             <p className="text-xs text-slate-300">
               {isRtl
-                ? `اجمع ${target} جوهرة وتفادى الفراغات · حرّك يمين/يسار`
-                : `Collect ${target} gems and dodge gaps · steer left/right`}
+                ? `اجمع ${target} جوهرة وتفادى الحواجز · تحكم يمين ويسار`
+                : `Collect ${target} gems & dodge barriers · steer left/right`}
             </p>
             <Button variant="primary" size="sm" onClick={start}>
               {isRtl ? 'ابدأ الجري 🚀' : 'Start Run 🚀'}
@@ -393,9 +518,6 @@ export const BallRun3DGame: React.FC<GameEngineProps> = ({
         {loadError && (
           <div className="absolute inset-0 z-20 bg-black/90 flex flex-col items-center justify-center gap-2 p-4 text-center">
             <p className="text-sm font-black text-rose-400">{loadError}</p>
-            <p className="text-xs text-slate-400">
-              {isRtl ? 'ثبّت three من مجلد frontend ثم أعد المحاولة' : 'Install three in frontend/ and retry'}
-            </p>
           </div>
         )}
 
@@ -408,8 +530,8 @@ export const BallRun3DGame: React.FC<GameEngineProps> = ({
                   ? 'المرحلة خلصت!'
                   : 'Level Cleared!'
                 : isRtl
-                  ? 'وقعت في الفراغ!'
-                  : 'Fell through!'}
+                  ? 'اصطدمت أو سقطت!'
+                  : 'Crashed or fell off!'}
             </p>
             <p className="text-xs text-white font-mono">
               {isRtl ? 'النتيجة:' : 'Score:'} {score}
@@ -426,18 +548,18 @@ export const BallRun3DGame: React.FC<GameEngineProps> = ({
         <button
           type="button"
           onPointerDown={() => {
-            stateRef.current.laneX = Math.max(-1.6, stateRef.current.laneX - 0.55)
+            stateRef.current.laneX = Math.max(-1.4, stateRef.current.laneX - 0.7)
           }}
-          className="w-16 h-14 rounded-2xl bg-white/5 border border-white/10 text-cyan-300 font-black text-xl active:scale-95"
+          className="w-16 h-14 rounded-2xl bg-white/5 border border-white/10 text-cyan-300 font-black text-xl active:scale-95 cursor-pointer"
         >
           ←
         </button>
         <button
           type="button"
           onPointerDown={() => {
-            stateRef.current.laneX = Math.min(1.6, stateRef.current.laneX + 0.55)
+            stateRef.current.laneX = Math.min(1.4, stateRef.current.laneX + 0.7)
           }}
-          className="w-16 h-14 rounded-2xl bg-white/5 border border-white/10 text-cyan-300 font-black text-xl active:scale-95"
+          className="w-16 h-14 rounded-2xl bg-white/5 border border-white/10 text-cyan-300 font-black text-xl active:scale-95 cursor-pointer"
         >
           →
         </button>
