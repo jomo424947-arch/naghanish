@@ -1,5 +1,4 @@
 import React from 'react'
-import { Activity } from 'lucide-react'
 import { useThemeStore } from '@store/themeStore'
 
 export interface CognitiveMetricItem {

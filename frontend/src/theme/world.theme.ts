@@ -4,8 +4,7 @@
  * Theme configuration and visual tokens for the 6 NAGHANISH Gaming Worlds.
  */
 
-import { NaghanishModeId } from '@components/common/ModeVisuals'
-
+import { NaghanishModeId } from '@constants/modes'
 export interface WorldThemeConfig {
   id: NaghanishModeId
   route: string

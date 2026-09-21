@@ -1,203 +1,48 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+/**
+ * GameDetailsPage.tsx
+ *
+ * Host page for a single game. Owns start / difficulty / victory chrome and
+ * wraps the lazy engine in GameShell (fullscreen, pause, levels).
+ *
+ * Engines are never static-imported here — they come from games.registry.ts.
+ */
+
+import React, { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft,
   ArrowRight,
-  RotateCcw,
-  Zap,
   Clock,
+  Lock,
   Play,
+  RotateCcw,
   Sparkles,
-  CheckCircle2,
-  XCircle,
-  Target,
-  Volume2,
-  VolumeX,
-  Music,
   Star,
   Trophy,
+  Zap,
 } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { SEO } from '@components/common/SEO'
 import { AdSlot } from '@components/common/AdSlot'
+import { GameShell, useGameProgress, type GameDifficulty, type GameFinishMeta } from '@components/game-kit'
 import { useThemeStore } from '@store/themeStore'
 import { useAuthStore } from '@store/authStore'
 import { ROUTES } from '@constants/routes'
-import { ALL_GAMES, GameItem } from '@data/games.data'
+import { ALL_GAMES, getGameById, getPlayMeta, type GameItem } from '@data/games.data'
+import { getGameEngine } from '@data/games.registry'
 import { httpClient } from '@api/httpClient'
 import { sound } from '@utils/soundManager'
+import { getApiErrorMessage } from '@utils/apiError'
 
-// ── Import ALL dedicated game engine components ──
-import { HextrisGame } from '@components/games/HextrisGame'
-import { NeonInvadersGame } from '@components/games/NeonInvadersGame'
-import { SnakeGame } from '@components/games/SnakeGame'
-import { BrickBreakerGame } from '@components/games/BrickBreakerGame'
-import { RhythmRushGame } from '@components/games/RhythmRushGame'
-import { DodgeRunnerGame } from '@components/games/DodgeRunnerGame'
-import { AimTrainerGame } from '@components/games/AimTrainerGame'
-import { ReverseControlsGame } from '@components/games/ReverseControlsGame'
-import { Game2048 } from '@components/games/Game2048'
-import { SokobanGame } from '@components/games/SokobanGame'
-import { LaserMirrorsGame } from '@components/games/LaserMirrorsGame'
-import { MinesweeperGame } from '@components/games/MinesweeperGame'
-import { DrawAndGuessGame } from '@components/games/DrawAndGuessGame'
-import { CrewTriviaGame } from '@components/games/CrewTriviaGame'
-import { WouldYouRatherGame } from '@components/games/WouldYouRatherGame'
-import { ImpostorGame } from '@components/games/ImpostorGame'
-import { StackTowerGame } from '@components/games/StackTowerGame'
-import { SpeedMathGame } from '@components/games/SpeedMathGame'
-import { PongGame } from '@components/games/PongGame'
-import { MicroGamesEngine } from '@components/games/MicroGamesEngine'
-import { ChaosRouletteGame } from '@components/games/ChaosRouletteGame'
-import { GravityRunnerGame } from '@components/games/GravityRunnerGame'
-import { SudokuGame } from '@components/games/SudokuGame'
-import { SimonPatternGame } from '@components/games/SimonPatternGame'
-import { WordScrambleGame } from '@components/games/WordScrambleGame'
-import { PerfectSecondGame } from '@components/games/PerfectSecondGame'
-import { DontPressButtonGame } from '@components/games/DontPressButtonGame'
-
-// ── Engine type for each game ──
-type EngineType =
-  | 'hextris'
-  | 'invaders'
-  | 'snake'
-  | 'brick'
-  | 'rhythm'
-  | 'dodge'
-  | 'aim'
-  | 'reverse'
-  | '2048'
-  | 'sokoban'
-  | 'laser'
-  | 'minesweeper'
-  | 'draw'
-  | 'trivia'
-  | 'rather'
-  | 'impostor'
-  | 'stack'
-  | 'math'
-  | 'pong'
-  | 'micro'
-  | 'roulette'
-  | 'gravity'
-  | 'sudoku'
-  | 'flappy'
-  | 'runner'
-  | 'simon'
-  | 'shooter'
-  | 'scramble'
-  | 'second'
-  | 'dontpress'
-  | 'memory'
-  | 'reflex'
-  | 'cps'
-  | 'color'
-
-/**
- * Master map: game ID → engine type.
- * Every single game ID in the entire app is mapped here.
- */
-const GAME_ENGINE_MAP: Record<string, EngineType> = {
-  // ── Official 22 Games Catalog ──
-  // Arcade World
-  'g-hextris': 'hextris',
-  'g-invaders': 'invaders',
-  'g-snake': 'snake',
-  'g-brick': 'brick',
-
-  // Reflex World
-  'g-rhythm': 'rhythm',
-  'g-dodge': 'dodge',
-  'g-aim': 'aim',
-  'g-reverse': 'reverse',
-
-  // IQ Lab World
-  'g-2048': '2048',
-  'g-sokoban': 'sokoban',
-  'g-laser': 'laser',
-  'g-mines': 'minesweeper',
-
-  // Shilla World
-  'g-draw': 'draw',
-  'g-trivia': 'trivia',
-  'g-wyr': 'rather',
-  'g-impostor': 'impostor',
-
-  // Champions World
-  'g-stack': 'stack',
-  'g-math': 'math',
-  'g-pong': 'pong',
-
-  // Chaos World
-  'g-micro': 'micro',
-  'g-roulette': 'roulette',
-  'g-gravity': 'gravity',
-
-  // ── Legacy Aliases & Fallbacks ──
-  g1: '2048',
-  g2: 'aim',
-  g3: 'sudoku',
-  g4: 'hextris',
-  g5: 'minesweeper',
-  g6: 'simon',
-  g7: 'dodge',
-  g8: 'aim',
-  g9: 'second',
-  g10: 'trivia',
-  g11: 'trivia',
-  g12: 'trivia',
-  g13: 'roulette',
-  g14: 'brick',
-  g15: 'snake',
-  g16: 'invaders',
-  g17: 'stack',
-  g18: 'simon',
-  g19: 'snake',
-  g20: 'pong',
-  g21: 'cps',
-  g22: 'aim',
-  g23: 'rhythm',
-  g24: 'dodge',
-  g25: 'reverse',
-  g26: 'second',
-  g27: 'pong',
-  g28: '2048',
-  g29: 'sokoban',
-  g30: 'laser',
-  g31: 'sudoku',
-  g32: 'minesweeper',
-  g33: 'draw',
-  g34: 'trivia',
-  g35: 'rather',
-  g36: 'impostor',
-  g37: 'trivia',
-  g38: 'draw',
-  g39: 'rather',
-  g40: 'trivia',
-  g41: 'trivia',
-  g42: 'stack',
-  g43: 'memory',
-  g44: 'cps',
-  g45: 'math',
-  g46: 'aim',
-  g47: 'pong',
-  g48: 'trivia',
-  g49: 'invaders',
-  g50: 'reverse',
-  g51: 'trivia',
-  g52: 'second',
-  g53: 'color',
-  g54: 'scramble',
-  g55: 'micro',
-  g56: 'gravity',
-  g57: 'roulette',
-  g58: 'gravity',
-  g59: 'math',
-  g60: 'laser',
+function EngineFallback({ isRtl }: { isRtl: boolean }) {
+  return (
+    <div className="w-full min-h-[20rem] flex flex-col items-center justify-center gap-3 text-slate-400">
+      <div className="w-10 h-10 rounded-full border-2 border-cyan-400/40 border-t-cyan-300 animate-spin" />
+      <span className="text-xs font-black">{isRtl ? 'جاري تحميل اللعبة...' : 'Loading game...'}</span>
+    </div>
+  )
 }
-
-const MEMORY_EMOJIS = ['🧠', '⚡', '🏆', '🎯', '🎨', '🧮', '🎮', '🚀']
 
 export function GameDetailsPage() {
   const { id } = useParams()
@@ -206,470 +51,147 @@ export function GameDetailsPage() {
   const { user, updateProfile } = useAuthStore()
 
   const isRtl = dir === 'rtl'
-  const currentGame: GameItem = ALL_GAMES.find((g) => g.id === id) || ALL_GAMES[0]
-  const engine: EngineType = GAME_ENGINE_MAP[currentGame.id] || 'trivia'
+  const lookedUpGame = getGameById(id ?? '')
+  // Fallback keeps hooks unconditional; unknown IDs redirect below.
+  const currentGame: GameItem = lookedUpGame ?? ALL_GAMES[0]
 
-  // Redirect quiz URLs if mistakenly routed here
-  useEffect(() => {
-    if (id && id.startsWith('q')) {
-      navigate(`/quizzes/${id}`, { replace: true })
-    }
-  }, [id, navigate])
-
-  // ── Core State ──
-  const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium')
+  const [difficulty, setDifficulty] = useState<GameDifficulty>('Medium')
+  const [selectedLevel, setSelectedLevel] = useState(1)
   const [gameStarted, setGameStarted] = useState(false)
   const [gameWon, setGameWon] = useState(false)
   const [score, setScore] = useState(0)
   const [elapsedTime, setElapsedTime] = useState(0)
   const [earnedXp, setEarnedXp] = useState(0)
   const [earnedCoins, setEarnedCoins] = useState(0)
-  const [isSoundOn, setIsSoundOn] = useState(sound.isEnabled())
-  const [isBgmOn, setIsBgmOn] = useState(sound.isBgmEnabled())
+  const [engineKey, setEngineKey] = useState(0)
 
-  // Multiplier: Easy = 1.0x, Medium = 1.5x, Hard = 2.5x
   const diffMultiplier = difficulty === 'Hard' ? 2.5 : difficulty === 'Medium' ? 1.5 : 1.0
+  const playMeta = getPlayMeta(currentGame)
+  const Engine = useMemo(() => getGameEngine(currentGame.id), [currentGame.id])
+  const progress = useGameProgress(currentGame.id, playMeta.levelCount)
 
-  // ── Inline-engine state (Memory, Reflex, CPS, Math, Color, Aim) ──
-  const [cards, setCards] = useState<{ id: number; emoji: string; flipped: boolean; matched: boolean }[]>([])
-  const [flippedIndices, setFlippedIndices] = useState<number[]>([])
-  const [moves, setMoves] = useState(0)
-  const [reactionState, setReactionState] = useState<'idle' | 'waiting' | 'ready' | 'result'>('idle')
-  const [startTime, setStartTime] = useState(0)
-  const [reactionTime, setReactionTime] = useState<number | null>(null)
-  const [tapCount, setTapCount] = useState(0)
-  const [tapTimeLeft, setTapTimeLeft] = useState(5)
-  const [mathNum1, setMathNum1] = useState(12)
-  const [mathNum2, setMathNum2] = useState(8)
-  const [mathOp, setMathOp] = useState<'+' | '-' | '×'>('+')
-  const [mathOptions, setMathOptions] = useState<number[]>([])
-  const [mathStreak, setMathStreak] = useState(0)
-  const [colorText, setColorText] = useState('أحمر')
-  const [colorHex, setColorHex] = useState('#EF4444')
-  const [colorMatched, setColorMatched] = useState(true)
-  const [targetPos, setTargetPos] = useState({ top: 40, left: 50 })
-  const [aimScore, setAimScore] = useState(0)
-
-  // ── Timer ──
   useEffect(() => {
-    if (!gameStarted || gameWon) return
-    const timer = setInterval(() => setElapsedTime((p) => p + 1), 1000)
-    return () => clearInterval(timer)
-  }, [gameStarted, gameWon])
-
-  // ── CPS Timer ──
-  useEffect(() => {
-    if (!gameStarted || engine !== 'cps' || gameWon) return
-    if (tapTimeLeft <= 0) {
-      handleFinishGame(tapCount * 100)
+    if (id?.startsWith('q')) {
+      navigate(`/quizzes/${id}`, { replace: true })
       return
     }
-    const timer = setInterval(() => setTapTimeLeft((p) => p - 1), 1000)
-    return () => clearInterval(timer)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameStarted, engine, tapTimeLeft, gameWon])
+    if (id && !lookedUpGame) {
+      navigate(ROUTES.NOT_FOUND, { replace: true })
+    }
+  }, [id, lookedUpGame, navigate])
 
-  // ── Finish Game ──
-  const handleFinishGame = useCallback(async (finalScore: number) => {
-    setGameWon(true)
-    setScore(finalScore)
+  // Reset session state when navigating between games.
+  useEffect(() => {
+    setGameStarted(false)
+    setGameWon(false)
+    setScore(0)
+    setElapsedTime(0)
+    setSelectedLevel(1)
+    setEngineKey((key) => key + 1)
+  }, [currentGame.id])
 
-    const baseReward = Math.round(currentGame.xpReward * diffMultiplier)
+  useEffect(() => {
+    if (!gameStarted || gameWon) return
+    const timer = window.setInterval(() => setElapsedTime((prev) => prev + 1), 1000)
+    return () => window.clearInterval(timer)
+  }, [gameStarted, gameWon])
 
-    try {
-      const res = await httpClient.post(`/games/${currentGame.id}/submit`, {
-        score: finalScore,
-        elapsed_seconds: elapsedTime,
-      })
-      if (res.data) {
-        const xpGot = Math.round((res.data.xpEarned ?? res.data.xp_earned ?? baseReward) * (difficulty === 'Hard' ? 1.5 : difficulty === 'Medium' ? 1.2 : 1.0))
-        const coinsGot = Math.round((res.data.coinsEarned ?? res.data.coins_earned ?? 50) * diffMultiplier)
-        setEarnedXp(xpGot)
-        setEarnedCoins(coinsGot)
+  const handleFinishGame = useCallback(
+    async (finalScore: number, meta?: GameFinishMeta) => {
+      setGameWon(true)
+      setScore(finalScore)
 
+      const levelReached = meta?.levelReached ?? selectedLevel
+      const stars = meta?.stars ?? (finalScore > 600 ? 3 : finalScore > 250 ? 2 : 1)
+      progress.completeLevel(levelReached, stars, finalScore)
+
+      const baseReward = Math.round(currentGame.xpReward * diffMultiplier)
+
+      try {
+        const res = await httpClient.post(`/games/${currentGame.id}/submit`, {
+          score: finalScore,
+          elapsed_seconds: elapsedTime,
+          difficulty,
+        })
+        if (res.data) {
+          const xpGot = res.data.xpEarned ?? res.data.xp_earned ?? baseReward
+          const coinsGot =
+            res.data.coinsEarned ?? res.data.coins_earned ?? Math.round(50 * diffMultiplier)
+          setEarnedXp(xpGot)
+          setEarnedCoins(coinsGot)
+
+          if (user) {
+            updateProfile({
+              xp: res.data.userXp ?? (user.xp || 0) + xpGot,
+              coins: res.data.userCoins ?? (user.coins || 0) + coinsGot,
+              level: res.data.userLevel ?? user.level,
+              maxXp: res.data.userMaxXp ?? user.maxXp,
+              rank: res.data.rankTitle ?? user.rank,
+            })
+          }
+        }
+      } catch (error) {
+        console.warn('[GameDetails] submit failed:', getApiErrorMessage(error, 'submit failed'))
+        setEarnedXp(baseReward)
+        setEarnedCoins(Math.round(50 * diffMultiplier))
         if (user) {
           updateProfile({
-            xp: res.data.userXp ?? ((user.xp || 0) + xpGot),
-            coins: res.data.userCoins ?? ((user.coins || 0) + coinsGot),
-            level: res.data.userLevel ?? user.level,
-            maxXp: res.data.userMaxXp ?? user.maxXp,
-            rank: res.data.rankTitle ?? user.rank,
+            xp: (user.xp || 0) + baseReward,
+            coins: (user.coins || 0) + Math.round(50 * diffMultiplier),
           })
         }
       }
-    } catch {
-      const fallbackXp = baseReward
-      const fallbackCoins = Math.round(50 * diffMultiplier)
-      setEarnedXp(fallbackXp)
-      setEarnedCoins(fallbackCoins)
-      if (user) {
-        updateProfile({
-          xp: (user.xp || 0) + fallbackXp,
-          coins: (user.coins || 0) + fallbackCoins,
-        })
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentGame, elapsedTime, user, diffMultiplier, difficulty])
-
-  // ── Inline engine helpers ──
-  const initMemoryGame = () => {
-    const deck = [...MEMORY_EMOJIS, ...MEMORY_EMOJIS]
-      .sort(() => Math.random() - 0.5)
-      .map((emoji, idx) => ({ id: idx, emoji, flipped: false, matched: false }))
-    setCards(deck)
-    setFlippedIndices([])
-    setMoves(0)
-  }
-
-  const generateMathQuestion = () => {
-    const n1 = Math.floor(Math.random() * 20) + 5
-    const n2 = Math.floor(Math.random() * 15) + 2
-    const ops: ('+' | '-' | '×')[] = ['+', '-', '×']
-    const op = ops[Math.floor(Math.random() * ops.length)]
-    let correct = 0
-    if (op === '+') correct = n1 + n2
-    if (op === '-') correct = n1 - n2
-    if (op === '×') correct = n1 * n2
-    const opts = [
-      correct,
-      correct + (Math.random() > 0.5 ? 2 : -2),
-      correct + (Math.random() > 0.5 ? 5 : -5),
-      correct + (Math.random() > 0.5 ? 10 : -10),
-    ].sort(() => Math.random() - 0.5)
-    setMathNum1(n1)
-    setMathNum2(n2)
-    setMathOp(op)
-    setMathOptions(opts)
-  }
-
-  const generateColorQuestion = () => {
-    const colors = [
-      { text: 'أحمر', hex: '#EF4444' },
-      { text: 'أزرق', hex: '#3B82F6' },
-      { text: 'أخضر', hex: '#10B981' },
-      { text: 'أصفر', hex: '#F59E0B' },
+    },
+    [
+      selectedLevel,
+      progress,
+      currentGame,
+      diffMultiplier,
+      elapsedTime,
+      difficulty,
+      user,
+      updateProfile,
     ]
-    const chosenText = colors[Math.floor(Math.random() * colors.length)]
-    const match = Math.random() > 0.5
-    const chosenHex = match
-      ? chosenText.hex
-      : colors.filter((c) => c.hex !== chosenText.hex)[Math.floor(Math.random() * 3)].hex
-    setColorText(chosenText.text)
-    setColorHex(chosenHex)
-    setColorMatched(chosenText.hex === chosenHex)
-  }
+  )
 
-  const startReactionRound = () => {
-    setReactionState('waiting')
-    const delay = Math.floor(Math.random() * 2500) + 1500
-    setTimeout(() => {
-      setReactionState('ready')
-      setStartTime(Date.now())
-    }, delay)
-  }
+  const handleLevelComplete = useCallback(
+    (level: number, stars: number) => {
+      progress.completeLevel(level, stars, score)
+    },
+    [progress, score]
+  )
 
-  const moveTarget = () => {
-    setTargetPos({
-      top: Math.floor(Math.random() * 70) + 15,
-      left: Math.floor(Math.random() * 70) + 15,
-    })
-  }
-
-  // ── Start / Restart ──
   const handleStartGame = () => {
     sound.playClick()
     setGameStarted(true)
     setGameWon(false)
     setScore(0)
-    setAimScore(0)
     setElapsedTime(0)
-    setMathStreak(0)
-
-    switch (engine) {
-      case 'memory': initMemoryGame(); break
-      case 'reflex': startReactionRound(); break
-      case 'cps': setTapCount(0); setTapTimeLeft(5); break
-      case 'math': generateMathQuestion(); break
-      case 'color': generateColorQuestion(); break
-      case 'aim': moveTarget(); break
-      default: break // dedicated components handle their own init
-    }
+    setEngineKey((key) => key + 1)
   }
 
-  // ── Inline engine event handlers ──
-  const handleCardClick = (index: number) => {
-    if (flippedIndices.length === 2 || cards[index].flipped || cards[index].matched) return
+  const handleRestart = () => {
     sound.playClick()
-    const newCards = [...cards]
-    newCards[index].flipped = true
-    setCards(newCards)
-    const newFlipped = [...flippedIndices, index]
-    setFlippedIndices(newFlipped)
-    if (newFlipped.length === 2) {
-      setMoves((m) => m + 1)
-      const [a, b] = newFlipped
-      if (cards[a].emoji === cards[b].emoji) {
-        sound.playCoin()
-        newCards[a].matched = true
-        newCards[b].matched = true
-        setCards(newCards)
-        setFlippedIndices([])
-        if (newCards.every((c) => c.matched)) handleFinishGame(1000 - moves * 20)
-      } else {
-        setTimeout(() => {
-          newCards[a].flipped = false
-          newCards[b].flipped = false
-          setCards([...newCards])
-          setFlippedIndices([])
-        }, 800)
-      }
-    }
+    setGameWon(false)
+    setScore(0)
+    setElapsedTime(0)
+    setEngineKey((key) => key + 1)
+    setGameStarted(true)
   }
 
-  const handleReflexClick = () => {
-    if (reactionState === 'waiting') {
-      sound.playGameOver()
-      setReactionState('idle')
-    } else if (reactionState === 'ready') {
-      sound.playWin()
-      const diff = Date.now() - startTime
-      setReactionTime(diff)
-      setReactionState('result')
-      handleFinishGame(Math.max(100, 1000 - diff))
-    }
+  const earnedStars = score > 600 ? 3 : score > 250 ? 2 : 1
+
+  if (!lookedUpGame) {
+    return null
   }
-
-  const handleMathAnswer = (val: number) => {
-    let correct = 0
-    if (mathOp === '+') correct = mathNum1 + mathNum2
-    if (mathOp === '-') correct = mathNum1 - mathNum2
-    if (mathOp === '×') correct = mathNum1 * mathNum2
-    if (val === correct) {
-      sound.playCoin()
-      const ns = mathStreak + 1
-      setMathStreak(ns)
-      if (ns >= 5) handleFinishGame(ns * 250)
-      else generateMathQuestion()
-    } else {
-      sound.playGameOver()
-      setMathStreak(0)
-      generateMathQuestion()
-    }
-  }
-
-  const handleColorAnswer = (userSaysMatch: boolean) => {
-    if (userSaysMatch === colorMatched) {
-      sound.playCoin()
-      const ns = score + 200
-      setScore(ns)
-      if (ns >= 800) handleFinishGame(ns)
-      else generateColorQuestion()
-    } else {
-      sound.playGameOver()
-      generateColorQuestion()
-    }
-  }
-
-  const handleTargetHit = () => {
-    sound.playBounce()
-    const ns = aimScore + 150
-    setAimScore(ns)
-    if (ns >= 750) handleFinishGame(ns)
-    else moveTarget()
-  }
-
-  // ── Render the correct dedicated component ──
-  const renderDedicatedEngine = () => {
-    switch (engine) {
-      case 'hextris':     return <HextrisGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'invaders':    return <NeonInvadersGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'snake':       return <SnakeGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'brick':       return <BrickBreakerGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'rhythm':      return <RhythmRushGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'dodge':       return <DodgeRunnerGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'aim':         return <AimTrainerGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'reverse':     return <ReverseControlsGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case '2048':        return <Game2048 onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'sokoban':     return <SokobanGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'laser':       return <LaserMirrorsGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'minesweeper': return <MinesweeperGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'draw':        return <DrawAndGuessGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'trivia':      return <CrewTriviaGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'rather':      return <WouldYouRatherGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'impostor':    return <ImpostorGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'stack':       return <StackTowerGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'math':        return <SpeedMathGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'pong':        return <PongGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'micro':       return <MicroGamesEngine onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'roulette':    return <ChaosRouletteGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'gravity':     return <GravityRunnerGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'sudoku':      return <SudokuGame onFinish={handleFinishGame} isRtl={isRtl} difficulty={difficulty} />
-      case 'simon':       return <SimonPatternGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'scramble':    return <WordScrambleGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'second':      return <PerfectSecondGame onFinish={handleFinishGame} isRtl={isRtl} />
-      case 'dontpress':   return <DontPressButtonGame onFinish={handleFinishGame} isRtl={isRtl} />
-      default:            return null
-    }
-  }
-
-  // ── Render inline engine UI ──
-  const renderInlineEngine = () => {
-    switch (engine) {
-      case 'memory':
-        return (
-          <div className="flex flex-col items-center gap-4">
-            <div className="flex items-center gap-4 text-xs font-black text-slate-300">
-              <span>{isRtl ? 'الحركات:' : 'Moves:'} {moves}</span>
-              <span>•</span>
-              <span className="text-amber-300">
-                {isRtl ? 'المطابقات:' : 'Matched:'} {cards.filter((c) => c.matched).length / 2} / 8
-              </span>
-            </div>
-            <div className="grid grid-cols-4 gap-3">
-              {cards.map((card, idx) => (
-                <button
-                  key={card.id}
-                  onClick={() => handleCardClick(idx)}
-                  className={`w-16 h-20 sm:w-20 sm:h-24 rounded-2xl text-3xl font-black flex items-center justify-center border-2 transition-all duration-300 cursor-pointer ${
-                    card.flipped || card.matched
-                      ? 'bg-gradient-to-br from-brand-purple to-blue-600 border-cyan-400 shadow-glow'
-                      : 'bg-brand-darkBg border-brand-cardBorder hover:border-brand-purple'
-                  }`}
-                >
-                  {card.flipped || card.matched ? card.emoji : '❓'}
-                </button>
-              ))}
-            </div>
-          </div>
-        )
-
-      case 'reflex':
-        return (
-          <div className="flex flex-col items-center gap-4 w-full max-w-sm">
-            <button
-              onClick={handleReflexClick}
-              className={`w-full h-64 rounded-3xl border-2 flex flex-col items-center justify-center gap-3 text-center p-6 transition-all duration-200 cursor-pointer ${
-                reactionState === 'waiting'
-                  ? 'bg-rose-950/60 border-rose-500 shadow-[0_0_30px_#f43f5e]'
-                  : reactionState === 'ready'
-                  ? 'bg-emerald-600 border-emerald-400 shadow-[0_0_40px_#10b981] animate-pulse'
-                  : 'bg-brand-card border-brand-cardBorder'
-              }`}
-            >
-              <span className="text-5xl">
-                {reactionState === 'waiting' ? '🛑' : reactionState === 'ready' ? '⚡' : '⏱️'}
-              </span>
-              <h3 className="text-xl font-black text-white">
-                {reactionState === 'waiting'
-                  ? (isRtl ? 'انتظر اللون الأخضر...' : 'Wait for Green...')
-                  : reactionState === 'ready'
-                  ? (isRtl ? 'اضغط الآن!' : 'CLICK NOW!')
-                  : (isRtl ? 'اضغط هنا للبدء' : 'Click to start')}
-              </h3>
-            </button>
-          </div>
-        )
-
-      case 'cps':
-        return (
-          <div className="flex flex-col items-center gap-6 w-full max-w-xs">
-            <div className="flex items-center justify-between w-full text-xs font-mono font-black">
-              <span className="text-rose-400">{tapTimeLeft}s</span>
-              <span className="text-cyan-300">CPS: {(tapCount / Math.max(1, 5 - tapTimeLeft)).toFixed(1)}</span>
-            </div>
-            <button
-              onClick={() => setTapCount((c) => c + 1)}
-              className="w-48 h-48 rounded-full bg-gradient-to-br from-rose-500 via-pink-600 to-purple-700 border-4 border-white/20 text-white flex flex-col items-center justify-center gap-1 shadow-glow active:scale-95 transition-transform cursor-pointer"
-            >
-              <span className="text-4xl font-black font-mono">{tapCount}</span>
-              <span className="text-xs font-black uppercase">{isRtl ? 'انقر بأقصى سرعة!' : 'TAP FAST!'}</span>
-            </button>
-          </div>
-        )
-
-      case 'math':
-        return (
-          <div className="flex flex-col items-center gap-6 w-full max-w-sm">
-            <div className="flex items-center gap-2 text-xs font-black text-amber-300">
-              <span>🔥 {isRtl ? 'سلسلة:' : 'Streak:'} {mathStreak} / 5</span>
-            </div>
-            <div className="p-8 rounded-3xl bg-brand-darkBg border-2 border-brand-purple/50 shadow-inner flex items-center justify-center text-4xl font-black text-cyan-300 font-mono tracking-wider">
-              {mathNum1} {mathOp} {mathNum2} = ?
-            </div>
-            <div className="grid grid-cols-2 gap-3 w-full">
-              {mathOptions.map((opt, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleMathAnswer(opt)}
-                  className="p-4 rounded-2xl bg-brand-card border-2 border-brand-cardBorder hover:border-cyan-400 font-mono text-xl font-black text-white active:scale-95 transition-all shadow cursor-pointer"
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </div>
-        )
-
-      case 'color':
-        return (
-          <div className="flex flex-col items-center gap-6 w-full max-w-sm">
-            <div className="p-8 rounded-3xl bg-brand-darkBg border-2 border-brand-purple/50 flex flex-col items-center justify-center gap-2">
-              <span className="text-4xl font-black tracking-widest drop-shadow-md" style={{ color: colorHex }}>
-                {colorText}
-              </span>
-              <p className="text-[11px] text-slate-400">{isRtl ? 'هل يتطابق اسم اللون مع لونه الحقيقي؟' : 'Does word match color?'}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4 w-full">
-              <button
-                onClick={() => handleColorAnswer(true)}
-                className="p-4 rounded-2xl bg-emerald-600 border border-emerald-400 text-white font-black text-base flex items-center justify-center gap-2 shadow active:scale-95 cursor-pointer"
-              >
-                <CheckCircle2 className="w-5 h-5" />
-                <span>{isRtl ? 'متطابقان ✓' : 'Match ✓'}</span>
-              </button>
-              <button
-                onClick={() => handleColorAnswer(false)}
-                className="p-4 rounded-2xl bg-rose-600 border border-rose-400 text-white font-black text-base flex items-center justify-center gap-2 shadow active:scale-95 cursor-pointer"
-              >
-                <XCircle className="w-5 h-5" />
-                <span>{isRtl ? 'مختلفان ✗' : 'Mismatch ✗'}</span>
-              </button>
-            </div>
-          </div>
-        )
-
-      case 'aim':
-        return (
-          <div className="flex flex-col items-center gap-3 w-full">
-            <span className="text-xs font-black text-amber-300">🎯 {aimScore} / 750</span>
-            <div className="relative w-full h-80 rounded-3xl bg-brand-darkBg border-2 border-brand-purple/40 overflow-hidden shadow-inner">
-              <button
-                onClick={handleTargetHit}
-                style={{ top: `${targetPos.top}%`, left: `${targetPos.left}%` }}
-                className="absolute -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-rose-500 border-4 border-white shadow-[0_0_20px_#f43f5e] flex items-center justify-center text-white active:scale-90 transition-transform cursor-crosshair"
-              >
-                <Target className="w-7 h-7" />
-              </button>
-            </div>
-          </div>
-        )
-
-      default:
-        return null
-    }
-  }
-
-  // Is it a dedicated component or inline?
-  const isDedicated = !['memory', 'reflex', 'cps', 'color'].includes(engine)
 
   return (
     <div className="flex flex-col gap-6 py-4 max-w-4xl mx-auto pb-24">
       <SEO title={`${currentGame.titleAr} | نغنِش`} description={currentGame.descAr} />
 
-      {/* Top Bar */}
       <div className="flex items-center justify-between">
         <button
+          type="button"
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-xs font-black text-slate-400 hover:text-white transition-colors cursor-pointer"
         >
@@ -686,42 +208,26 @@ export function GameDetailsPage() {
         </div>
       </div>
 
-      {/* Main Card */}
       <div className="relative rounded-[2rem] bg-brand-card border-2 border-brand-cardBorder shadow-2xl p-6 sm:p-8 flex flex-col items-center">
-        {/* Header */}
-        <div className="w-full flex items-center justify-between border-b border-white/10 pb-4 mb-6">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-brand-darkBg flex items-center justify-center text-3xl border-2 border-brand-cardBorder shadow-md">
-              {currentGame.icon}
+        {!gameStarted && (
+          <div className="w-full flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-brand-darkBg flex items-center justify-center text-3xl border-2 border-brand-cardBorder shadow-md">
+                {currentGame.icon}
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-black text-white">{currentGame.titleAr}</h1>
+                <p className="text-xs text-slate-400 mt-0.5">{currentGame.descAr}</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-black text-white">{currentGame.titleAr}</h1>
-              <p className="text-xs text-slate-400 mt-0.5">{currentGame.descAr}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsSoundOn(sound.toggleSound())}
-              title={isSoundOn ? (isRtl ? 'كتم المؤثرات' : 'Mute SFX') : (isRtl ? 'تشغيل المؤثرات' : 'Unmute SFX')}
-              className="p-2 rounded-xl bg-black/40 border border-white/10 text-slate-300 hover:text-white transition-all cursor-pointer"
-            >
-              {isSoundOn ? <Volume2 className="w-4 h-4 text-emerald-400" /> : <VolumeX className="w-4 h-4 text-rose-400" />}
-            </button>
-            <button
-              onClick={() => setIsBgmOn(sound.toggleBgm())}
-              title={isBgmOn ? (isRtl ? 'إيقاف الموسيقى' : 'Stop Music') : (isRtl ? 'تشغيل الموسيقى' : 'Play Music')}
-              className="p-2 rounded-xl bg-black/40 border border-white/10 text-slate-300 hover:text-white transition-all cursor-pointer"
-            >
-              <Music className={`w-4 h-4 ${isBgmOn ? 'text-cyan-400 animate-bounce' : 'text-slate-500'}`} />
-            </button>
             <div className="flex items-center gap-2 font-mono text-sm font-black text-cyan-300 bg-black/40 px-3 py-1.5 rounded-xl border border-cyan-400/30">
               <Clock className="w-4 h-4" />
               <span>{elapsedTime}s</span>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* ── START SCREEN ── */}
+        {/* Start screen */}
         {!gameStarted && !gameWon && (
           <div className="flex flex-col items-center gap-6 py-8 text-center max-w-md w-full">
             <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-brand-purple to-brand-blue flex items-center justify-center text-5xl shadow-glow animate-bounce">
@@ -729,10 +235,11 @@ export function GameDetailsPage() {
             </div>
             <div>
               <h2 className="text-2xl font-black text-white">{currentGame.titleAr}</h2>
-              <p className="text-xs text-slate-300 font-medium mt-2 leading-relaxed">{currentGame.descAr}</p>
+              <p className="text-xs text-slate-300 font-medium mt-2 leading-relaxed">
+                {currentGame.descAr}
+              </p>
             </div>
 
-            {/* Difficulty Selector */}
             <div className="w-full flex flex-col items-center gap-2 p-3 rounded-2xl bg-black/40 border border-white/10">
               <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">
                 {isRtl ? 'اختر مستوى الصعوبة ومضاعف الـ XP' : 'Select Difficulty & XP Multiplier'}
@@ -740,47 +247,156 @@ export function GameDetailsPage() {
               <div className="grid grid-cols-3 gap-2 w-full">
                 {(
                   [
-                    { id: 'Easy', labelAr: 'سهل', mult: '1.0x', color: 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10' },
-                    { id: 'Medium', labelAr: 'متوسط', mult: '1.5x', color: 'border-cyan-500/40 text-cyan-400 bg-cyan-500/10' },
-                    { id: 'Hard', labelAr: 'صعب 🔥', mult: '2.5x', color: 'border-rose-500/40 text-rose-400 bg-rose-500/10' },
+                    {
+                      id: 'Easy' as const,
+                      labelAr: 'سهل',
+                      mult: '1.0x',
+                      color: 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10',
+                    },
+                    {
+                      id: 'Medium' as const,
+                      labelAr: 'متوسط',
+                      mult: '1.5x',
+                      color: 'border-cyan-500/40 text-cyan-400 bg-cyan-500/10',
+                    },
+                    {
+                      id: 'Hard' as const,
+                      labelAr: 'صعب 🔥',
+                      mult: '2.5x',
+                      color: 'border-rose-500/40 text-rose-400 bg-rose-500/10',
+                    },
                   ] as const
-                ).map((d) => {
-                  const isSelected = difficulty === d.id
+                ).map((option) => {
+                  const isSelected = difficulty === option.id
                   return (
                     <button
-                      key={d.id}
+                      key={option.id}
+                      type="button"
                       onClick={() => {
                         sound.playClick()
-                        setDifficulty(d.id)
+                        setDifficulty(option.id)
                       }}
                       className={`py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 transition-all cursor-pointer ${
                         isSelected
-                          ? `${d.color} shadow-glow scale-[1.03] border-current`
+                          ? `${option.color} shadow-glow scale-[1.03] border-current`
                           : 'border-white/5 bg-white/[0.02] text-slate-400 hover:border-white/20'
                       }`}
                     >
-                      <span className="text-xs font-black">{isRtl ? d.labelAr : d.id}</span>
-                      <span className="text-[10px] font-mono opacity-80">{d.mult} XP</span>
+                      <span className="text-xs font-black">{isRtl ? option.labelAr : option.id}</span>
+                      <span className="text-[10px] font-mono opacity-80">{option.mult} XP</span>
                     </button>
                   )
                 })}
               </div>
             </div>
 
-            <Button variant="primary" size="lg" fullWidth onClick={handleStartGame} leftIcon={<Play className="w-5 h-5 fill-current" />}>
+            {playMeta.levelCount > 1 && (
+              <div className="w-full flex flex-col items-center gap-2 p-3 rounded-2xl bg-black/40 border border-white/10">
+                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">
+                  {isRtl ? 'اختر المرحلة' : 'Select Level'}
+                </span>
+                <div className="flex flex-wrap justify-center gap-1.5 w-full">
+                  {Array.from({ length: playMeta.levelCount }, (_, index) => index + 1).map(
+                    (levelNumber) => {
+                      const unlocked = progress.isLevelUnlocked(levelNumber)
+                      const stars = progress.starsForLevel(levelNumber)
+                      const isActive = selectedLevel === levelNumber
+                      return (
+                        <button
+                          key={levelNumber}
+                          type="button"
+                          disabled={!unlocked}
+                          onClick={() => {
+                            sound.playClick()
+                            setSelectedLevel(levelNumber)
+                          }}
+                          className={`w-11 h-12 rounded-xl border-2 flex flex-col items-center justify-center gap-0.5 font-mono text-xs font-black transition-all ${
+                            isActive
+                              ? 'border-cyan-400 bg-cyan-500/20 text-cyan-200'
+                              : unlocked
+                                ? 'border-white/10 bg-white/5 text-slate-300 cursor-pointer'
+                                : 'border-white/5 bg-black/40 text-slate-600 cursor-not-allowed'
+                          }`}
+                        >
+                          {unlocked ? levelNumber : <Lock className="w-3 h-3" />}
+                          <span className="flex gap-px h-2">
+                            {Array.from({ length: stars }, (_, starIndex) => (
+                              <Star
+                                key={starIndex}
+                                className="w-1.5 h-1.5 text-amber-400 fill-amber-400"
+                              />
+                            ))}
+                          </span>
+                        </button>
+                      )
+                    }
+                  )}
+                </div>
+              </div>
+            )}
+
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              onClick={handleStartGame}
+              leftIcon={<Play className="w-5 h-5 fill-current" />}
+              disabled={!Engine}
+            >
               {isRtl ? 'ابدأ اللعب الآن 🚀' : 'Play Now 🚀'}
             </Button>
+
+            {!Engine && (
+              <p className="text-xs text-rose-400 font-bold">
+                {isRtl ? 'محرك هذه اللعبة غير متاح حالياً' : 'This game engine is not available yet'}
+              </p>
+            )}
           </div>
         )}
 
-        {/* ── GAME AREA ── */}
-        {gameStarted && !gameWon && (
-          <div className="w-full flex flex-col items-center">
-            {isDedicated ? renderDedicatedEngine() : renderInlineEngine()}
+        {/* Active game */}
+        {gameStarted && !gameWon && Engine && (
+          <div className="w-full">
+            <GameShell
+              gameId={currentGame.id}
+              titleAr={currentGame.titleAr}
+              titleEn={currentGame.title}
+              icon={currentGame.icon}
+              isRtl={isRtl}
+              orientation={playMeta.preferredOrientation}
+              levelCount={playMeta.levelCount}
+              level={selectedLevel}
+              onLevelChange={(level) => {
+                setSelectedLevel(level)
+                setEngineKey((key) => key + 1)
+              }}
+              hud={
+                <div className="flex items-center gap-2 font-mono text-xs font-black text-cyan-300 bg-black/40 px-2.5 py-1 rounded-lg border border-cyan-400/30">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>{elapsedTime}s</span>
+                </div>
+              }
+              onExit={() => {
+                setGameStarted(false)
+                setGameWon(false)
+              }}
+              onRestart={handleRestart}
+            >
+              <Suspense fallback={<EngineFallback isRtl={isRtl} />}>
+                <Engine
+                  key={engineKey}
+                  onFinish={handleFinishGame}
+                  isRtl={isRtl}
+                  difficulty={difficulty}
+                  level={selectedLevel}
+                  onLevelComplete={handleLevelComplete}
+                />
+              </Suspense>
+            </GameShell>
           </div>
         )}
 
-        {/* ── VICTORY SCREEN ── */}
+        {/* Victory */}
         {gameWon && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -791,27 +407,29 @@ export function GameDetailsPage() {
               <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center text-5xl shadow-glow-gold">
                 🏆
               </div>
-              {/* Star Rating Display */}
               <div className="flex items-center gap-1.5 mt-2">
-                {[1, 2, 3].map((starIdx) => {
-                  const earned = score > 600 ? 3 : score > 250 ? 2 : 1
-                  return (
-                    <Star
-                      key={starIdx}
-                      className={`w-7 h-7 ${
-                        starIdx <= earned
-                          ? 'text-amber-400 fill-amber-400 animate-in zoom-in duration-300'
-                          : 'text-slate-700'
-                      }`}
-                    />
-                  )
-                })}
+                {[1, 2, 3].map((starIdx) => (
+                  <Star
+                    key={starIdx}
+                    className={`w-7 h-7 ${
+                      starIdx <= earnedStars
+                        ? 'text-amber-400 fill-amber-400'
+                        : 'text-slate-700'
+                    }`}
+                  />
+                ))}
               </div>
             </div>
 
             <div>
               <h2 className="text-2xl sm:text-3xl font-black text-white">
-                {isRtl ? 'مبروك الفوز! 🎉' : 'Victory! 🎉'}
+                {score > 0
+                  ? isRtl
+                    ? 'انتهت الجولة! 🎮'
+                    : 'Round Complete! 🎮'
+                  : isRtl
+                    ? 'انتهت المحاولة'
+                    : 'Session Over'}
               </h2>
               <div className="flex items-center justify-center gap-2 mt-1">
                 <span className="text-sm font-mono text-cyan-400 font-bold">
@@ -819,7 +437,17 @@ export function GameDetailsPage() {
                 </span>
                 <span className="text-slate-500">•</span>
                 <span className="text-xs font-black px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300">
-                  {difficulty === 'Hard' ? (isRtl ? 'صعب (2.5x)' : 'Hard (2.5x)') : difficulty === 'Easy' ? (isRtl ? 'سهل (1.0x)' : 'Easy (1.0x)') : (isRtl ? 'متوسط (1.5x)' : 'Medium (1.5x)')}
+                  {difficulty === 'Hard'
+                    ? isRtl
+                      ? 'صعب (2.5x)'
+                      : 'Hard (2.5x)'
+                    : difficulty === 'Easy'
+                      ? isRtl
+                        ? 'سهل (1.0x)'
+                        : 'Easy (1.0x)'
+                      : isRtl
+                        ? 'متوسط (1.5x)'
+                        : 'Medium (1.5x)'}
                 </span>
               </div>
             </div>
@@ -830,55 +458,46 @@ export function GameDetailsPage() {
                   <Zap className="w-4 h-4 text-amber-400" />
                   {isRtl ? 'الخبرة المكتسبة' : 'XP Gained'}
                 </span>
-                <span className="text-2xl font-black text-white mt-1">+{earnedXp || currentGame.xpReward}</span>
+                <span className="text-2xl font-black text-white mt-1">
+                  +{earnedXp || currentGame.xpReward}
+                </span>
               </div>
               <div className="p-4 rounded-2xl bg-cyan-500/10 border-2 border-cyan-400/40 flex flex-col items-center">
                 <span className="text-xs font-bold text-cyan-300 flex items-center gap-1">
                   <Sparkles className="w-4 h-4 text-cyan-400" />
                   {isRtl ? 'العملات' : 'Coins'}
                 </span>
-                <span className="text-2xl font-black text-white mt-1">+{earnedCoins || 50} 💰</span>
+                <span className="text-2xl font-black text-white mt-1">
+                  +{earnedCoins || 50} 💰
+                </span>
               </div>
             </div>
 
-            {/* In-Game Mini Leaderboard & Best Rank */}
             <div className="w-full p-4 rounded-2xl bg-black/60 border border-white/10 flex flex-col gap-2.5 text-right">
               <div className="flex items-center justify-between border-b border-white/10 pb-2">
                 <span className="text-xs font-black text-amber-400 flex items-center gap-1">
                   <Trophy className="w-3.5 h-3.5" />
-                  {isRtl ? 'أبطال هذه اللعبة' : 'Game Leaderboard'}
+                  {isRtl ? 'تقدمك في اللعبة' : 'Your Progress'}
                 </span>
                 <span className="text-[10px] text-slate-400 font-mono">
-                  {isRtl ? 'ترتيبك: #3' : 'Your Rank: #3'}
+                  {isRtl ? 'نجوم:' : 'Stars:'} {progress.totalStars}
                 </span>
               </div>
-              <div className="flex flex-col gap-1.5 text-xs">
-                <div className="flex items-center justify-between py-1 px-2 rounded-lg bg-amber-500/10 border border-amber-400/30 text-amber-300 font-bold">
-                  <span className="flex items-center gap-1.5">
-                    <span>🥇</span>
-                    <span>سيف الدين ⚡</span>
-                  </span>
-                  <span className="font-mono font-black">{Math.max(score * 2, 2450)} pts</span>
-                </div>
-                <div className="flex items-center justify-between py-1 px-2 rounded-lg bg-slate-800/40 text-slate-300">
-                  <span className="flex items-center gap-1.5">
-                    <span>🥈</span>
-                    <span>كريم المصري</span>
-                  </span>
-                  <span className="font-mono font-black">{Math.max(Math.round(score * 1.5), 1820)} pts</span>
-                </div>
-                <div className="flex items-center justify-between py-1 px-2 rounded-lg bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 font-black">
-                  <span className="flex items-center gap-1.5">
-                    <span>🥉</span>
-                    <span>{user?.name || (isRtl ? 'أنت (رقماً قياسياً)' : 'You (New Best)')}</span>
-                  </span>
-                  <span className="font-mono font-black">{score} pts</span>
-                </div>
+              <div className="text-xs text-slate-300 font-bold">
+                {isRtl
+                  ? `أعلى مرحلة مفتوحة: ${progress.unlockedLevel} · أفضل نتيجة: ${progress.bestScore}`
+                  : `Unlocked level: ${progress.unlockedLevel} · Best score: ${progress.bestScore}`}
               </div>
             </div>
 
             <div className="flex items-center gap-3 w-full">
-              <Button variant="primary" size="md" fullWidth onClick={handleStartGame} leftIcon={<RotateCcw className="w-4 h-4" />}>
+              <Button
+                variant="primary"
+                size="md"
+                fullWidth
+                onClick={handleRestart}
+                leftIcon={<RotateCcw className="w-4 h-4" />}
+              >
                 {isRtl ? 'العب تاني ⚡' : 'Play Again ⚡'}
               </Button>
               <Button variant="secondary" size="md" fullWidth onClick={() => navigate(ROUTES.GAMES)}>

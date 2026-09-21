@@ -1,20 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import {
-  Plus,
-  Hash,
-  Users,
-  Shuffle,
-  Play,
-  ArrowRight,
-  ArrowLeft,
-  Sparkles,
-  Flame,
-  Swords,
-  Radio,
-} from 'lucide-react'
-import { SectionTitle } from '@components/common/SectionTitle'
+import { Plus, Hash, Users, Shuffle, ArrowRight, ArrowLeft, Sparkles, Swords, Radio } from 'lucide-react'
 import { Card } from '@components/common/Card'
 import { Button } from '@components/common/Button'
 import { Input } from '@components/common/Input'

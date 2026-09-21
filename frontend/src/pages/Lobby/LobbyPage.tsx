@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Hash, Users, Crown, CheckCircle2, Play, Share2, MessageSquare, Send, ArrowLeft, ArrowRight } from 'lucide-react'
+import { Crown, Play, Share2, MessageSquare, Send, ArrowLeft, ArrowRight } from 'lucide-react'
 import { SectionTitle } from '@components/common/SectionTitle'
 import { Card } from '@components/common/Card'
 import { Button } from '@components/common/Button'
@@ -26,7 +26,7 @@ export function LobbyPage() {
 
   const roomCode = id || 'ROOM1'
 
-  const [players, setPlayers] = useState<Player[]>([
+  const [players] = useState<Player[]>([
     {
       id: user?.id || 'host_1',
       name: `${user?.name || (dir === 'rtl' ? 'لاعب' : 'Player')} (${dir === 'rtl' ? 'أنت' : 'You'})`,

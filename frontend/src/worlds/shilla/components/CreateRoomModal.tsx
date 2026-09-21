@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { X, Sparkles, Users, Lock, Unlock } from 'lucide-react'
+import { X, Lock, Unlock } from 'lucide-react'
 import { useThemeStore } from '@store/themeStore'
 
 interface CreateRoomModalProps {

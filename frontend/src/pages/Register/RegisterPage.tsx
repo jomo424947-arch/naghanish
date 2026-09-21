@@ -8,6 +8,7 @@ import { ROUTES } from '@constants/routes'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
 import { authApi } from '@api'
+import { getApiErrorMessage } from '@utils/apiError'
 
 const AVATARS = ['🚀', '🎮', '🧠', '⚡', '👑', '🎯', '🔥', '🃏']
 
@@ -40,11 +41,13 @@ export const RegisterPage: React.FC = () => {
 
       login(authRes.user, authRes.token, authRes.refreshToken)
       navigate(ROUTES.CHOOSE_INTERESTS)
-    } catch (err: any) {
+    } catch (err) {
       console.error('Registration error:', err)
       setErrorMsg(
-        err.response?.data?.detail ||
-          (isRtl ? 'تعذر إنشاء الحساب بالاسم، يرجى المحاولة مرة أخرى' : 'Failed to register. Please try again.')
+        getApiErrorMessage(
+          err,
+          isRtl ? 'تعذر إنشاء الحساب بالاسم، يرجى المحاولة مرة أخرى' : 'Failed to register. Please try again.'
+        )
       )
     } finally {
       setIsLoading(false)

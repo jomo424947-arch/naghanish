@@ -1,5 +1,5 @@
 import React from 'react'
-import { Brain, TrendingUp, Sparkles } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { CognitiveMetricCard, CognitiveMetricItem } from '../components/CognitiveMetricCard'
 import { useThemeStore } from '@store/themeStore'
 

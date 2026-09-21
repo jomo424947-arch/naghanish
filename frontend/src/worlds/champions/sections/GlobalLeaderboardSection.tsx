@@ -1,5 +1,5 @@
 import React from 'react'
-import { Crown, Trophy } from 'lucide-react'
+import { Crown } from 'lucide-react'
 import { LeaderboardRow, LeaderboardPlayerItem } from '../components/LeaderboardRow'
 import { useThemeStore } from '@store/themeStore'
 

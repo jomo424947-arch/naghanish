@@ -1,30 +1,40 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Clock,
-  CheckCircle2,
-  Award,
-  ArrowLeft,
-  ArrowRight,
-  RotateCcw,
-  Share2,
-  Sparkles,
-  Trophy,
-  Brain,
-  Zap,
-} from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Clock, CheckCircle2, ArrowLeft, ArrowRight, RotateCcw, Share2, Sparkles, Trophy, Brain } from 'lucide-react'
 import { Card } from '@components/common/Card'
 import { Button } from '@components/common/Button'
 import { ProgressIndicator } from '@components/common/ProgressIndicator'
 import { SEO } from '@components/common/SEO'
-import { AdSlot } from '@components/common/AdSlot'
-import { ModeMascot } from '@components/common/ModeVisuals'
 import { ROUTES } from '@constants/routes'
 import { useThemeStore } from '@store/themeStore'
 import { httpClient } from '@api/httpClient'
+import { useEventCallback } from '@hooks/useEventCallback'
 
-const DEFAULT_QUESTIONS = [
+interface QuizOption {
+  text: string
+  textEn: string
+  traits: string
+}
+
+interface QuizQuestion {
+  id: number | string
+  question: string
+  questionEn: string
+  options: QuizOption[]
+}
+
+/** Raw shape returned by GET /quizzes/:id/questions (camel or snake case). */
+interface RawQuizQuestion {
+  id: number | string
+  questionAr?: string
+  question_ar?: string
+  questionEn?: string
+  question_en?: string
+  options?: { text: string; textEn?: string; trait?: string; traits?: string; isCorrect?: boolean }[]
+}
+
+const DEFAULT_QUESTIONS: QuizQuestion[] = [
   {
     id: 1,
     question: 'عندما تواجه قراراً حاسماً في فريق العمل، ما هي ردة فعلك الأولى؟',
@@ -67,7 +77,7 @@ export function QuizDetailsPage() {
 
   const isRtl = dir === 'rtl'
 
-  const [questions, setQuestions] = useState<any[]>(DEFAULT_QUESTIONS)
+  const [questions, setQuestions] = useState<QuizQuestion[]>(DEFAULT_QUESTIONS)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
   const [score, setScore] = useState<Record<string, number>>({})
@@ -82,11 +92,11 @@ export function QuizDetailsPage() {
         .then((res) => {
           if (Array.isArray(res.data) && res.data.length > 0) {
             setQuestions(
-              res.data.map((q: any) => ({
+              res.data.map((q: RawQuizQuestion) => ({
                 id: q.id,
-                question: q.questionAr || q.question_ar,
-                questionEn: q.questionEn || q.question_en,
-                options: (q.options || []).map((opt: any) => ({
+                question: q.questionAr || q.question_ar || '',
+                questionEn: q.questionEn || q.question_en || '',
+                options: (q.options || []).map((opt) => ({
                   text: opt.text,
                   textEn: opt.textEn || opt.text,
                   traits: opt.trait || opt.traits || (opt.isCorrect ? 'Leader' : 'Analyst'),
@@ -98,6 +108,25 @@ export function QuizDetailsPage() {
         .catch(() => {})
     }
   }, [id])
+
+  const handleSelectOption = (index: number) => {
+    setSelectedOption(index)
+  }
+
+  const handleNextQuestion = useEventCallback(() => {
+    if (selectedOption !== null && questions[currentIndex]?.options?.[selectedOption]) {
+      const trait = questions[currentIndex].options[selectedOption].traits
+      setScore((prev) => ({ ...prev, [trait]: (prev[trait] || 0) + 1 }))
+    }
+
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex((prev) => prev + 1)
+      setSelectedOption(null)
+      setTimer(30)
+    } else {
+      setIsFinished(true)
+    }
+  })
 
   // Timer interval
   useEffect(() => {
@@ -112,26 +141,7 @@ export function QuizDetailsPage() {
       })
     }, 1000)
     return () => clearInterval(interval)
-  }, [currentIndex, isFinished, questions])
-
-  const handleSelectOption = (index: number) => {
-    setSelectedOption(index)
-  }
-
-  const handleNextQuestion = () => {
-    if (selectedOption !== null && questions[currentIndex]?.options?.[selectedOption]) {
-      const trait = questions[currentIndex].options[selectedOption].traits
-      setScore((prev) => ({ ...prev, [trait]: (prev[trait] || 0) + 1 }))
-    }
-
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex((prev) => prev + 1)
-      setSelectedOption(null)
-      setTimer(30)
-    } else {
-      setIsFinished(true)
-    }
-  }
+  }, [currentIndex, isFinished, questions, handleNextQuestion])
 
   const currentQ = questions[currentIndex] || DEFAULT_QUESTIONS[0]
 
@@ -225,7 +235,7 @@ export function QuizDetailsPage() {
 
           {/* Options Grid */}
           <div className="flex flex-col gap-3">
-            {currentQ.options.map((opt: any, idx: number) => {
+            {currentQ.options.map((opt, idx) => {
               const isSelected = selectedOption === idx
               return (
                 <button

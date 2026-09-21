@@ -1,5 +1,5 @@
 import React from 'react'
-import { Radio, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { LIVE_ROOMS } from '@data/games.data'
 import { ShillaRoomCard } from '../components/ShillaRoomCard'
 import { useThemeStore } from '@store/themeStore'

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Hash, QrCode, ArrowLeft, ArrowRight, Play, Users, Shuffle } from 'lucide-react'
+import { Hash, QrCode, ArrowLeft, ArrowRight, Play } from 'lucide-react'
 import { SectionTitle } from '@components/common/SectionTitle'
 import { Card } from '@components/common/Card'
 import { Button } from '@components/common/Button'

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Play, Star, Trophy, Sparkles } from 'lucide-react'
+import { Play, Star, Trophy } from 'lucide-react'
 import { GameItem } from '@data/games.data'
 import { useThemeStore } from '@store/themeStore'
 import { cn } from '@lib/utils'

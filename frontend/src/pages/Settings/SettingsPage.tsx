@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { User, Lock, Globe, Moon, Sun, Bell, Volume2, ShieldCheck, HelpCircle, Info, LogOut } from 'lucide-react'
+import { Globe, Moon, Sun, Bell, Volume2, HelpCircle, Info, LogOut } from 'lucide-react'
 import { SettingsCard } from '@components/common/SettingsCard'
 import { SectionTitle } from '@components/common/SectionTitle'
 import { Button } from '@components/common/Button'
@@ -11,7 +11,7 @@ import { useThemeStore } from '@store/themeStore'
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
-  const { theme, toggleTheme, language, setLanguage, soundEnabled, setSoundEnabled, notificationsEnabled, setNotificationsEnabled, dir } = useThemeStore()
+  const { theme, toggleTheme, language, soundEnabled, setSoundEnabled, notificationsEnabled, setNotificationsEnabled, dir } = useThemeStore()
 
   const handleLogout = () => {
     logout()

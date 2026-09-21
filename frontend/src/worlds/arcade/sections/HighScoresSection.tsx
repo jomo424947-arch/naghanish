@@ -1,5 +1,5 @@
 import React from 'react'
-import { Trophy, Zap, Crown } from 'lucide-react'
+import { Trophy } from 'lucide-react'
 import { useThemeStore } from '@store/themeStore'
 
 const TOP_SCORES = [

@@ -1,13 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { RotateCcw, Trophy, Zap, Flame } from 'lucide-react'
-import { soundManager } from '@utils/soundManager'
-import { useEventCallback } from '@hooks/useEventCallback'
+/**
+ * PongGame.tsx
+ *
+ * Cyber Hyper Pong — mouse/touch paddle, AI opponent, super smash.
+ * Phase 2: useGameLoop, responsive stage, level-scaled AI/ball/win points.
+ */
 
-export interface PongGameProps {
-  onFinish: (score: number) => void
-  isRtl?: boolean
-  difficulty?: 'Easy' | 'Medium' | 'Hard'
-}
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { RotateCcw, Trophy, Zap, Flame } from 'lucide-react'
+import { Button } from '@components/common/Button'
+import {
+  useGameLoop,
+  useGameShell,
+  useResponsiveStage,
+  type GameEngineProps,
+} from '@components/game-kit'
+import { useEventCallback } from '@hooks/useEventCallback'
+import { sound } from '@/utils/soundManager'
+
+const WORLD_W = 480
+const WORLD_H = 320
 
 interface Particle {
   x: number
@@ -26,7 +37,34 @@ interface BallTrail {
   alpha: number
 }
 
-export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl, difficulty = 'Medium' }) => {
+function initialBallSpeed(level: number, difficulty: string): number {
+  const d = difficulty === 'Easy' ? 4.0 : difficulty === 'Hard' ? 5.5 : 4.8
+  return d + (level - 1) * 0.35
+}
+
+function aiSpeedFor(level: number, difficulty: string): number {
+  const d = difficulty === 'Easy' ? 3.2 : difficulty === 'Hard' ? 5.2 : 4.2
+  return d + (level - 1) * 0.4
+}
+
+function winScoreFor(level: number): number {
+  return Math.min(9, 4 + Math.floor(level / 2))
+}
+
+export const PongGame: React.FC<GameEngineProps> = ({
+  onFinish,
+  isRtl,
+  difficulty = 'Medium',
+  level = 1,
+  onLevelComplete,
+}) => {
+  const { isPaused } = useGameShell()
+  const { containerRef, width, height, prepareCanvas } = useResponsiveStage({
+    aspectRatio: WORLD_W / WORLD_H,
+    minWidth: 280,
+    maxWidth: 520,
+  })
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [playerScore, setPlayerScore] = useState(0)
   const [aiScore, setAiScore] = useState(0)
@@ -34,14 +72,19 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl, difficulty 
   const [rallyCount, setRallyCount] = useState(0)
   const [maxRally, setMaxRally] = useState(0)
 
+  const WIN_SCORE = winScoreFor(level)
+  const finishedRef = useRef(false)
+  const gameStateRef = useRef(gameState)
+  gameStateRef.current = gameState
+
   const stateRef = useRef({
     running: false,
     pY: 130,
     aiY: 130,
     paddleW: 10,
     paddleH: 70,
-    ballX: 240,
-    ballY: 160,
+    ballX: WORLD_W / 2,
+    ballY: WORLD_H / 2,
     ballDX: 4.5,
     ballDY: 2.5,
     baseSpeed: 4.5,
@@ -58,64 +101,86 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl, difficulty 
     isSuperSmash: false,
   })
 
-  const WIN_SCORE = 5
+  const finishMatch = useCallback(
+    (finalScore: number, cleared: boolean) => {
+      if (finishedRef.current) return
+      finishedRef.current = true
+      const stars = cleared ? (finalScore >= 800 ? 3 : finalScore >= 400 ? 2 : 1) : 0
+      if (cleared) {
+        onLevelComplete?.(level, stars)
+        sound.playWin()
+      } else {
+        sound.playGameOver()
+      }
+      onFinish(finalScore, { levelReached: level, stars, clearedAll: false })
+    },
+    [level, onFinish, onLevelComplete]
+  )
 
   const resetBall = useEventCallback((scoredAgainstPlayer: boolean) => {
     const s = stateRef.current
-    s.ballX = 240
-    s.ballY = 160
-    const initialSpeed = difficulty === 'Easy' ? 4.0 : difficulty === 'Hard' ? 5.5 : 4.8
-    s.baseSpeed = initialSpeed
-    s.currentSpeed = initialSpeed
-    s.ballDX = (scoredAgainstPlayer ? 1 : -1) * initialSpeed
-    s.ballDY = (Math.random() - 0.5) * initialSpeed * 1.2
+    s.ballX = WORLD_W / 2
+    s.ballY = WORLD_H / 2
+    const spd = initialBallSpeed(level, difficulty)
+    s.baseSpeed = spd
+    s.currentSpeed = spd
+    s.ballDX = (scoredAgainstPlayer ? 1 : -1) * spd
+    s.ballDY = (Math.random() - 0.5) * spd * 1.2
     s.rally = 0
     s.isSuperSmash = false
     setRallyCount(0)
   })
 
-  const startGame = () => {
-    const initialSpeed = difficulty === 'Easy' ? 4.0 : difficulty === 'Hard' ? 5.5 : 4.8
-    stateRef.current = {
-      running: true,
-      pY: 125,
-      aiY: 125,
-      paddleW: 10,
-      paddleH: 70,
-      ballX: 240,
-      ballY: 160,
-      ballDX: (Math.random() > 0.5 ? 1 : -1) * initialSpeed,
-      ballDY: (Math.random() - 0.5) * initialSpeed,
-      baseSpeed: initialSpeed,
-      currentSpeed: initialSpeed,
-      ballR: 6,
-      pScore: 0,
-      aiScore: 0,
-      rally: 0,
-      particles: [],
-      trail: [],
-      shake: 0,
-      lastPaddleY: 125,
-      paddleVelocityY: 0,
-      isSuperSmash: false,
-    }
-    setPlayerScore(0)
-    setAiScore(0)
-    setRallyCount(0)
-    setMaxRally(0)
-    setGameState('PLAYING')
-    soundManager.playPowerUp()
-  }
+  const startGame = useCallback(
+    (autoStart = true) => {
+      sound.playClick()
+      const spd = initialBallSpeed(level, difficulty)
+      stateRef.current = {
+        running: autoStart,
+        pY: 125,
+        aiY: 125,
+        paddleW: 10,
+        paddleH: Math.max(48, 70 - (level - 1) * 3),
+        ballX: WORLD_W / 2,
+        ballY: WORLD_H / 2,
+        ballDX: (Math.random() > 0.5 ? 1 : -1) * spd,
+        ballDY: (Math.random() - 0.5) * spd,
+        baseSpeed: spd,
+        currentSpeed: spd,
+        ballR: 6,
+        pScore: 0,
+        aiScore: 0,
+        rally: 0,
+        particles: [],
+        trail: [],
+        shake: 0,
+        lastPaddleY: 125,
+        paddleVelocityY: 0,
+        isSuperSmash: false,
+      }
+      setPlayerScore(0)
+      setAiScore(0)
+      setRallyCount(0)
+      setMaxRally(0)
+      finishedRef.current = false
+      setGameState(autoStart ? 'PLAYING' : 'IDLE')
+      if (autoStart) sound.playPowerUp()
+    },
+    [difficulty, level]
+  )
 
-  // Mouse / Touch movement tracking
+  useEffect(() => {
+    startGame(false)
+  }, [level, startGame])
+
   const updatePaddlePos = (clientY: number) => {
     const canvas = canvasRef.current
     if (!canvas) return
     const rect = canvas.getBoundingClientRect()
-    const scaleY = 320 / rect.height
-    const relativeY = (clientY - rect.top) * scaleY
+    if (rect.height <= 0) return
+    const relativeY = ((clientY - rect.top) / rect.height) * WORLD_H
     const s = stateRef.current
-    const newY = Math.max(0, Math.min(320 - s.paddleH, relativeY - s.paddleH / 2))
+    const newY = Math.max(0, Math.min(WORLD_H - s.paddleH, relativeY - s.paddleH / 2))
     s.paddleVelocityY = newY - s.lastPaddleY
     s.lastPaddleY = newY
     s.pY = newY
@@ -123,40 +188,30 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl, difficulty 
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => updatePaddlePos(e.clientY)
   const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault()
     if (e.touches[0]) updatePaddlePos(e.touches[0].clientY)
   }
 
-  // Animation & Physics Loop
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    let animId: number
-
-    const render = () => {
+  useGameLoop(
+    (delta) => {
       const s = stateRef.current
+      const dt = delta * 60
 
-      if (s.running) {
-        // AI Tracking with organic human lag & anticipation
-        const aiSpeed = difficulty === 'Easy' ? 3.2 : difficulty === 'Hard' ? 5.2 : 4.2
+      if (s.running && gameStateRef.current === 'PLAYING') {
+        const aiSpeed = aiSpeedFor(level, difficulty)
         const aiTarget = s.ballY - s.paddleH / 2
-        // If ball is heading away, return to center
-        const destY = s.ballDX > 0 ? aiTarget : 160 - s.paddleH / 2
+        const destY = s.ballDX > 0 ? aiTarget : WORLD_H / 2 - s.paddleH / 2
 
         if (s.aiY + s.paddleH / 2 < destY + s.paddleH / 2 - 8) {
-          s.aiY += aiSpeed
+          s.aiY += aiSpeed * dt
         } else if (s.aiY + s.paddleH / 2 > destY + s.paddleH / 2 + 8) {
-          s.aiY -= aiSpeed
+          s.aiY -= aiSpeed * dt
         }
-        s.aiY = Math.max(0, Math.min(320 - s.paddleH, s.aiY))
+        s.aiY = Math.max(0, Math.min(WORLD_H - s.paddleH, s.aiY))
 
-        // Move Ball
-        s.ballX += s.ballDX
-        s.ballY += s.ballDY
+        s.ballX += s.ballDX * dt
+        s.ballY += s.ballDY * dt
 
-        // Add trail
         s.trail.unshift({
           x: s.ballX,
           y: s.ballY,
@@ -165,18 +220,16 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl, difficulty 
         })
         if (s.trail.length > 8) s.trail.pop()
 
-        // Top / Bottom Wall Bounce
         if (s.ballY - s.ballR <= 0) {
           s.ballY = s.ballR
           s.ballDY = Math.abs(s.ballDY)
-          soundManager.playMove()
-        } else if (s.ballY + s.ballR >= 320) {
-          s.ballY = 320 - s.ballR
+          sound.playMove()
+        } else if (s.ballY + s.ballR >= WORLD_H) {
+          s.ballY = WORLD_H - s.ballR
           s.ballDY = -Math.abs(s.ballDY)
-          soundManager.playMove()
+          sound.playMove()
         }
 
-        // PLAYER PADDLE COLLISION (Left: x=20)
         if (
           s.ballX - s.ballR <= 20 + s.paddleW &&
           s.ballX + s.ballR >= 20 &&
@@ -184,33 +237,29 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl, difficulty 
           s.ballY <= s.pY + s.paddleH &&
           s.ballDX < 0
         ) {
-          // Calculate hit angle offset
-          const relativeIntersectY = (s.pY + s.paddleH / 2) - s.ballY
+          const relativeIntersectY = s.pY + s.paddleH / 2 - s.ballY
           const normalizedRelativeIntersectionY = relativeIntersectY / (s.paddleH / 2)
-          const bounceAngle = normalizedRelativeIntersectionY * (Math.PI / 3) // max 60 deg
+          const bounceAngle = normalizedRelativeIntersectionY * (Math.PI / 3)
 
-          // Speed increment
-          s.currentSpeed = Math.min(11, s.currentSpeed * 1.05)
+          s.currentSpeed = Math.min(11 + level * 0.3, s.currentSpeed * 1.05)
           s.ballDX = Math.abs(Math.cos(bounceAngle) * s.currentSpeed)
           s.ballDY = -Math.sin(bounceAngle) * s.currentSpeed + s.paddleVelocityY * 0.2
 
-          // Check Super Smash (edge hit with fast paddle movement)
           const isEdgeHit = Math.abs(normalizedRelativeIntersectionY) > 0.65
           if (isEdgeHit && Math.abs(s.paddleVelocityY) > 4) {
             s.isSuperSmash = true
             s.ballDX *= 1.3
             s.shake = 8
-            soundManager.playPerfectHit()
+            sound.playPerfectHit()
           } else {
             s.isSuperSmash = false
-            soundManager.playLineClear()
+            sound.playLineClear()
           }
 
           s.rally++
           setRallyCount(s.rally)
           setMaxRally((prev) => Math.max(prev, s.rally))
 
-          // Particle burst
           for (let i = 0; i < 10; i++) {
             s.particles.push({
               x: 20 + s.paddleW,
@@ -224,8 +273,7 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl, difficulty 
           }
         }
 
-        // AI PADDLE COLLISION (Right: x = 460 - paddleW)
-        const aiPaddleX = 460 - s.paddleW
+        const aiPaddleX = WORLD_W - 20 - s.paddleW
         if (
           s.ballX + s.ballR >= aiPaddleX &&
           s.ballX - s.ballR <= aiPaddleX + s.paddleW &&
@@ -233,15 +281,15 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl, difficulty 
           s.ballY <= s.aiY + s.paddleH &&
           s.ballDX > 0
         ) {
-          const relativeIntersectY = (s.aiY + s.paddleH / 2) - s.ballY
+          const relativeIntersectY = s.aiY + s.paddleH / 2 - s.ballY
           const normalizedRelativeIntersectionY = relativeIntersectY / (s.paddleH / 2)
           const bounceAngle = normalizedRelativeIntersectionY * (Math.PI / 3)
 
-          s.currentSpeed = Math.min(10.5, s.currentSpeed * 1.04)
+          s.currentSpeed = Math.min(10.5 + level * 0.25, s.currentSpeed * 1.04)
           s.ballDX = -Math.abs(Math.cos(bounceAngle) * s.currentSpeed)
           s.ballDY = -Math.sin(bounceAngle) * s.currentSpeed
           s.isSuperSmash = false
-          soundManager.playLineClear()
+          sound.playLineClear()
 
           s.rally++
           setRallyCount(s.rally)
@@ -260,101 +308,104 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl, difficulty 
           }
         }
 
-        // GOAL SCORED!
-        // Player scores!
-        if (s.ballX > 485) {
+        if (s.ballX > WORLD_W + 5) {
           s.pScore++
           setPlayerScore(s.pScore)
           s.shake = 12
-          soundManager.playPowerUp()
+          sound.playPowerUp()
 
           if (s.pScore >= WIN_SCORE) {
             s.running = false
             setGameState('PLAYER_WIN')
             const finalScore = s.pScore * 200 + (s.pScore - s.aiScore) * 150 + s.rally * 30
-            onFinish(finalScore)
+            finishMatch(finalScore, true)
           } else {
             resetBall(false)
           }
-        }
-        // AI scores!
-        else if (s.ballX < -5) {
+        } else if (s.ballX < -5) {
           s.aiScore++
           setAiScore(s.aiScore)
           s.shake = 12
-          soundManager.playMiss()
+          sound.playMiss()
 
           if (s.aiScore >= WIN_SCORE) {
             s.running = false
             setGameState('AI_WIN')
-            onFinish(s.pScore * 100 + 100)
+            finishMatch(s.pScore * 100 + 100, false)
           } else {
             resetBall(true)
           }
         }
       }
 
-      // RENDER CANVAS
-      ctx.save()
-      ctx.clearRect(0, 0, 480, 320)
+      // Particle motion (always while loop runs)
+      for (let i = s.particles.length - 1; i >= 0; i--) {
+        const p = s.particles[i]
+        p.x += p.vx * dt
+        p.y += p.vy * dt
+        p.alpha -= 0.04 * dt
+        if (p.alpha <= 0) s.particles.splice(i, 1)
+      }
 
-      // Screen Shake
+      const ctx = prepareCanvas(canvasRef.current)
+      if (!ctx) return
+
+      ctx.save()
+      ctx.scale(width / WORLD_W, height / WORLD_H)
+      ctx.clearRect(0, 0, WORLD_W, WORLD_H)
+
       if (s.shake > 0) {
         ctx.translate((Math.random() - 0.5) * s.shake, (Math.random() - 0.5) * s.shake)
         s.shake *= 0.85
         if (s.shake < 0.5) s.shake = 0
       }
 
-      // Cyber Court Background
-      const bgGrad = ctx.createRadialGradient(240, 160, 50, 240, 160, 280)
+      const bgGrad = ctx.createRadialGradient(
+        WORLD_W / 2,
+        WORLD_H / 2,
+        50,
+        WORLD_W / 2,
+        WORLD_H / 2,
+        280
+      )
       bgGrad.addColorStop(0, '#0a0e27')
       bgGrad.addColorStop(1, '#02040d')
       ctx.fillStyle = bgGrad
-      ctx.fillRect(0, 0, 480, 320)
+      ctx.fillRect(0, 0, WORLD_W, WORLD_H)
 
-      // Center court dashed line
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)'
       ctx.lineWidth = 2
       ctx.setLineDash([8, 8])
       ctx.beginPath()
-      ctx.moveTo(240, 0)
-      ctx.lineTo(240, 320)
+      ctx.moveTo(WORLD_W / 2, 0)
+      ctx.lineTo(WORLD_W / 2, WORLD_H)
       ctx.stroke()
       ctx.setLineDash([])
 
-      // Center Court Cyber Circle
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.1)'
       ctx.lineWidth = 2
       ctx.beginPath()
-      ctx.arc(240, 160, 40, 0, Math.PI * 2)
+      ctx.arc(WORLD_W / 2, WORLD_H / 2, 40, 0, Math.PI * 2)
       ctx.stroke()
 
-      // 1. Draw Ball Trail
       s.trail.forEach((t, i) => {
         ctx.fillStyle = t.color
         ctx.globalAlpha = t.alpha * (1 - i / s.trail.length)
         ctx.beginPath()
-        ctx.arc(t.x, t.y, s.ballR * (1 - (i * 0.08)), 0, Math.PI * 2)
+        ctx.arc(t.x, t.y, s.ballR * (1 - i * 0.08), 0, Math.PI * 2)
         ctx.fill()
       })
       ctx.globalAlpha = 1
 
-      // 2. Draw Particles
-      for (let i = s.particles.length - 1; i >= 0; i--) {
-        const p = s.particles[i]
-        p.x += p.vx
-        p.y += p.vy
-        p.alpha -= 0.04
+      s.particles.forEach((p) => {
         ctx.fillStyle = p.color
         ctx.globalAlpha = Math.max(0, p.alpha)
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
         ctx.fill()
-        if (p.alpha <= 0) s.particles.splice(i, 1)
-      }
+      })
       ctx.globalAlpha = 1
 
-      // 3. Draw Player Paddle (Cyan)
       ctx.shadowColor = '#06b6d4'
       ctx.shadowBlur = 12
       ctx.fillStyle = '#38bdf8'
@@ -362,16 +413,13 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl, difficulty 
       ctx.roundRect(20, s.pY, s.paddleW, s.paddleH, 5)
       ctx.fill()
 
-      // 4. Draw AI Paddle (Pink)
       ctx.shadowColor = '#ec4899'
-      ctx.shadowBlur = 12
       ctx.fillStyle = '#f43f5e'
       ctx.beginPath()
-      ctx.roundRect(460 - s.paddleW, s.aiY, s.paddleW, s.paddleH, 5)
+      ctx.roundRect(WORLD_W - 20 - s.paddleW, s.aiY, s.paddleW, s.paddleH, 5)
       ctx.fill()
       ctx.shadowBlur = 0
 
-      // 5. Draw Ball
       const ballColor = s.isSuperSmash ? '#ff0055' : '#ffffff'
       ctx.shadowColor = s.isSuperSmash ? '#ff0055' : '#38bdf8'
       ctx.shadowBlur = s.isSuperSmash ? 16 : 10
@@ -382,21 +430,18 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl, difficulty 
       ctx.shadowBlur = 0
 
       ctx.restore()
-
-      animId = requestAnimationFrame(render)
-    }
-
-    animId = requestAnimationFrame(render)
-    return () => cancelAnimationFrame(animId)
-  }, [difficulty, onFinish, resetBall])
+    },
+    { running: !isPaused && gameState !== 'IDLE' }
+  )
 
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-lg mx-auto select-none">
-      {/* Score Header */}
       <div className="flex items-center justify-between w-full px-6 py-3 rounded-2xl bg-black/60 border border-brand-cardBorder backdrop-blur-md shadow-xl">
         <div className="flex items-center gap-3">
           <span className="text-xs font-bold text-cyan-400 font-mono">PLAYER</span>
-          <span className="text-2xl font-black font-mono text-cyan-300">{playerScore}</span>
+          <span className="text-2xl font-black font-mono text-cyan-300">
+            {playerScore}/{WIN_SCORE}
+          </span>
         </div>
 
         {rallyCount > 2 && (
@@ -407,82 +452,91 @@ export const PongGame: React.FC<PongGameProps> = ({ onFinish, isRtl, difficulty 
         )}
 
         <div className="flex items-center gap-3">
+          <span className="text-xs text-cyan-500 font-mono">L{level}</span>
           <span className="text-2xl font-black font-mono text-pink-400">{aiScore}</span>
-          <span className="text-xs font-bold text-pink-400 font-mono">AI CYBER</span>
+          <span className="text-xs font-bold text-pink-400 font-mono">AI</span>
         </div>
       </div>
 
-      {/* Canvas */}
-      <div className="relative rounded-3xl overflow-hidden border-2 border-brand-cardBorder shadow-2xl bg-black cursor-none">
-        <canvas
-          ref={canvasRef}
-          width={480}
-          height={320}
-          onMouseMove={handleMouseMove}
-          onTouchMove={handleTouchMove}
-          className="w-full max-w-[480px] h-auto block"
-        />
+      <div ref={containerRef} className="w-full flex justify-center">
+        <div
+          className="relative rounded-3xl overflow-hidden border-2 border-brand-cardBorder shadow-2xl bg-black cursor-none touch-none [overscroll-behavior:contain]"
+          style={{ width, height }}
+        >
+          <canvas
+            ref={canvasRef}
+            onMouseMove={handleMouseMove}
+            onTouchMove={handleTouchMove}
+            className="block w-full h-full"
+          />
 
-        {/* Start Overlay */}
-        {gameState === 'IDLE' && (
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 mb-4 animate-bounce">
-              <Zap className="w-8 h-8" />
+          {gameState === 'IDLE' && (
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
+              <div className="w-16 h-16 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 mb-4 animate-bounce">
+                <Zap className="w-8 h-8" />
+              </div>
+              <h3 className="text-2xl font-black text-white mb-2">
+                {isRtl ? `بونغ السيبرانية · مرحلة ${level}` : `Cyber Pong · Level ${level}`}
+              </h3>
+              <p className="text-xs text-gray-300 max-w-xs mb-6 leading-relaxed">
+                {isRtl
+                  ? `أول من يصل لـ ${WIN_SCORE} يفوز. المراحل الأعلى: كرة وذكاء أسرع.`
+                  : `First to ${WIN_SCORE} wins. Higher levels = faster ball & smarter AI.`}
+              </p>
+              <Button variant="primary" size="sm" onClick={() => startGame(true)}>
+                {isRtl ? 'بدء المباراة' : 'Serve Ball'}
+              </Button>
             </div>
-            <h3 className="text-2xl font-black text-white mb-2">
-              {isRtl ? 'بونغ السيبرانية فائقة السرعة ⚡' : 'CYBER HYPER PONG ⚡'}
-            </h3>
-            <p className="text-xs text-gray-300 max-w-xs mb-6 leading-relaxed">
-              {isRtl
-                ? 'تحكم في المضرب الأيسر بالماوس أو اللمس. سدد ضربة Smash ساحقة عند تحريك المضرب بسرعة لحظة الارتطام! أول من يصل لـ 5 نقاط يفوز.'
-                : 'Control left paddle via mouse or touch. Slice at speed for Super Smash! First to 5 points wins.'}
-            </p>
-            <button
-              onClick={startGame}
-              className="px-8 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black hover:opacity-90 shadow-lg shadow-cyan-500/25 active:scale-95"
-            >
-              {isRtl ? 'بدء المباراة' : 'Serve Ball'}
-            </button>
-          </div>
-        )}
+          )}
 
-        {/* Win / Loss Overlay */}
-        {(gameState === 'PLAYER_WIN' || gameState === 'AI_WIN') && (
-          <div className="absolute inset-0 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 ${
-              gameState === 'PLAYER_WIN'
-                ? 'bg-green-500/20 border border-green-500/40 text-green-400'
-                : 'bg-red-500/20 border border-red-500/40 text-red-400'
-            }`}>
-              <Trophy className="w-8 h-8" />
+          {(gameState === 'PLAYER_WIN' || gameState === 'AI_WIN') && (
+            <div className="absolute inset-0 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-10">
+              <div
+                className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 ${
+                  gameState === 'PLAYER_WIN'
+                    ? 'bg-green-500/20 border border-green-500/40 text-green-400'
+                    : 'bg-red-500/20 border border-red-500/40 text-red-400'
+                }`}
+              >
+                <Trophy className="w-8 h-8" />
+              </div>
+              <h3 className="text-2xl font-black text-white mb-1">
+                {gameState === 'PLAYER_WIN'
+                  ? isRtl
+                    ? 'انتصار ساحق للبطل! 🏆'
+                    : 'VICTORY! CHAMPION 🏆'
+                  : isRtl
+                    ? 'تفوّق الذكاء الاصطناعي! 🤖'
+                    : 'AI DEFEAT! 🤖'}
+              </h3>
+              <p className="text-xs text-gray-400 mb-1">
+                {isRtl
+                  ? `النتيجة النهائية: ${playerScore} - ${aiScore}`
+                  : `Final Match Score: ${playerScore} - ${aiScore}`}
+              </p>
+              <p className="text-xs text-amber-300 font-mono font-bold mb-6">
+                {isRtl ? `أطول تبادل: ${maxRally}x` : `Longest Rally: ${maxRally}x`}
+              </p>
+
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => startGame(true)}
+                className="flex items-center gap-2"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>{isRtl ? 'مباراة ثأرية جديدة' : 'Rematch'}</span>
+              </Button>
             </div>
-            <h3 className="text-2xl font-black text-white mb-1">
-              {gameState === 'PLAYER_WIN'
-                ? (isRtl ? 'انتصار ساحق للبطل! 🏆' : 'VICTORY! CHAMPION 🏆')
-                : (isRtl ? 'تفوّق الذكاء الاصطناعي! 🤖' : 'AI DEFEAT! 🤖')}
-            </h3>
-            <p className="text-xs text-gray-400 mb-1">
-              {isRtl ? `النتيجة النهائية: ${playerScore} - ${aiScore}` : `Final Match Score: ${playerScore} - ${aiScore}`}
-            </p>
-            <p className="text-xs text-amber-300 font-mono font-bold mb-6">
-              {isRtl ? `أطول تبادل: ${maxRally}x` : `Longest Rally: ${maxRally}x`}
-            </p>
-
-            <button
-              onClick={startGame}
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black hover:opacity-90 shadow-lg shadow-cyan-500/25 active:scale-95"
-            >
-              <RotateCcw className="w-5 h-5" />
-              <span>{isRtl ? 'مباراة ثأرية جديدة' : 'Rematch'}</span>
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <span className="text-[11px] text-gray-500 font-mono text-center">
-        {isRtl ? 'حرك الماوس أو إصبعك لأعلى ولأسفل للتحكم في المضرب' : 'Move cursor or finger up/down to control paddle'}
+        {isRtl
+          ? 'حرك الماوس أو إصبعك لأعلى ولأسفل للتحكم في المضرب'
+          : 'Move cursor or finger up/down to control paddle'}
       </span>
     </div>
   )
 }
-

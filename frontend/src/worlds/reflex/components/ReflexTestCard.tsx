@@ -1,5 +1,5 @@
 import React from 'react'
-import { Play, Zap, Flame, Clock } from 'lucide-react'
+import { Play } from 'lucide-react'
 import { GameItem } from '@data/games.data'
 import { useThemeStore } from '@store/themeStore'
 import { cn } from '@lib/utils'

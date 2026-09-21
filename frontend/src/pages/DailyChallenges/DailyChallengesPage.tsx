@@ -158,6 +158,20 @@ export const DailyChallengesPage: React.FC = () => {
       </div>
 
       {/* Challenge Cards Grid */}
+      {isLoading ? (
+        <div className="flex flex-col gap-3.5">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-28 rounded-3xl border-2 border-brand-cardBorder bg-brand-card/60 animate-pulse"
+            />
+          ))}
+        </div>
+      ) : missions.length === 0 ? (
+        <div className="py-12 text-center text-sm font-bold text-slate-400">
+          {isRtl ? 'لا توجد تحديات متاحة حالياً، عد لاحقاً!' : 'No quests available right now — check back soon!'}
+        </div>
+      ) : (
       <div className="flex flex-col gap-3.5">
         {missions.map((m, i) => (
           <motion.div
@@ -238,6 +252,7 @@ export const DailyChallengesPage: React.FC = () => {
           </motion.div>
         ))}
       </div>
+      )}
     </div>
   )
 }

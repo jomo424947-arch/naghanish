@@ -1,11 +1,9 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { Brain, Sparkles, Users, Cpu, Layers, Zap, Palette, Smile, Heart, Award, ArrowRight, ArrowLeft } from 'lucide-react'
 import { AuthLayout } from '@components/layout/AuthLayout'
 import { InterestCard, CategoryColor } from '@components/common/InterestCard'
 import { Button } from '@components/common/Button'
-import { ROUTES } from '@constants/routes'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
 

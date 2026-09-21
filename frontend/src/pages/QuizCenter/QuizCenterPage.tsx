@@ -1,18 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import {
-  Sparkles,
-  Search,
-  HelpCircle,
-  Brain,
-  Star,
-  Play,
-  Clock,
-  Award,
-  Zap,
-  CheckCircle2,
-} from 'lucide-react'
+import { Sparkles, Search, HelpCircle, Star, Play, Clock, Award, Zap } from 'lucide-react'
 import { Input } from '@components/common/Input'
 import { Button } from '@components/common/Button'
 import { SEO } from '@components/common/SEO'

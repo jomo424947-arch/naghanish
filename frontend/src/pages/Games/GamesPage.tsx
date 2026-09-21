@@ -7,29 +7,12 @@
 
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import {
-  Gamepad2,
-  Search,
-  Star,
-  Play,
-  Zap,
-  Sparkles,
-  Flame,
-  Layers,
-  ArrowRight,
-  ArrowLeft,
-  Trophy,
-  Filter,
-} from 'lucide-react'
-import { Input } from '@components/common/Input'
-import { Button } from '@components/common/Button'
+import { Gamepad2, Search, Star, Play } from 'lucide-react'
 import { SEO } from '@components/common/SEO'
 import { AdSlot } from '@components/common/AdSlot'
-import { ModeMascot, NaghanishModeId } from '@components/common/ModeVisuals'
-import { ALL_GAMES, GameItem } from '@data/games.data'
+import { NaghanishModeId } from '@constants/modes'
+import { ALL_GAMES } from '@data/games.data'
 import { WORLD_THEMES } from '@theme/world.theme'
-import { ROUTES } from '@constants/routes'
 import { useThemeStore } from '@store/themeStore'
 import { cn } from '@lib/utils'
 

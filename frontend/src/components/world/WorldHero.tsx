@@ -5,9 +5,9 @@
  */
 
 import React from 'react'
-import { motion } from 'framer-motion'
-import { Sparkles, Play, Plus, Zap, Trophy, Shuffle, Swords, Users } from 'lucide-react'
-import { NaghanishModeId, ModeMascot } from '@components/common/ModeVisuals'
+import { Play } from 'lucide-react'
+import { NaghanishModeId } from '@constants/modes'
+import { ModeMascot } from '@components/common/ModeVisuals'
 import { WORLD_THEMES } from '@theme/world.theme'
 import { useThemeStore } from '@store/themeStore'
 import { cn } from '@lib/utils'

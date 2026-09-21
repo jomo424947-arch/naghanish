@@ -1,5 +1,5 @@
 import React from 'react'
-import { Clock, Star, Play, Award } from 'lucide-react'
+import { Clock, Star, Play } from 'lucide-react'
 import { QuizItem } from '@data/games.data'
 import { useThemeStore } from '@store/themeStore'
 import { cn } from '@lib/utils'

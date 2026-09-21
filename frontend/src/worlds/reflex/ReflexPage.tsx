@@ -50,7 +50,7 @@ export const ReflexPage: React.FC = () => {
             : 'Uncompromising reaction timing challenges measuring split-second instincts.'
         }
         primaryActionLabel={isRtl ? 'بدء سباق السرعة الخاطف ⚡' : 'Launch Speed Test ⚡'}
-        onPrimaryAction={() => handlePlayTest(featuredReflex?.route || '/games/g2')}
+        onPrimaryAction={() => handlePlayTest(featuredReflex?.route || '/games/g-aim')}
         secondaryActionLabel={isRtl ? 'أرقامك القياسية ⏱️' : 'My Records ⏱️'}
         onSecondaryAction={() => setActiveTab('records')}
         stats={[

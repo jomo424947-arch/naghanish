@@ -2,10 +2,12 @@
  * games.data.ts
  *
  * Central catalog of games, tests, and interactive challenges with strict World tags.
- * 22 high-grade games across 6 worlds (Arcade, Reflex, IQ Lab, Shilla, Champions, Chaos).
+ * 31 playable games across 6 worlds (target: 7 per world = 42).
+ * Engines are loaded through games.registry.ts — never static-import them here.
  */
 
-import { NaghanishModeId } from '@components/common/ModeVisuals'
+import { NaghanishModeId } from '@constants/modes'
+import type { ControlScheme, StageOrientation } from '@components/game-kit'
 
 export interface GameItem {
   id: string
@@ -29,6 +31,12 @@ export interface GameItem {
   bestScore?: string
   playersCount?: string
   tags?: string[]
+  /** Discrete stages inside the game. Defaults to 1 (endless / single run). */
+  levelCount?: number
+  /** World progress threshold before this game unlocks. Defaults to 1 (open). */
+  unlockAtWorldLevel?: number
+  preferredOrientation?: StageOrientation
+  controlScheme?: ControlScheme
 }
 
 export interface LiveRoomItem {
@@ -87,6 +95,9 @@ export const ALL_GAMES: GameItem[] = [
     route: '/games/g-hextris',
     bestScore: '12,450 pts',
     tags: ['arcade', 'hextris', 'puzzle', 'hexagon'],
+    levelCount: 10,
+    controlScheme: 'horizontal',
+    preferredOrientation: 'portrait',
   },
   {
     id: 'g-invaders',
@@ -108,6 +119,9 @@ export const ALL_GAMES: GameItem[] = [
     route: '/games/g-invaders',
     bestScore: '8,900 pts',
     tags: ['arcade', 'invaders', 'shooter', 'space', 'boss'],
+    levelCount: 10,
+    controlScheme: 'horizontal',
+    preferredOrientation: 'landscape',
   },
   {
     id: 'g-snake',
@@ -128,6 +142,9 @@ export const ALL_GAMES: GameItem[] = [
     route: '/games/g-snake',
     bestScore: '3,420 pts',
     tags: ['arcade', 'snake', 'classic', 'neon'],
+    levelCount: 10,
+    controlScheme: 'dpad',
+    preferredOrientation: 'portrait',
   },
   {
     id: 'g-brick',
@@ -148,9 +165,88 @@ export const ALL_GAMES: GameItem[] = [
     route: '/games/g-brick',
     bestScore: '15,200 pts',
     tags: ['arcade', 'arkanoid', 'breakout', 'brick'],
+    levelCount: 10,
+    controlScheme: 'horizontal',
+    preferredOrientation: 'portrait',
+  },
+  {
+    id: 'g-flappy',
+    title: 'Flappy Neon Hero',
+    titleAr: 'البطل الطائر النيوني 🐤',
+    world: 'arcade',
+    category: 'Flappy Flyer',
+    categoryAr: 'طيران ومراحل',
+    icon: '🐤',
+    color: 'from-sky-400 via-cyan-500 to-emerald-600',
+    plays: '38.6k',
+    stars: 4.7,
+    isNew: true,
+    xpReward: 360,
+    difficulty: 'Medium',
+    difficultyAr: 'متوسط',
+    descAr: 'حلّق بين فجوات الأنابيب النيونية بلمسة واحدة، اجمع العملات، واجتز مراحل أطول وأضيق!',
+    descEn: 'Tap to fly through neon pipe gaps, collect coins, and clear ever-tighter stage layouts!',
+    route: '/games/g-flappy',
+    bestScore: '42 pipes',
+    tags: ['arcade', 'flappy', 'flyer', 'tap'],
+    levelCount: 8,
+    unlockAtWorldLevel: 2,
+    controlScheme: 'tap',
+    preferredOrientation: 'portrait',
+  },
+  {
+    id: 'g-colorblocks',
+    title: 'Color Blocks Drop',
+    titleAr: 'قوالب الألوان 🧩',
+    world: 'arcade',
+    category: 'Match Drop',
+    categoryAr: 'مطابقة وألوان',
+    icon: '🧩',
+    color: 'from-fuchsia-500 via-pink-600 to-violet-700',
+    plays: '12.4k',
+    stars: 4.8,
+    isNew: true,
+    xpReward: 400,
+    difficulty: 'Medium',
+    difficultyAr: 'متوسط',
+    descAr: 'قوالب ملونة تسقط في الأعمدة — طابق 3 أو أكثر لتفجيرها واجتز مراحل بأهداف أعلى!',
+    descEn: 'Colored blocks drop into columns — match 3+ to clear them and beat rising stage targets!',
+    route: '/games/g-colorblocks',
+    bestScore: '2,800 pts',
+    tags: ['arcade', 'color', 'blocks', 'match'],
+    levelCount: 10,
+    unlockAtWorldLevel: 1,
+    controlScheme: 'horizontal',
+    preferredOrientation: 'portrait',
+  },
+  {
+    id: 'g-ballrun',
+    title: 'Ball Run 3D',
+    titleAr: 'كرة الجري ثلاثية الأبعاد 🏐',
+    world: 'arcade',
+    category: '3D Runner',
+    categoryAr: 'جري 3D',
+    icon: '🏐',
+    color: 'from-cyan-400 via-sky-600 to-indigo-800',
+    plays: '9.8k',
+    stars: 4.9,
+    isNew: true,
+    isFeatured: true,
+    xpReward: 460,
+    difficulty: 'Medium',
+    difficultyAr: 'متوسط',
+    descAr: 'ادر كرة النيون على مسار معلق، اجمع الجواهر، وتفادى الفراغات في تجربة 3D متوسطة على الموبايل!',
+    descEn: 'Steer a neon ball along a suspended track, collect gems, and dodge gaps in a mobile-friendly 3D run!',
+    route: '/games/g-ballrun',
+    bestScore: '1,250 m',
+    tags: ['arcade', '3d', 'ball', 'runner'],
+    levelCount: 8,
+    unlockAtWorldLevel: 2,
+    controlScheme: 'horizontal',
+    preferredOrientation: 'portrait',
   },
 
-  // ── 2. REFLEX WORLD (4 Games) ─────────────────────────────────────────────
+  // ── 2. REFLEX WORLD ───────────────────────────────────────────────────────
   {
     id: 'g-rhythm',
     title: 'Cyber Rhythm Rush',
@@ -191,6 +287,9 @@ export const ALL_GAMES: GameItem[] = [
     route: '/games/g-dodge',
     bestScore: '4,890 m',
     tags: ['reflex', 'dodge', 'runner', 'speed'],
+    levelCount: 10,
+    controlScheme: 'swipe',
+    preferredOrientation: 'portrait',
   },
   {
     id: 'g-aim',
@@ -231,9 +330,83 @@ export const ALL_GAMES: GameItem[] = [
     route: '/games/g-reverse',
     bestScore: '32 Streak',
     tags: ['reflex', 'reverse', 'mind', 'brain'],
+    controlScheme: 'swipe',
+  },
+  {
+    id: 'g-second',
+    title: 'Perfect Second',
+    titleAr: 'الثانية المثالية ⏱️',
+    world: 'reflex',
+    category: 'Timing',
+    categoryAr: 'توقيت دقيق',
+    icon: '⏱️',
+    color: 'from-amber-400 via-orange-500 to-rose-600',
+    plays: '33.2k',
+    stars: 4.8,
+    isNew: true,
+    xpReward: 370,
+    difficulty: 'Hard',
+    difficultyAr: 'صعب',
+    descAr: 'أوقف المؤقت عند الثانية المطلوبة بالضبط. دقة المللي ثانية هي كل شيء عبر مراحل متزايدة!',
+    descEn: 'Stop the timer on the exact target second. Millisecond precision across escalating stages!',
+    route: '/games/g-second',
+    bestScore: '±3 ms',
+    tags: ['reflex', 'timing', 'precision', 'second'],
+    levelCount: 8,
+    unlockAtWorldLevel: 2,
+    controlScheme: 'tap',
+  },
+  {
+    id: 'g-simon',
+    title: 'Simon Neon Pattern',
+    titleAr: 'سيمون النمط النيوني 🎹',
+    world: 'reflex',
+    category: 'Memory Pattern',
+    categoryAr: 'ذاكرة وأنماط',
+    icon: '🎹',
+    color: 'from-fuchsia-500 via-purple-600 to-indigo-700',
+    plays: '41.5k',
+    stars: 4.9,
+    isNew: true,
+    xpReward: 390,
+    difficulty: 'Medium',
+    difficultyAr: 'متوسط',
+    descAr: 'احفظ تسلسل الأضواء والأصوات ثم أعده بلا خطأ. كل مرحلة تضيف نغمة جديدة للسلسلة!',
+    descEn: 'Memorize the neon light-and-tone sequence and replay it perfectly. Each stage adds a new beat!',
+    route: '/games/g-simon',
+    bestScore: '18 Sequence',
+    tags: ['reflex', 'simon', 'memory', 'pattern'],
+    levelCount: 10,
+    unlockAtWorldLevel: 3,
+    controlScheme: 'tap',
+  },
+  {
+    id: 'g-tunnel',
+    title: 'Neon Tunnel Rush 3D',
+    titleAr: 'نفق النيون ثلاثي الأبعاد 🌀',
+    world: 'reflex',
+    category: '3D Tunnel',
+    categoryAr: 'نفق 3D',
+    icon: '🌀',
+    color: 'from-rose-500 via-fuchsia-600 to-indigo-800',
+    plays: '8.2k',
+    stars: 4.9,
+    isNew: true,
+    xpReward: 450,
+    difficulty: 'Hard',
+    difficultyAr: 'صعب',
+    descAr: 'لُف داخل نفق نيون بسرعة خارقة وتفادى الحواجز الدائرية قبل ما تصطدم!',
+    descEn: 'Spin through a neon tunnel at breakneck speed and slip through barrier gaps before you crash!',
+    route: '/games/g-tunnel',
+    bestScore: '120 m',
+    tags: ['reflex', '3d', 'tunnel', 'dodge'],
+    levelCount: 8,
+    unlockAtWorldLevel: 2,
+    controlScheme: 'horizontal',
+    preferredOrientation: 'portrait',
   },
 
-  // ── 3. IQ LAB WORLD (4 Games) ─────────────────────────────────────────────
+  // ── 3. IQ LAB WORLD ───────────────────────────────────────────────────────
   {
     id: 'g-2048',
     title: '2048 Cyber Deluxe',
@@ -316,9 +489,83 @@ export const ALL_GAMES: GameItem[] = [
     route: '/games/g-mines',
     bestScore: '45s Clear',
     tags: ['iqlab', 'minesweeper', 'logic', 'deduction'],
+    levelCount: 5,
+    controlScheme: 'tap',
+  },
+  {
+    id: 'g-sudoku',
+    title: 'Neon Sudoku',
+    titleAr: 'سودوكو النيون 9️⃣',
+    world: 'iqlab',
+    category: 'Number Logic',
+    categoryAr: 'منطق وأرقام',
+    icon: '9️⃣',
+    color: 'from-indigo-500 via-violet-600 to-purple-800',
+    plays: '36.8k',
+    stars: 4.8,
+    isNew: true,
+    xpReward: 420,
+    difficulty: 'Hard',
+    difficultyAr: 'صعب',
+    descAr: 'املأ الشبكة 9×9 بالقواعد الكلاسيكية مع تلميحات نيونية ومراحل تتدرج من السهل للمستحيل!',
+    descEn: 'Fill the classic 9×9 grid with neon hints and stages that climb from easy to brutal!',
+    route: '/games/g-sudoku',
+    bestScore: 'Hard Clear',
+    tags: ['iqlab', 'sudoku', 'numbers', 'logic'],
+    levelCount: 9,
+    unlockAtWorldLevel: 2,
+    controlScheme: 'tap',
+  },
+  {
+    id: 'g-scramble',
+    title: 'Arabic Word Scramble',
+    titleAr: 'فك تشفير الكلمات 🔤',
+    world: 'iqlab',
+    category: 'Word Puzzle',
+    categoryAr: 'كلمات وأحاجي',
+    icon: '🔤',
+    color: 'from-teal-500 via-cyan-600 to-blue-700',
+    plays: '28.4k',
+    stars: 4.7,
+    isNew: true,
+    xpReward: 350,
+    difficulty: 'Medium',
+    difficultyAr: 'متوسط',
+    descAr: 'رتّب الحروف العربية المشوشة لتكوين الكلمة الصحيحة قبل نفاد الوقت عبر مراحل أطول!',
+    descEn: 'Unscramble Arabic letters into the correct word before the timer runs out across longer stages!',
+    route: '/games/g-scramble',
+    bestScore: '24 Words',
+    tags: ['iqlab', 'words', 'scramble', 'arabic'],
+    levelCount: 8,
+    unlockAtWorldLevel: 3,
+    controlScheme: 'tap',
+  },
+  {
+    id: 'g-flow',
+    title: 'Flow Connect',
+    titleAr: 'ربط المسارات 🔗',
+    world: 'iqlab',
+    category: 'Path Puzzle',
+    categoryAr: 'أحاجي مسارات',
+    icon: '🔗',
+    color: 'from-violet-500 via-purple-600 to-fuchsia-700',
+    plays: '11.0k',
+    stars: 4.8,
+    isNew: true,
+    xpReward: 430,
+    difficulty: 'Hard',
+    difficultyAr: 'صعب',
+    descAr: 'وصّل النقاط المتشابهة بمسارات ملونة من غير ما تتقاطع — ألغاز تتدرج لشبكات أكبر!',
+    descEn: 'Connect matching dots with colored paths that never cross — puzzles that grow into denser grids!',
+    route: '/games/g-flow',
+    bestScore: '7/7 Links',
+    tags: ['iqlab', 'flow', 'paths', 'logic'],
+    levelCount: 7,
+    unlockAtWorldLevel: 2,
+    controlScheme: 'swipe',
   },
 
-  // ── 4. SHILLA WORLD (4 Games) ─────────────────────────────────────────────
+  // ── 4. SHILLA WORLD ───────────────────────────────────────────────────────
   {
     id: 'g-draw',
     title: 'Draw & Guess Live',
@@ -423,6 +670,9 @@ export const ALL_GAMES: GameItem[] = [
     route: '/games/g-stack',
     bestScore: '48 Floors',
     tags: ['champions', 'stack', 'tower', 'timing'],
+    levelCount: 10,
+    controlScheme: 'tap',
+    preferredOrientation: 'portrait',
   },
   {
     id: 'g-math',
@@ -464,6 +714,9 @@ export const ALL_GAMES: GameItem[] = [
     route: '/games/g-pong',
     bestScore: '5 - 0 Win',
     tags: ['champions', 'pong', 'retro', 'sports'],
+    levelCount: 8,
+    controlScheme: 'horizontal',
+    preferredOrientation: 'landscape',
   },
 
   // ── 6. CHAOS WORLD (3 Games) ──────────────────────────────────────────────
@@ -528,6 +781,82 @@ export const ALL_GAMES: GameItem[] = [
     route: '/games/g-gravity',
     bestScore: '3,210 m',
     tags: ['chaos', 'gravity', 'runner', 'invert'],
+    levelCount: 10,
+    controlScheme: 'tap',
+    preferredOrientation: 'landscape',
+  },
+  {
+    id: 'g-dontpress',
+    title: "Don't Press The Button",
+    titleAr: 'متضغطش الزر 🔴',
+    world: 'chaos',
+    category: 'Chaos Trap',
+    categoryAr: 'فخ فوضوي',
+    icon: '🔴',
+    color: 'from-rose-500 via-red-600 to-orange-600',
+    plays: '61.3k',
+    stars: 4.9,
+    isNew: true,
+    xpReward: 300,
+    difficulty: 'Easy',
+    difficultyAr: 'سهل',
+    descAr: 'الزر الأحمر يغريك. الأوامر تتناقض، المؤقت يصرخ، والضغط في اللحظة الغلط = نهاية فوضوية!',
+    descEn: 'The red button tempts you. Contradicting orders, screaming timers — press at the wrong moment and chaos wins!',
+    route: '/games/g-dontpress',
+    bestScore: '90s Survived',
+    tags: ['chaos', 'button', 'trap', 'dare'],
+    levelCount: 6,
+    unlockAtWorldLevel: 2,
+    controlScheme: 'tap',
+  },
+  {
+    id: 'g-pixelrun',
+    title: 'Pixel Chaos Runner',
+    titleAr: 'عداء البكسل الفوضوي 👾',
+    world: 'chaos',
+    category: 'Pixel Runner',
+    categoryAr: 'جري بكسل',
+    icon: '👾',
+    color: 'from-lime-400 via-emerald-500 to-teal-700',
+    plays: '44.1k',
+    stars: 4.8,
+    isNew: true,
+    xpReward: 410,
+    difficulty: 'Hard',
+    difficultyAr: 'صعب',
+    descAr: 'اركض في عالم بكسل ينقلب كل بضع ثوانٍ: جاذبية، سرعة، وألوان تتبدل بدون إنذار!',
+    descEn: 'Sprint through a pixel world that glitches every few seconds — gravity, speed, and colors flip without warning!',
+    route: '/games/g-pixelrun',
+    bestScore: '2,850 m',
+    tags: ['chaos', 'pixel', 'runner', 'glitch'],
+    levelCount: 8,
+    unlockAtWorldLevel: 3,
+    controlScheme: 'dpad',
+    preferredOrientation: 'landscape',
+  },
+  {
+    id: 'g-whack',
+    title: 'Whack-a-Glitch',
+    titleAr: 'اضرب الغليتش 👾',
+    world: 'chaos',
+    category: 'Whack Chaos',
+    categoryAr: 'ضرب فوضوي',
+    icon: '👾',
+    color: 'from-lime-400 via-yellow-500 to-rose-600',
+    plays: '15.7k',
+    stars: 4.8,
+    isNew: true,
+    xpReward: 380,
+    difficulty: 'Medium',
+    difficultyAr: 'متوسط',
+    descAr: 'اضرب الغليتشات قبل ما تختفي — والجماجم فخ! لا تضغطها وإلا هتخسر نقاط.',
+    descEn: 'Slap glitches before they vanish — skulls are traps! Hit them and you lose points.',
+    route: '/games/g-whack',
+    bestScore: '28 Hits',
+    tags: ['chaos', 'whack', 'glitch', 'reflex'],
+    levelCount: 8,
+    unlockAtWorldLevel: 2,
+    controlScheme: 'tap',
   },
 ]
 
@@ -662,6 +991,10 @@ export const IQ_QUIZZES: QuizItem[] = [
 ]
 
 // Helper Functions
+export const getGameById = (gameId: string): GameItem | undefined => {
+  return ALL_GAMES.find((g) => g.id === gameId)
+}
+
 export const getGamesByWorld = (worldId: NaghanishModeId): GameItem[] => {
   return ALL_GAMES.filter((g) => g.world === worldId)
 }
@@ -678,3 +1011,12 @@ export const getRandomGame = (): GameItem => {
   const index = Math.floor(Math.random() * ALL_GAMES.length)
   return ALL_GAMES[index]
 }
+
+/** Resolved play metadata with defaults filled in for older catalog entries. */
+export const getPlayMeta = (game: GameItem) => ({
+  levelCount: game.levelCount ?? 1,
+  unlockAtWorldLevel: game.unlockAtWorldLevel ?? 1,
+  preferredOrientation: game.preferredOrientation ?? ('any' as const),
+  controlScheme: game.controlScheme ?? ('none' as const),
+})
+

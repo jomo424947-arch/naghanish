@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle2, Lock } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
 import { AuthLayout } from '@components/layout/AuthLayout'
 import { PasswordField } from '@components/common/PasswordField'
 import { Button } from '@components/common/Button'

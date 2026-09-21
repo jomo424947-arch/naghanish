@@ -1,10 +1,9 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Sparkles, Gamepad2, Compass, ArrowRight, ArrowLeft } from 'lucide-react'
+import { Gamepad2, Compass, ArrowRight, ArrowLeft } from 'lucide-react'
 import { AuthLayout } from '@components/layout/AuthLayout'
 import { Button } from '@components/common/Button'
-import { ROUTES } from '@constants/routes'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
 

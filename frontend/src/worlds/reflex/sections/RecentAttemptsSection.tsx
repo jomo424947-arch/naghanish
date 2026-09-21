@@ -1,5 +1,5 @@
 import React from 'react'
-import { Flame, Clock, Zap } from 'lucide-react'
+import { Clock } from 'lucide-react'
 import { useThemeStore } from '@store/themeStore'
 
 const RECENT_ATTEMPTS = [

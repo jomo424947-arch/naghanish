@@ -1,5 +1,4 @@
 import React from 'react'
-import { Zap } from 'lucide-react'
 import { getGamesByWorld } from '@data/games.data'
 import { ReflexTestCard } from '../components/ReflexTestCard'
 import { useThemeStore } from '@store/themeStore'

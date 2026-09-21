@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { X, Play, Sparkles, Shuffle } from 'lucide-react'
+import { X, Play } from 'lucide-react'
 import { getRandomGame, GameItem } from '@data/games.data'
 import { useThemeStore } from '@store/themeStore'
 

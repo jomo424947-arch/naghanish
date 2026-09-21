@@ -1,5 +1,4 @@
 import React from 'react'
-import { Flame, Sparkles, Trophy } from 'lucide-react'
 import { useThemeStore } from '@store/themeStore'
 
 export const DailyMadnessSection: React.FC = () => {

@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Logo } from '@components/common/Logo'
 import { Button } from '@components/common/Button'
 import { GamerMascot } from '@components/common/GamerMascot'
 import { AnimatedBackground } from '@components/common/AnimatedBackground'

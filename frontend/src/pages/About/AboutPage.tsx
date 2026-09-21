@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles, Gamepad2, Heart, Shield, Code, ArrowRight, ArrowLeft } from 'lucide-react'
+import { Sparkles, Gamepad2, Shield, Code } from 'lucide-react'
 import { Logo } from '@components/common/Logo'
 import { SectionTitle } from '@components/common/SectionTitle'
 import { Button } from '@components/common/Button'

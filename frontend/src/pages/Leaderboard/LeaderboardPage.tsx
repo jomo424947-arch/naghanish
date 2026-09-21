@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Trophy, Medal, Crown, TrendingUp, Sparkles, Award, Zap, CheckCircle2 } from 'lucide-react'
-import { ModeMascot, NaghanishModeId } from '@components/common/ModeVisuals'
+import { Trophy, Sparkles, Award, Zap, CheckCircle2 } from 'lucide-react'
+import { ModeMascot } from '@components/common/ModeVisuals'
 import { Button } from '@components/common/Button'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
@@ -248,10 +248,14 @@ export const LeaderboardPage: React.FC = () => {
           {isRtl ? 'قائمة المتصدرين' : 'Full Rankings'}
         </h3>
 
-        {players.map((p, i) => (
+        {restPlayers.map((p) => (
           <div
             key={p.userId}
-            className="p-4 rounded-2xl bg-brand-card/90 border border-brand-cardBorder hover:border-amber-400/50 flex items-center justify-between gap-4 transition-all"
+            className={`p-4 rounded-2xl bg-brand-card/90 border flex items-center justify-between gap-4 transition-all ${
+              p.userId === user?.id
+                ? 'border-amber-400 shadow-[0_0_18px_rgba(245,158,11,0.35)]'
+                : 'border-brand-cardBorder hover:border-amber-400/50'
+            }`}
           >
             <div className="flex items-center gap-3.5">
               <span className="w-8 text-center font-black text-sm text-slate-400">

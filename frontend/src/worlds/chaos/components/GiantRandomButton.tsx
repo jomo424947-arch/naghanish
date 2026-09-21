@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { Shuffle, Sparkles, Flame, Play } from 'lucide-react'
 import { useThemeStore } from '@store/themeStore'
 
 interface GiantRandomButtonProps {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ShoppingBag, Star, Zap, Lock, Sparkles, CheckCircle2, Shield, Crown, AlertCircle } from 'lucide-react'
+import { Zap, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Button } from '@components/common/Button'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'

@@ -56,6 +56,7 @@ venv.bak/
 .env.development.local
 .env.test.local
 .env.production.local
+.dev-secret
 *.db
 *.sqlite
 *.sqlite3
@@ -64,6 +65,7 @@ venv.bak/
 # ── IDE & Editor ─────────────────────────────────────────────────────────────
 .vscode/
 .idea/
+.cursor/
 *.swp
 *.swo
 *.DS_Store
@@ -86,3 +88,4 @@ coverage/
 *.tsbuildinfo
 .eslintcache
 .stylelintcache
+eslint-*.json

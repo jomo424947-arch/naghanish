@@ -31,7 +31,7 @@ export const ShillaPage: React.FC = () => {
     navigate(`/party/lobby/${code.toUpperCase()}`)
   }
 
-  const handleCreateRoomSubmit = (roomData: { name: string; maxPlayers: number; isPrivate: boolean }) => {
+  const handleCreateRoomSubmit = () => {
     const generatedCode = 'SH' + Math.floor(1000 + Math.random() * 9000)
     setShowCreateModal(false)
     navigate(`/party/lobby/${generatedCode}`)

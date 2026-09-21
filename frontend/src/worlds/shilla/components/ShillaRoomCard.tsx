@@ -1,5 +1,5 @@
 import React from 'react'
-import { Users, Play, ShieldCheck, Flame } from 'lucide-react'
+import { Users, Play } from 'lucide-react'
 import { LiveRoomItem } from '@data/games.data'
 import { useThemeStore } from '@store/themeStore'
 import { cn } from '@lib/utils'

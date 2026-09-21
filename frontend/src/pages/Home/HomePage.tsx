@@ -8,34 +8,14 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import {
-  Gamepad2,
-  Sparkles,
-  Users,
-  Trophy,
-  Flame,
-  Zap,
-  Play,
-  Bell,
-  ArrowRight,
-  ArrowLeft,
-  Crown,
-  Shuffle,
-  Compass,
-  Star,
-  Layers,
-  Award,
-  Radio,
-  Clock,
-} from 'lucide-react'
-import { Card } from '@components/common/Card'
-import { Button } from '@components/common/Button'
+import { Sparkles, Users, Flame, Zap, Play, Bell, ArrowRight, ArrowLeft, Compass } from 'lucide-react'
 import { SEO } from '@components/common/SEO'
 import { AdSlot } from '@components/common/AdSlot'
 import { GamerMascot } from '@components/common/GamerMascot'
-import { ModeMascot, NaghanishModeId } from '@components/common/ModeVisuals'
+import { NaghanishModeId } from '@constants/modes'
+import { ModeMascot } from '@components/common/ModeVisuals'
 import { WORLD_THEMES } from '@theme/world.theme'
-import { getFeaturedGame, LIVE_ROOMS } from '@data/games.data'
+import { getFeaturedGame } from '@data/games.data'
 import { ROUTES } from '@constants/routes'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'

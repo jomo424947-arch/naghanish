@@ -3,7 +3,7 @@ import { Sparkles, X, ExternalLink } from 'lucide-react'
 import { useThemeStore } from '@store/themeStore'
 import { cn } from '@lib/utils'
 
-import { NaghanishModeId } from '@components/common/ModeVisuals'
+import { NaghanishModeId } from '@constants/modes'
 import { WORLD_THEMES } from '@theme/world.theme'
 
 export interface AdSlotProps {

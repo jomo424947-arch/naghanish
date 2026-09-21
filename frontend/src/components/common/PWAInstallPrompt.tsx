@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Download, X, Smartphone, Sparkles } from 'lucide-react'
+import { Download, X, Sparkles } from 'lucide-react'
 import { useThemeStore } from '@store/themeStore'
 
 interface BeforeInstallPromptEvent extends Event {

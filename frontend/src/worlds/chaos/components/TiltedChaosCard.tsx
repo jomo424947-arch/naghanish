@@ -1,5 +1,5 @@
 import React from 'react'
-import { Play, Sparkles, Flame } from 'lucide-react'
+import { Play } from 'lucide-react'
 import { useThemeStore } from '@store/themeStore'
 
 export interface ChaosChallengeItem {

@@ -1,5 +1,4 @@
 import React from 'react'
-import { Gamepad2 } from 'lucide-react'
 import { getGamesByWorld } from '@data/games.data'
 import { ArcadeCabinetCard } from '../components/ArcadeCabinetCard'
 import { useThemeStore } from '@store/themeStore'

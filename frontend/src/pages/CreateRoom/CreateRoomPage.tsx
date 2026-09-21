@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Users, Hash, Lock, Globe, Gamepad2, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react'
+import { Plus, Lock, Globe, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react'
 import { SectionTitle } from '@components/common/SectionTitle'
 import { Card } from '@components/common/Card'
 import { Button } from '@components/common/Button'

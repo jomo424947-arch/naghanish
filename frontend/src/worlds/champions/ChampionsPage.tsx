@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react'
-import { Trophy, Crown, Swords } from 'lucide-react'
+import { Trophy, Swords } from 'lucide-react'
 import { WorldShell } from '@components/world/WorldShell'
 import { WorldHero } from '@components/world/WorldHero'
 import { SEO } from '@components/common/SEO'

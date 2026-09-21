@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, ChevronDown, HelpCircle, MessageSquare, Mail, Phone, ExternalLink } from 'lucide-react'
+import { Search, ChevronDown, MessageSquare, Mail } from 'lucide-react'
 import { SectionTitle } from '@components/common/SectionTitle'
 import { Input } from '@components/common/Input'
 import { Button } from '@components/common/Button'

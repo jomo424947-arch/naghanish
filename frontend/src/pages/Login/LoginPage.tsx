@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles, User, ArrowRight, ArrowLeft } from 'lucide-react'
+import { User, ArrowRight, ArrowLeft } from 'lucide-react'
 import { AuthLayout } from '@components/layout/AuthLayout'
 import { Button } from '@components/common/Button'
 import { Input } from '@components/common/Input'
@@ -8,6 +8,7 @@ import { ROUTES } from '@constants/routes'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
 import { authApi } from '@api'
+import { getApiErrorMessage } from '@utils/apiError'
 
 const AVATARS = ['🧠', '⚡', '🎮', '👑', '🚀', '🎯', '🔥', '🃏']
 
@@ -40,11 +41,13 @@ export const LoginPage: React.FC = () => {
 
       login(authRes.user, authRes.token, authRes.refreshToken)
       navigate(ROUTES.WELCOME)
-    } catch (err: any) {
+    } catch (err) {
       console.error('Name login error:', err)
       setErrorMsg(
-        err.response?.data?.detail ||
-          (isRtl ? 'تعذر تسجيل الدخول بالاسم، يرجى المحاولة مرة أخرى' : 'Failed to sign in. Please try again.')
+        getApiErrorMessage(
+          err,
+          isRtl ? 'تعذر تسجيل الدخول بالاسم، يرجى المحاولة مرة أخرى' : 'Failed to sign in. Please try again.'
+        )
       )
     } finally {
       setIsLoading(false)

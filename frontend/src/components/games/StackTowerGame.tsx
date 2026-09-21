@@ -1,12 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { RotateCcw, Trophy, Layers, Flame } from 'lucide-react'
-import { soundManager } from '@utils/soundManager'
+/**
+ * StackTowerGame.tsx
+ *
+ * Neon Stack Tower — tap to place sliding blocks, perfect slices expand width.
+ * Phase 2: useGameLoop, responsive stage, level-scaled width/speed, floor goals.
+ */
 
-export interface StackTowerProps {
-  onFinish: (score: number) => void
-  isRtl?: boolean
-  difficulty?: 'Easy' | 'Medium' | 'Hard'
-}
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { RotateCcw, Trophy, Layers, Flame } from 'lucide-react'
+import { Button } from '@components/common/Button'
+import {
+  useGameLoop,
+  useGameShell,
+  useResponsiveStage,
+  type GameEngineProps,
+} from '@components/game-kit'
+import { useEventCallback } from '@hooks/useEventCallback'
+import { sound } from '@/utils/soundManager'
+
+const WORLD_W = 400
+const WORLD_H = 520
+const BLOCK_H = 24
 
 interface Block {
   x: number
@@ -38,13 +51,47 @@ interface Spark {
   life: number
 }
 
-export const StackTowerGame: React.FC<StackTowerProps> = ({ onFinish, isRtl, difficulty = 'Medium' }) => {
+function baseSpeedFor(level: number, difficulty: string): number {
+  const d = difficulty === 'Easy' ? 3.0 : difficulty === 'Hard' ? 4.8 : 3.8
+  return d + (level - 1) * 0.35
+}
+
+function initialWidthFor(level: number): number {
+  return Math.max(90, 170 - (level - 1) * 12)
+}
+
+function floorsTarget(level: number): number {
+  return 6 + level * 2
+}
+
+export const StackTowerGame: React.FC<GameEngineProps> = ({
+  onFinish,
+  isRtl,
+  difficulty = 'Medium',
+  level = 1,
+  onLevelComplete,
+}) => {
+  const { isPaused } = useGameShell()
+  const { containerRef, width, height, prepareCanvas } = useResponsiveStage({
+    aspectRatio: WORLD_W / WORLD_H,
+    minWidth: 240,
+    maxWidth: 400,
+  })
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [score, setScore] = useState(0)
+  const [floors, setFloors] = useState(0)
   const [combo, setCombo] = useState(0)
   const [highestCombo, setHighestCombo] = useState(0)
-  const [gameState, setGameState] = useState<'IDLE' | 'PLAYING' | 'GAMEOVER'>('IDLE')
-  const [feedback, setFeedback] = useState<{ text: string; color: string; key: number } | null>(null)
+  const [gameState, setGameState] = useState<'IDLE' | 'PLAYING' | 'GAMEOVER' | 'CLEARED'>('IDLE')
+  const [feedback, setFeedback] = useState<{ text: string; color: string; key: number } | null>(
+    null
+  )
+
+  const targetFloors = floorsTarget(level)
+  const finishedRef = useRef(false)
+  const gameStateRef = useRef(gameState)
+  gameStateRef.current = gameState
 
   const stateRef = useRef({
     running: false,
@@ -54,78 +101,111 @@ export const StackTowerGame: React.FC<StackTowerProps> = ({ onFinish, isRtl, dif
     currentX: 0,
     currentW: 160,
     currentY: 380,
-    blockHeight: 24,
+    blockHeight: BLOCK_H,
     direction: 1,
     speed: 3.8,
     cameraY: 0,
     targetCameraY: 0,
     score: 0,
     combo: 0,
-    baseHue: Math.floor(Math.random() * 360),
+    baseHue: 0,
     shake: 0,
+    maxExpandW: 200,
   })
 
-  // Start / Restart Game
-  const startGame = () => {
-    const baseSpeed = difficulty === 'Easy' ? 3.0 : difficulty === 'Hard' ? 4.8 : 3.8
-    const baseHue = Math.floor(Math.random() * 360)
-    const initialW = 170
+  const finishTower = useCallback(
+    (finalScore: number, cleared: boolean) => {
+      if (finishedRef.current) return
+      finishedRef.current = true
+      const stars = cleared
+        ? finalScore >= targetFloors * 3
+          ? 3
+          : finalScore >= targetFloors * 1.5
+            ? 2
+            : 1
+        : 0
+      if (cleared) {
+        onLevelComplete?.(level, stars)
+        sound.playWin()
+      }
+      onFinish(finalScore * 120 + (cleared ? 400 : 200), {
+        levelReached: level,
+        stars,
+        clearedAll: false,
+      })
+    },
+    [level, onFinish, onLevelComplete, targetFloors]
+  )
 
-    stateRef.current = {
-      running: true,
-      tower: [
-        {
-          x: (400 - initialW) / 2,
-          y: 420,
-          w: initialW,
-          h: 24,
-          hue: baseHue,
-        },
-      ],
-      fallingPieces: [],
-      sparks: [],
-      currentX: -50,
-      currentW: initialW,
-      currentY: 420 - 24,
-      blockHeight: 24,
-      direction: 1,
-      speed: baseSpeed,
-      cameraY: 0,
-      targetCameraY: 0,
-      score: 0,
-      combo: 0,
-      baseHue,
-      shake: 0,
-    }
+  const startGame = useCallback(
+    (autoStart = true) => {
+      sound.playClick()
+      const baseSpeed = baseSpeedFor(level, difficulty)
+      const baseHue = Math.floor(Math.random() * 360)
+      const initialW = initialWidthFor(level)
+      const maxExpand = Math.max(initialW + 20, 200 - (level - 1) * 8)
 
-    setScore(0)
-    setCombo(0)
-    setHighestCombo(0)
-    setFeedback(null)
-    setGameState('PLAYING')
-    soundManager.playPowerUp()
-  }
+      stateRef.current = {
+        running: autoStart,
+        tower: [
+          {
+            x: (WORLD_W - initialW) / 2,
+            y: 420,
+            w: initialW,
+            h: BLOCK_H,
+            hue: baseHue,
+          },
+        ],
+        fallingPieces: [],
+        sparks: [],
+        currentX: -50,
+        currentW: initialW,
+        currentY: 420 - BLOCK_H,
+        blockHeight: BLOCK_H,
+        direction: 1,
+        speed: baseSpeed,
+        cameraY: 0,
+        targetCameraY: 0,
+        score: 0,
+        combo: 0,
+        baseHue,
+        shake: 0,
+        maxExpandW: maxExpand,
+      }
 
-  // Handle block drop
-  const handlePlaceBlock = () => {
-    if (gameState === 'IDLE') {
-      startGame()
+      setScore(0)
+      setFloors(0)
+      setCombo(0)
+      setHighestCombo(0)
+      setFeedback(null)
+      finishedRef.current = false
+      setGameState(autoStart ? 'PLAYING' : 'IDLE')
+      if (autoStart) sound.playPowerUp()
+    },
+    [difficulty, level]
+  )
+
+  useEffect(() => {
+    startGame(false)
+  }, [level, startGame])
+
+  const handlePlaceBlock = useEventCallback(() => {
+    if (gameStateRef.current === 'IDLE') {
+      startGame(true)
       return
     }
-    if (gameState === 'GAMEOVER' || !stateRef.current.running) return
+    if (gameStateRef.current !== 'PLAYING' || !stateRef.current.running) return
 
     const s = stateRef.current
     const topBlock = s.tower[s.tower.length - 1]
     const diff = s.currentX - topBlock.x
     const overhang = Math.abs(diff)
 
-    // Complete Miss
     if (overhang >= s.currentW) {
       s.running = false
       s.shake = 15
-      soundManager.playExplosion()
+      sound.playExplosion()
 
-      // The entire block falls down
       s.fallingPieces.push({
         x: s.currentX,
         y: s.currentY,
@@ -140,32 +220,37 @@ export const StackTowerGame: React.FC<StackTowerProps> = ({ onFinish, isRtl, dif
       })
 
       setGameState('GAMEOVER')
-      onFinish(s.score * 120 + 200)
+      finishTower(s.score, false)
       return
     }
 
     const currentHue = (s.baseHue + s.tower.length * 10) % 360
+    const perfectThresh = Math.max(3, 5 - Math.floor((level - 1) / 2))
 
-    // Perfect slice threshold
-    if (overhang < 5) {
-      // Snaps to perfect!
+    if (overhang < perfectThresh) {
       const newCombo = s.combo + 1
       s.combo = newCombo
       setCombo(newCombo)
       setHighestCombo((h) => Math.max(h, newCombo))
 
-      // Trigger audio based on combo
-      if (newCombo >= 8) soundManager.playComboX8()
-      else if (newCombo >= 4) soundManager.playComboX4()
-      else if (newCombo >= 2) soundManager.playComboX2()
-      else soundManager.playPerfectHit()
+      if (newCombo >= 8) sound.playComboX8()
+      else if (newCombo >= 4) sound.playComboX4()
+      else if (newCombo >= 2) sound.playComboX2()
+      else sound.playPerfectHit()
 
-      // Bonus block width expansion on 3+ combos!
-      if (newCombo >= 3 && s.currentW < 200) {
-        s.currentW = Math.min(200, s.currentW + 12)
-        setFeedback({ text: isRtl ? 'تمدد وتوسيع! +12px' : 'COMBO EXPAND! +12px', color: '#10b981', key: Date.now() })
+      if (newCombo >= 3 && s.currentW < s.maxExpandW) {
+        s.currentW = Math.min(s.maxExpandW, s.currentW + 12)
+        setFeedback({
+          text: isRtl ? 'تمدد وتوسيع! +12px' : 'COMBO EXPAND! +12px',
+          color: '#10b981',
+          key: Date.now(),
+        })
       } else {
-        setFeedback({ text: isRtl ? `مثالي! ${newCombo}x` : `PERFECT! ${newCombo}x`, color: '#38bdf8', key: Date.now() })
+        setFeedback({
+          text: isRtl ? `مثالي! ${newCombo}x` : `PERFECT! ${newCombo}x`,
+          color: '#38bdf8',
+          key: Date.now(),
+        })
       }
 
       s.tower.push({
@@ -178,17 +263,15 @@ export const StackTowerGame: React.FC<StackTowerProps> = ({ onFinish, isRtl, dif
 
       s.score += 2 + Math.min(newCombo, 5)
     } else {
-      // Imperfect slice!
       s.combo = 0
       setCombo(0)
-      soundManager.playMove()
+      sound.playMove()
 
       const newW = s.currentW - overhang
       const newX = diff > 0 ? s.currentX : topBlock.x
       const sliceW = overhang
       const sliceX = diff > 0 ? topBlock.x + topBlock.w : s.currentX
 
-      // Add falling sliced piece
       s.fallingPieces.push({
         x: sliceX,
         y: s.currentY,
@@ -202,7 +285,6 @@ export const StackTowerGame: React.FC<StackTowerProps> = ({ onFinish, isRtl, dif
         alpha: 1,
       })
 
-      // Spawn spark particles at cut point
       for (let i = 0; i < 16; i++) {
         s.sparks.push({
           x: sliceX + (diff > 0 ? 0 : sliceW),
@@ -227,36 +309,44 @@ export const StackTowerGame: React.FC<StackTowerProps> = ({ onFinish, isRtl, dif
     }
 
     setScore(s.score)
+    const placedFloors = s.tower.length - 1
+    setFloors(placedFloors)
 
-    // Increase speed slightly with height
-    s.speed = Math.min(8.5, s.speed + 0.08)
+    if (placedFloors >= targetFloors) {
+      s.running = false
+      setGameState('CLEARED')
+      finishTower(s.score, true)
+      return
+    }
 
-    // Advance to next level
+    s.speed = Math.min(8.5 + level * 0.3, s.speed + 0.08 + level * 0.01)
+
     s.currentY -= s.blockHeight
-    s.currentX = s.direction > 0 ? -s.currentW : 400
+    s.currentX = s.direction > 0 ? -s.currentW : WORLD_W
 
-    // Adjust camera target
     if (s.tower.length > 5) {
       s.targetCameraY = (s.tower.length - 5) * s.blockHeight
     }
-  }
+  })
 
-  // Animation Loop
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault()
+        handlePlaceBlock()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [handlePlaceBlock])
 
-    let animId: number
-
-    const render = () => {
+  useGameLoop(
+    (delta) => {
       const s = stateRef.current
+      const dt = delta * 60
 
-      // Smooth camera interpolation
       s.cameraY += (s.targetCameraY - s.cameraY) * 0.1
 
-      // Screen shake decay
       let shakeOffsetX = 0
       let shakeOffsetY = 0
       if (s.shake > 0) {
@@ -266,48 +356,72 @@ export const StackTowerGame: React.FC<StackTowerProps> = ({ onFinish, isRtl, dif
         if (s.shake < 0.5) s.shake = 0
       }
 
-      ctx.save()
-      ctx.clearRect(0, 0, 400, 520)
+      if (s.running && gameStateRef.current === 'PLAYING') {
+        s.currentX += s.direction * s.speed * dt
+        if (s.currentX + s.currentW > WORLD_W + 10) {
+          s.currentX = WORLD_W + 10 - s.currentW
+          s.direction = -1
+        } else if (s.currentX < -10) {
+          s.currentX = -10
+          s.direction = 1
+        }
+      }
 
-      // Background Cyber Sky Gradient
-      const bgGrad = ctx.createLinearGradient(0, 0, 0, 520)
+      for (let i = s.fallingPieces.length - 1; i >= 0; i--) {
+        const p = s.fallingPieces[i]
+        p.y += p.vy * dt
+        p.x += p.vx * dt
+        p.vy += 0.35 * dt
+        p.rot += p.vRot * dt
+        p.alpha -= 0.015 * dt
+        if (p.alpha <= 0 || p.y > 600 - s.cameraY) s.fallingPieces.splice(i, 1)
+      }
+
+      for (let i = s.sparks.length - 1; i >= 0; i--) {
+        const sp = s.sparks[i]
+        sp.x += sp.vx * dt
+        sp.y += sp.vy * dt
+        sp.life -= 0.04 * dt
+        if (sp.life <= 0) s.sparks.splice(i, 1)
+      }
+
+      const ctx = prepareCanvas(canvasRef.current)
+      if (!ctx) return
+
+      ctx.save()
+      ctx.scale(width / WORLD_W, height / WORLD_H)
+      ctx.clearRect(0, 0, WORLD_W, WORLD_H)
+
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, WORLD_H)
       bgGrad.addColorStop(0, '#050714')
       bgGrad.addColorStop(1, '#0d132a')
       ctx.fillStyle = bgGrad
-      ctx.fillRect(0, 0, 400, 520)
+      ctx.fillRect(0, 0, WORLD_W, WORLD_H)
 
-      // Grid Lines
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)'
       ctx.lineWidth = 1
-      for (let y = 0; y < 520; y += 30) {
+      for (let y = 0; y < WORLD_H; y += 30) {
         ctx.beginPath()
         ctx.moveTo(0, y)
-        ctx.lineTo(400, y)
+        ctx.lineTo(WORLD_W, y)
         ctx.stroke()
       }
 
       ctx.translate(shakeOffsetX, shakeOffsetY + s.cameraY)
 
-      // 1. Draw Tower Blocks
       s.tower.forEach((b, idx) => {
         const isTop = idx === s.tower.length - 1
         const mainColor = `hsl(${b.hue}, 85%, 55%)`
         const topColor = `hsl(${b.hue}, 95%, 70%)`
         const shadowColor = `hsl(${b.hue}, 80%, 35%)`
 
-        // Block body
         ctx.fillStyle = mainColor
         ctx.fillRect(b.x, b.y, b.w, b.h)
-
-        // Top highlight
         ctx.fillStyle = topColor
         ctx.fillRect(b.x, b.y, b.w, 4)
-
-        // Bottom shadow
         ctx.fillStyle = shadowColor
         ctx.fillRect(b.x, b.y + b.h - 4, b.w, 4)
 
-        // Outer glow on top block
         if (isTop) {
           ctx.strokeStyle = '#ffffff'
           ctx.lineWidth = 1.5
@@ -315,38 +429,18 @@ export const StackTowerGame: React.FC<StackTowerProps> = ({ onFinish, isRtl, dif
         }
       })
 
-      // 2. Update & Draw Moving Block
-      if (s.running) {
-        s.currentX += s.direction * s.speed
-        if (s.currentX + s.currentW > 410) {
-          s.currentX = 410 - s.currentW
-          s.direction = -1
-        } else if (s.currentX < -10) {
-          s.currentX = -10
-          s.direction = 1
-        }
-
+      if (s.running || gameStateRef.current === 'PLAYING') {
         const curHue = (s.baseHue + s.tower.length * 10) % 360
         ctx.fillStyle = `hsl(${curHue}, 90%, 60%)`
         ctx.shadowColor = `hsl(${curHue}, 100%, 70%)`
         ctx.shadowBlur = 12
         ctx.fillRect(s.currentX, s.currentY, s.currentW, s.blockHeight)
         ctx.shadowBlur = 0
-
-        // Highlight line
         ctx.fillStyle = `hsl(${curHue}, 100%, 80%)`
         ctx.fillRect(s.currentX, s.currentY, s.currentW, 4)
       }
 
-      // 3. Update & Draw Falling Slices
-      for (let i = s.fallingPieces.length - 1; i >= 0; i--) {
-        const p = s.fallingPieces[i]
-        p.y += p.vy
-        p.x += p.vx
-        p.vy += 0.35 // Gravity
-        p.rot += p.vRot
-        p.alpha -= 0.015
-
+      s.fallingPieces.forEach((p) => {
         ctx.save()
         ctx.globalAlpha = Math.max(0, p.alpha)
         ctx.translate(p.x + p.w / 2, p.y + p.h / 2)
@@ -354,46 +448,32 @@ export const StackTowerGame: React.FC<StackTowerProps> = ({ onFinish, isRtl, dif
         ctx.fillStyle = `hsl(${p.hue}, 80%, 50%)`
         ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h)
         ctx.restore()
+      })
 
-        if (p.alpha <= 0 || p.y > 600 - s.cameraY) {
-          s.fallingPieces.splice(i, 1)
-        }
-      }
-
-      // 4. Update & Draw Sparks
-      for (let i = s.sparks.length - 1; i >= 0; i--) {
-        const sp = s.sparks[i]
-        sp.x += sp.vx
-        sp.y += sp.vy
-        sp.life -= 0.04
-
+      s.sparks.forEach((sp) => {
         ctx.fillStyle = sp.color
         ctx.globalAlpha = Math.max(0, sp.life)
         ctx.beginPath()
         ctx.arc(sp.x, sp.y, 2.5, 0, Math.PI * 2)
         ctx.fill()
-
-        if (sp.life <= 0) s.sparks.splice(i, 1)
-      }
+      })
       ctx.globalAlpha = 1
 
       ctx.restore()
-
-      animId = requestAnimationFrame(render)
-    }
-
-    animId = requestAnimationFrame(render)
-    return () => cancelAnimationFrame(animId)
-  }, [])
+    },
+    { running: !isPaused && gameState !== 'IDLE' }
+  )
 
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-md mx-auto select-none">
-      {/* Top Header */}
       <div className="flex items-center justify-between w-full px-5 py-3 rounded-2xl bg-black/60 border border-brand-cardBorder backdrop-blur-md shadow-xl">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
             <Layers className="w-5 h-5 text-cyan-400" />
-            <span className="text-xl font-black font-mono text-cyan-300">{score}</span>
+            <span className="text-xl font-black font-mono text-cyan-300">
+              {floors}/{targetFloors}
+            </span>
+            <span className="text-xs font-mono text-amber-300/90">{score} pts</span>
           </div>
           {combo > 1 && (
             <div className="flex items-center gap-1 text-xs font-black text-amber-400 animate-bounce">
@@ -401,6 +481,7 @@ export const StackTowerGame: React.FC<StackTowerProps> = ({ onFinish, isRtl, dif
               <span>{combo}x COMBO!</span>
             </div>
           )}
+          <span className="text-xs text-cyan-500 font-mono">L{level}</span>
         </div>
 
         {feedback && (
@@ -414,72 +495,91 @@ export const StackTowerGame: React.FC<StackTowerProps> = ({ onFinish, isRtl, dif
         )}
       </div>
 
-      {/* Canvas Area */}
-      <div
-        className="relative rounded-3xl overflow-hidden border-2 border-brand-cardBorder shadow-2xl bg-black cursor-pointer active:scale-[0.99] transition-transform"
-        onClick={handlePlaceBlock}
-      >
-        <canvas ref={canvasRef} width={400} height={520} className="w-full max-w-[400px] h-auto block" />
+      <div ref={containerRef} className="w-full flex justify-center">
+        <div
+          className="relative rounded-3xl overflow-hidden border-2 border-brand-cardBorder shadow-2xl bg-black cursor-pointer active:scale-[0.99] transition-transform touch-none [overscroll-behavior:contain]"
+          style={{ width, height }}
+          onClick={handlePlaceBlock}
+        >
+          <canvas ref={canvasRef} className="block w-full h-full" />
 
-        {/* Start Overlay */}
-        {gameState === 'IDLE' && (
-          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 mb-4 animate-bounce">
-              <Layers className="w-8 h-8" />
-            </div>
-            <h3 className="text-2xl font-black text-white mb-2">
-              {isRtl ? 'برج النيون المتكدس 🗼' : 'NEON STACK TOWER 🗼'}
-            </h3>
-            <p className="text-xs text-gray-300 max-w-xs mb-6 leading-relaxed">
-              {isRtl
-                ? 'اضغط في التوقيت الدقيق لإسقاط المكعب فوق البرج! المحاذاة المثالية المتتالية تكافئك بتوسيع المكعب ومضاعفة النقاط.'
-                : 'Tap with split-second precision to stack blocks! Hit perfect slices in a row to expand blocks and build an endless monolith.'}
-            </p>
-            <button className="px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black hover:opacity-90 shadow-lg shadow-cyan-500/25 active:scale-95">
-              {isRtl ? 'اضغط للبدء' : 'Tap to Build'}
-            </button>
-          </div>
-        )}
-
-        {/* Game Over Overlay */}
-        {gameState === 'GAMEOVER' && (
-          <div className="absolute inset-0 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 mb-4">
-              <Trophy className="w-8 h-8" />
-            </div>
-            <h3 className="text-2xl font-black text-white mb-1">
-              {isRtl ? 'سقط البرج! 💥' : 'Tower Collapsed! 💥'}
-            </h3>
-            <p className="text-xs text-gray-400 mb-4">
-              {isRtl ? 'محاولة بطولية في بناء ناطحة السحاب!' : 'Great run building the cyber skyscraper!'}
-            </p>
-
-            <div className="grid grid-cols-2 gap-3 w-full max-w-xs mb-6">
-              <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex flex-col items-center">
-                <span className="text-[10px] text-gray-400">{isRtl ? 'الارتفاع' : 'Height'}</span>
-                <span className="text-xl font-black text-cyan-400 font-mono">{score} {isRtl ? 'طابق' : 'Fl'}</span>
+          {gameState === 'IDLE' && (
+            <div className="absolute inset-0 bg-black/75 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
+              <div className="w-16 h-16 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 mb-4 animate-bounce">
+                <Layers className="w-8 h-8" />
               </div>
-              <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex flex-col items-center">
-                <span className="text-[10px] text-gray-400">{isRtl ? 'أعلى كومبو' : 'Max Combo'}</span>
-                <span className="text-xl font-black text-amber-400 font-mono">{highestCombo}x</span>
-              </div>
+              <h3 className="text-2xl font-black text-white mb-2">
+                {isRtl ? `برج النيون · مرحلة ${level}` : `Stack Tower · Level ${level}`}
+              </h3>
+              <p className="text-xs text-gray-300 max-w-xs mb-6 leading-relaxed">
+                {isRtl
+                  ? `ابنِ ${targetFloors} طوابق. المراحل الأعلى: مكعبات أضيق وحركة أسرع.`
+                  : `Stack ${targetFloors} floors. Higher levels = narrower blocks & faster slides.`}
+              </p>
+              <Button variant="primary" size="sm" onClick={() => startGame(true)}>
+                {isRtl ? 'اضغط للبدء' : 'Tap to Build'}
+              </Button>
             </div>
+          )}
 
-            <button
-              onClick={startGame}
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black hover:opacity-90 transition-all shadow-lg shadow-cyan-500/25 active:scale-95"
-            >
-              <RotateCcw className="w-5 h-5" />
-              <span>{isRtl ? 'إعادة البناء' : 'Rebuild Tower'}</span>
-            </button>
-          </div>
-        )}
+          {gameState === 'CLEARED' && (
+            <div className="absolute inset-0 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-10">
+              <span className="text-4xl mb-2">🏆</span>
+              <h3 className="text-2xl font-black text-emerald-400 mb-1">
+                {isRtl ? 'المرحلة خلصت!' : 'Level Cleared!'}
+              </h3>
+              <p className="text-xs text-white font-mono">
+                {isRtl ? 'الارتفاع:' : 'Height:'} {floors} {isRtl ? 'طابق' : 'Fl'}
+              </p>
+            </div>
+          )}
+
+          {gameState === 'GAMEOVER' && (
+            <div className="absolute inset-0 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-10">
+              <div className="w-16 h-16 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 mb-4">
+                <Trophy className="w-8 h-8" />
+              </div>
+              <h3 className="text-2xl font-black text-white mb-1">
+                {isRtl ? 'سقط البرج! 💥' : 'Tower Collapsed! 💥'}
+              </h3>
+              <p className="text-xs text-gray-400 mb-4">
+                {isRtl ? 'محاولة بطولية في بناء ناطحة السحاب!' : 'Great run building the cyber skyscraper!'}
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 w-full max-w-xs mb-6">
+                <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex flex-col items-center">
+                  <span className="text-[10px] text-gray-400">{isRtl ? 'الارتفاع' : 'Height'}</span>
+                  <span className="text-xl font-black text-cyan-400 font-mono">
+                    {floors} {isRtl ? 'طابق' : 'Fl'}
+                  </span>
+                </div>
+                <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex flex-col items-center">
+                  <span className="text-[10px] text-gray-400">
+                    {isRtl ? 'أعلى كومبو' : 'Max Combo'}
+                  </span>
+                  <span className="text-xl font-black text-amber-400 font-mono">{highestCombo}x</span>
+                </div>
+              </div>
+
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => startGame(true)}
+                className="flex items-center gap-2"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>{isRtl ? 'إعادة البناء' : 'Rebuild Tower'}</span>
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       <p className="text-[11px] text-gray-500 font-mono text-center">
-        {isRtl ? 'اضغط في أي مكان على الشاشة لإسقاط المكعب' : 'Tap anywhere on screen to drop current block'}
+        {isRtl
+          ? 'اضغط على الشاشة أو Space لإسقاط المكعب'
+          : 'Tap screen or press Space to drop the current block'}
       </p>
     </div>
   )
 }
-

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Swords, Trophy, Clock, Play } from 'lucide-react'
+import { Swords } from 'lucide-react'
 import { useThemeStore } from '@store/themeStore'
 
 export const TournamentSection: React.FC = () => {

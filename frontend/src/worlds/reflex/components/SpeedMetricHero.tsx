@@ -1,5 +1,5 @@
 import React from 'react'
-import { Zap, Flame, Clock, Trophy } from 'lucide-react'
+import { Zap, Clock, Trophy } from 'lucide-react'
 import { useThemeStore } from '@store/themeStore'
 
 export const SpeedMetricHero: React.FC = () => {

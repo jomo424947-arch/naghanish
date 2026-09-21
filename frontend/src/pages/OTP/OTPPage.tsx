@@ -20,12 +20,11 @@ export const OTPPage: React.FC = () => {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   useEffect(() => {
-    let interval: any = null
-    if (timer > 0) {
-      interval = setInterval(() => setTimer((t) => t - 1), 1000)
-    } else {
+    if (timer <= 0) {
       setCanResend(true)
+      return
     }
+    const interval = setInterval(() => setTimer((t) => t - 1), 1000)
     return () => clearInterval(interval)
   }, [timer])
 

@@ -8,31 +8,16 @@
  * - World context injection for themed AdSlots and components
  */
 
-import React, { createContext, useContext } from 'react'
+import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react'
-import { NaghanishModeId, ModeMascot } from '@components/common/ModeVisuals'
-import { WORLD_THEMES, WorldThemeConfig } from '@theme/world.theme'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { NaghanishModeId } from '@constants/modes'
+import { ModeMascot } from '@components/common/ModeVisuals'
+import { WORLD_THEMES } from '@theme/world.theme'
+import { WorldContext } from './worldContext'
 import { ROUTES } from '@constants/routes'
 import { useThemeStore } from '@store/themeStore'
 import { cn } from '@lib/utils'
-
-interface WorldContextType {
-  world: WorldThemeConfig
-  activeTab: string
-  setActiveTab: (tabId: string) => void
-}
-
-const WorldContext = createContext<WorldContextType | null>(null)
-
-export const useWorld = () => {
-  const context = useContext(WorldContext)
-  if (!context) {
-    throw new Error('useWorld must be used within a WorldShell')
-  }
-  return context
-}
 
 export interface WorldShellProps {
   worldId: NaghanishModeId

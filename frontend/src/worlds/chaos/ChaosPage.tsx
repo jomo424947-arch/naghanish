@@ -7,7 +7,7 @@
 
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Shuffle, Sparkles, Flame } from 'lucide-react'
+import { Sparkles, Flame } from 'lucide-react'
 import { WorldShell } from '@components/world/WorldShell'
 import { WorldHero } from '@components/world/WorldHero'
 import { SEO } from '@components/common/SEO'

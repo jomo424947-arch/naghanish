@@ -1,5 +1,4 @@
 import React from 'react'
-import { Trophy, Zap, Award } from 'lucide-react'
 import { useThemeStore } from '@store/themeStore'
 
 export interface LeaderboardPlayerItem {

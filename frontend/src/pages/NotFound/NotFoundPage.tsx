@@ -1,7 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Home, ArrowRight, ArrowLeft } from 'lucide-react'
+import { Home } from 'lucide-react'
 import { AuthLayout } from '@components/layout/AuthLayout'
 import { Button } from '@components/common/Button'
 import { ROUTES } from '@constants/routes'

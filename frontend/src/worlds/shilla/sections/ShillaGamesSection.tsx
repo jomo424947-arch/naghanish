@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles, Play, Star } from 'lucide-react'
+import { Play, Star } from 'lucide-react'
 import { getGamesByWorld } from '@data/games.data'
 import { useThemeStore } from '@store/themeStore'
 import { cn } from '@lib/utils'

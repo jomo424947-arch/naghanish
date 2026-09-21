@@ -14,24 +14,10 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import {
-  Globe,
-  Sparkles,
-  Users,
-  Gamepad2,
-  Brain,
-  Zap,
-  Trophy,
-  Flame,
-  ArrowRight,
-  ArrowLeft,
-  Play,
-  Layers,
-  Star,
-  Compass,
-} from 'lucide-react'
+import { Globe, Users, Gamepad2, ArrowRight, ArrowLeft } from 'lucide-react'
 import { SEO } from '@components/common/SEO'
-import { ModeMascot, NaghanishModeId } from '@components/common/ModeVisuals'
+import { NaghanishModeId } from '@constants/modes'
+import { ModeMascot } from '@components/common/ModeVisuals'
 import { WORLD_THEMES } from '@theme/world.theme'
 import { getGamesByWorld } from '@data/games.data'
 import { useThemeStore } from '@store/themeStore'

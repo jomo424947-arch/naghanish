@@ -5,7 +5,7 @@
  */
 
 import React, { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ROUTES } from '@constants/routes'
 import { LoadingSpinner } from '@components/common/LoadingSpinner'
 import { DashboardLayout } from '@layouts/DashboardLayout/DashboardLayout'

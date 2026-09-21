@@ -49,7 +49,7 @@ export const ArcadePage: React.FC = () => {
             : 'Retro pixel arcade machines engineered for high score chasers and competitive gaming masters.'
         }
         primaryActionLabel={isRtl ? 'العب الكابينة المميزة 🕹️' : 'Play Featured Cabinet 🕹️'}
-        onPrimaryAction={() => handlePlayGame(featuredArcade?.route || '/games/g1')}
+        onPrimaryAction={() => handlePlayGame(featuredArcade?.route || '/games/g-hextris')}
         secondaryActionLabel={isRtl ? 'لوحة الأرقام القياسية ⚡' : 'High Scores ⚡'}
         onSecondaryAction={() => setActiveTab('high-scores')}
         stats={[

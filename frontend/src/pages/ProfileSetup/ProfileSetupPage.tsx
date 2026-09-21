@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { User, Sparkles, Heart } from 'lucide-react'
+import { User, Sparkles } from 'lucide-react'
 import { AuthLayout } from '@components/layout/AuthLayout'
-import { AvatarPicker, AVATAR_OPTIONS } from '@components/common/AvatarPicker'
+import { AvatarPicker } from '@components/common/AvatarPicker'
+import { AVATAR_OPTIONS } from '@constants/avatars'
 import { TextField } from '@components/common/TextField'
 import { Button } from '@components/common/Button'
-import { ROUTES } from '@constants/routes'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
 
@@ -18,7 +18,7 @@ export const ProfileSetupPage: React.FC = () => {
   const [displayName, setDisplayName] = useState(user?.name || '')
   const [username, setUsername] = useState(user?.username || '')
   const [bio, setBio] = useState(user?.bio || '')
-  const [favoriteCategory, setFavoriteCategory] = useState(user?.favoriteCategory || 'Brain Games')
+  const [favoriteCategory] = useState(user?.favoriteCategory || 'Brain Games')
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {

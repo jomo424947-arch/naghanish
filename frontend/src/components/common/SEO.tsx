@@ -8,7 +8,7 @@ export interface SEOProps {
   image?: string
   url?: string
   type?: 'website' | 'article' | 'game'
-  jsonLd?: Record<string, any>
+  jsonLd?: Record<string, unknown>
 }
 
 export const SEO: React.FC<SEOProps> = ({

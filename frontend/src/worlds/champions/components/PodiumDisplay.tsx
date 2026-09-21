@@ -1,5 +1,5 @@
 import React from 'react'
-import { Crown, Trophy, Sparkles, Award } from 'lucide-react'
+import { Crown, Trophy } from 'lucide-react'
 import { useThemeStore } from '@store/themeStore'
 
 export interface PodiumPlayer {
@@ -45,6 +45,9 @@ export const PodiumDisplay: React.FC<PodiumDisplayProps> = ({ players }) => {
             <span className="text-xs sm:text-sm font-black text-white text-center truncate max-w-[120px]">
               {second.name}
             </span>
+            <span className="text-[9px] font-bold text-slate-400 truncate max-w-[120px]">
+              {isRtl ? second.title : second.titleEn}
+            </span>
             <span className="text-[10px] font-bold text-cyan-300">{second.xp}</span>
 
             {/* Pillar #2 */}
@@ -75,6 +78,9 @@ export const PodiumDisplay: React.FC<PodiumDisplayProps> = ({ players }) => {
             <span className="text-sm sm:text-base font-black text-amber-300 text-center truncate max-w-[140px]">
               {first.name}
             </span>
+            <span className="text-[10px] font-bold text-amber-200/70 truncate max-w-[140px]">
+              {isRtl ? first.title : first.titleEn}
+            </span>
             <span className="text-xs font-black text-amber-400">{first.xp}</span>
 
             {/* Pillar #1 */}
@@ -104,6 +110,9 @@ export const PodiumDisplay: React.FC<PodiumDisplayProps> = ({ players }) => {
 
             <span className="text-xs sm:text-sm font-black text-white text-center truncate max-w-[120px]">
               {third.name}
+            </span>
+            <span className="text-[9px] font-bold text-slate-400 truncate max-w-[120px]">
+              {isRtl ? third.title : third.titleEn}
             </span>
             <span className="text-[10px] font-bold text-cyan-300">{third.xp}</span>
 

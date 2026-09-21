@@ -90,7 +90,7 @@ export const AchievementsPage: React.FC = () => {
 
   const unlockedCount = achievements.filter((a) => a.unlocked).length
   const totalCount = achievements.length
-  const percentage = Math.round((unlockedCount / totalCount) * 100)
+  const percentage = totalCount > 0 ? Math.round((unlockedCount / totalCount) * 100) : 0
 
   return (
     <div className="flex flex-col gap-8 py-4 max-w-5xl mx-auto pb-20">
@@ -176,6 +176,20 @@ export const AchievementsPage: React.FC = () => {
       </div>
 
       {/* 4. Achievements Grid */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-40 rounded-3xl border-2 border-brand-cardBorder bg-brand-card/60 animate-pulse"
+            />
+          ))}
+        </div>
+      ) : filteredAchievements.length === 0 ? (
+        <div className="py-12 text-center text-sm font-bold text-slate-400">
+          {isRtl ? 'لا توجد إنجازات في هذا التصنيف بعد.' : 'No achievements in this category yet.'}
+        </div>
+      ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {filteredAchievements.map((ach, i) => (
           <motion.div
@@ -284,6 +298,7 @@ export const AchievementsPage: React.FC = () => {
           </motion.div>
         ))}
       </div>
+      )}
     </div>
   )
 }
